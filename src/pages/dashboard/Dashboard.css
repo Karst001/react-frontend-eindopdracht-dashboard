@@ -1,0 +1,180 @@
+/* ========== DASHBOARD GRID LAYOUT ========== */
+.dashboard-container {
+    display: grid;
+    grid-template-columns: 220px 1fr;                   /* sidebar + main content */
+    grid-template-rows: auto 1fr auto;                  /* header, main, footer */
+    gap: 10px;
+    padding: 10px;
+    box-sizing: border-box;
+    margin-top: var(--nav-height);                      /* offset for fixed navbar height */
+}
+
+
+/* ========== DASHBOARD HEADER ========== */
+.dashboard-header {
+    grid-column: 1 / -1;                                /* span full width across columns */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: #f0f0f0;
+}
+
+
+/* ========== SIDEBAR ========== */
+.dashboard-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+
+/* Dropdown in sidebar */
+.dashboard-sidebar select {
+    padding: 5px;
+    margin-bottom: 10px;
+}
+
+
+/* Buttons inside the sidebar */
+.dashboard-sidebar button {
+    width: 100%; /* Full width button */
+    align-self: center;
+    padding: 8px 0;
+    margin: 5px;
+}
+
+
+/* ========== MAIN CONTENT ========== */
+.dashboard-main {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+
+/* Responsive grid row for cards */
+.dashboard-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));    /* responsive layout */
+    gap: 15px;
+}
+
+
+/* Individual card */
+.card {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    background: #fff;
+}
+
+
+/* ========== SCHEDULE STATS SECTION ========== */
+.schedule-stats {
+    display: flex;
+    justify-content: space-around;
+}
+
+
+/* Individual stat area */
+.stat {
+    text-align: center;
+}
+
+
+/* Main stat value */
+.stat-value {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+
+/* ========== FOOTER ========== */
+.dashboard-footer {
+    grid-column: 1 / -1;                            /* span full width */
+    text-align: center;
+    padding: 10px;
+    font-size: 0.9em;
+    background: #f0f0f0;
+}
+
+
+/* ========== CLOCK (FIXED POSITION) ========== */
+.dashboard-clock {
+    position: fixed;
+    bottom: 100px;
+    left: 10px;
+    background: rgba(255, 255, 255, 0.9);           /* slightly transparent */
+    padding: 8px 12px;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    font-family: sans-serif;
+}
+
+
+/* Date inside clock */
+.clock-date {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+
+/* Clock container */
+.clock-time {
+    display: flex;
+    align-items: baseline;
+}
+
+
+/* Time digits (hours:minutes:seconds) */
+.clock-hms {
+    font-size: 40px;
+    font-weight: bold;
+}
+
+
+/* ========== FORECAST STATS (like for 'tomorrow') ========== */
+.forecast-stats {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    margin-top: 0.5rem;
+}
+
+
+/* Individual forecast card */
+.tomorrow-stat {
+    flex: 1;
+    text-align: center;
+    background: #e6f0ff;
+    border: 1px solid #0044cc;
+    border-radius: 6px;
+    padding: 8px 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: background 0.2s, transform 0.2s;
+}
+
+
+/* Hover effect for forecast */
+.tomorrow-stat:hover {
+    background: #cce0ff;
+    transform: translateY(-2px);                /* slight lift-up on hover */
+}
+
+
+/* Forecast stat label */
+.tomorrow-stat .label {
+    font-weight: normal;
+    font-size: 0.9rem;
+    color: #333;
+}
+
+
+/* Forecast stat value */
+.tomorrow-stat .value {
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: #0044cc;
+}
