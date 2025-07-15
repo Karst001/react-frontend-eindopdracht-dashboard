@@ -1,0 +1,65 @@
+.product {
+    display: flex;                                      /* flex layout for image and description side by side */
+    align-items: center;                                /* vertically align items */
+    justify-content: space-between;                     /* space between image and text */
+    margin: 20px 0;                                     /* vertical spacing */
+    padding: 20px;
+    background: #eee;                                   /* light gray background */
+    opacity: 0;                                         /* start hidden for animation */
+    transform: translateX(500px);                       /* slide-in animation starting point */
+    transition: opacity 1s ease, transform 1s ease;     /* smooth transition */
+    gap: 10px;
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 30px;
+    box-shadow: 1px 3px 7px rgba(0,0,0,0.5);            /* added shadow for depth */
+}
+
+.product.from-left {
+    transform: translateX(-500px);                      /* When coming from the left, slide in from the opposite direction */
+}
+
+
+.product.visible {
+    opacity: 1;                                         /* Make the product card visible and slide into place */
+    transform: translateX(0);
+}
+
+.description strong {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #0044cc;                                     /* blue color */
+}
+
+.image-placeholder {
+    flex: 1;                                            /* takes equal space as the description */
+    aspect-ratio: 4 / 3;                                /* maintain a natural image ratio */
+    background: #bbb;                                   /* gray background */
+    border-radius: 20px;
+    overflow: hidden;                                   /* ensures rounded corners are enforced on inner image */
+}
+
+.image-placeholder img {
+    width: 100%;
+    height: auto;                                       /* maintain natural image size */
+    object-fit: contain;                                /* scale image to fit without cropping */
+    border-radius: 20px;
+    display: block;                                     /* removes default inline spacing below images */
+}
+
+.description {
+    flex: 1;                                            /* same width as image container */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 10px;
+    height: 400px;                                      /* match height of image placeholder */
+    text-align: center;
+}
+
+.button-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+}
