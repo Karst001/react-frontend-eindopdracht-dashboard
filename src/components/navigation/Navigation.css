@@ -1,0 +1,22 @@
+nav {
+    background-color: #fff;             /* use white background */
+    display: flex;                      /* use Flexbox to arrange child elements */
+    justify-content: center;            /* center the nav content horizontally */
+}
+
+nav a,
+nav a:visited {
+    text-decoration: none;              /* remove underline from links */
+}
+
+nav a:hover {
+    color: white;                       /* change text color to white on hover */
+}
+
+ul {
+    list-style-type: none;              /* remove default bullet points */
+    flex-basis: 550px;                  /* set base width for the list items */
+    display: flex;                      /* use Flexbox to arrange list items */
+    justify-content: space-between;     /* evenly space items within the flex-basis with gaps between */
+    align-items: center;                /* vertically center list items */
+}

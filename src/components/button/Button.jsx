@@ -1,4 +1,5 @@
 import React from 'react';
+// import './Button.css';
 
 //this is a reusable Button component
 const Button = ({ text, onClick, type = "button", className = "" }) => {
