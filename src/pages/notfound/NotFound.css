@@ -1,0 +1,7 @@
+.notfound-page {
+    padding: 40px;
+    text-align: center;
+    font-size: 1.5rem;
+    margin-top: var(--nav-height);
+}
+
