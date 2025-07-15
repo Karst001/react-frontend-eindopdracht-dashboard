@@ -1,68 +1,133 @@
+/* ========== GLOBAL ROOT STYLES & VARIABLES ========== */
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;         /* base font */
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  color-scheme: light dark;                                             /* enables system color scheme support for later expansion */
+  color: rgba(255, 255, 255, 0.87);                                     /* default text color in dark mode */
+  background-color: #242424;                                            /* dark background */
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
+  font-synthesis: none;                                                 /* prevents automatic bold/italic synthesis */
+  text-rendering: optimizeLegibility;                                   /* improves font clarity */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  --nav-height: 80px;                                                   /* custom variable for consistent navbar height */
+  --footer-height: 40px;                                                /* custom variable for footer height */
 }
 
+
+/* ========== LINK STYLES ========== */
 a {
   font-weight: 500;
-  color: #646cff;
+  color: #646cff;                                                       /* default link color */
   text-decoration: inherit;
 }
+
 a:hover {
-  color: #535bf2;
+  color: #535bf2;                                                       /* slightly darker on hover */
 }
 
+
+/* ========== BASE BODY STYLES ========== */
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  min-width: 320px;                                                     /* prevent layout breakage on small screens */
+  min-height: 100vh;                                                    /* ensures full viewport height */
+  overflow-x: hidden;                                                   /* prevents horizontal scroll */
 }
 
+
+/* ========== TYPOGRAPHY ========== */
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
 }
 
-button {
+/* ========== PRIMARY BUTTON STYLES ========== */
+.btn-primary {
   border-radius: 8px;
-  border: 1px solid transparent;
+  border: none;
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: #0044cc;
+  color: #fff;
   cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  transition-duration: 0.2s;
+  box-shadow: inset 0 0 0 0 #5BA7E2;
 }
 
+
+/* Hover effect: expand inner shadow and change text color */
+.btn-primary:hover {
+  box-shadow: inset 400px 0 0 0 #5BA7E2;
+  color: black;
+}
+
+
+/* ========== LIGHT THEME OVERRIDES ========== */
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    color: #213547;                                           /* darker text for light mode */
+    background-color: #ffffff;                                /* light background */
   }
+
   a:hover {
-    color: #747bff;
+    color: #747bff;                                           /* slightly lighter hover in light mode */
   }
+
   button {
-    background-color: #f9f9f9;
+    background-color: #f9f9f9;                                /* default button background in light mode */
   }
 }
+
+/* ========== DEBUGGING ========== */
+/*
+ * Use these for layout debugging, shows all outlines and background colors
+ * very helpful
+ */
+/*
+
+* {
+  outline: 2px solid red;
+}
+
+html {
+  background: #eee;
+}
+
+body {
+  background: #ccc;
+}
+
+#root {
+  background: #faa;
+}
+
+main {
+  background: #afa;
+}
+
+html {
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+
+.nav-inner {
+  background: rgba(255,0,0,0.1); // See nav bounds
+}
+
+.logo {
+  background: rgba(0,255,0,0.1); // See logo bounds
+}
+
+.nav-links {
+  background: rgba(0,0,255,0.1); // See link bounds
+}
+*/
