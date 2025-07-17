@@ -1,11 +1,11 @@
 /* Main wrapper for the sign-in page */
 .signin-main {
-    flex: 1; /* Fills available vertical space */
-    display: flex; /* Enables flex layout for inner content */
-    background: url('/src/assets/FAMM3.0.png') no-repeat center center; /* Background image centered */
-    background-size: cover; /* Scales background image to cover entire area */
-    background-color: #f0f0f0; /* Fallback background color */
-    min-height: calc(100vh - var(--nav-height) - var(--footer-height)); /* Ensures full viewport height minus nav and footer */
+    flex: 1;                                     /* Fills available vertical space */
+    display: flex;
+    background: url('/src/assets/FAMM3.0.png') no-repeat center center;     /* background image centered */
+    background-size: cover;                     /* scales background image to cover entire area */
+    background-color: #f0f0f0;
+    min-height: calc(100vh - var(--nav-height) - var(--footer-height));     /* ensures full viewport height minus nav and footer */
 }
 
 
