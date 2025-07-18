@@ -1,11 +1,11 @@
 /* Main wrapper for the sign-in page */
 .signin-main {
-    flex: 1;                                    /* fills available vertical space */
+    flex: 1;                                     /* fills available vertical space */
     display: flex;
     background: url('/src/assets/FAMM3.0.png') no-repeat center center;     /* background image centered */
     background-size: cover;                     /* scales background image to cover entire area */
     background-color: #f0f0f0;
-    min-height: calc(100vh - var(--nav-height) - var(--footer-height)); /* ensures full viewport height minus nav and footer */
+    min-height: calc(100vh - var(--nav-height) - var(--footer-height));     /* ensures full viewport height minus nav and footer */
 }
 
 
