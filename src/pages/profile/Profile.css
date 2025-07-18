@@ -1,0 +1,98 @@
+/* Container for the profile page content */
+.profile-page {
+    max-width: 800px;                       /* limits the width for better readability */
+    margin: 2rem auto;                      /* centers content with vertical spacing */
+    padding: 3rem;                          /* some inner spacing */
+}
+
+
+/* Base styling for the form area */
+.profile-form {
+    background: #f9f9f9;
+    padding: 1rem;                          /* inner spacing */
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);  /* light shadow for depth */
+}
+
+
+/* Styles each form label */
+.profile-form label {
+    display: block;                         /* makes label take full width */
+    margin-bottom: 1.5rem;                  /* space below label */
+}
+
+
+/* Input fields for text, email, and password */
+.profile-form input[type="text"],
+.profile-form input[type="email"],
+.profile-form input[type="password"] {
+    width: 100%;                            /* full-width inputs */
+    padding: 0.5rem;
+    box-sizing: border-box;
+}
+
+
+/* Label for checkbox with horizontal layout */
+.checkbox-label {
+    display: flex;                          /* aligns checkbox and label text side by side */
+    align-items: center;
+    gap: 0.5rem;                            /* space between checkbox and label text */
+    margin-top: 0.5rem;                     /* space above the checkbox section */
+}
+
+
+/* Specific sizing for checkboxes */
+.checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+}
+
+
+/* Duplicate of .checkbox-label to ensure spacing inside forms */
+.profile-form .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+
+/* Style for error messages */
+.error {
+    font-size: 1.2rem;
+}
+
+
+/* Style for buttons in the form */
+.profile-form button {
+    width: fit-content;                     /* button width adjusts to its content */
+}
+
+
+/* Adds spacing between multiple forms stacked on the page */
+.profile-form + .profile-form {
+    margin-top: 2rem;                       /* adds space between consecutive forms */
+}
+
+
+/* Styles for disabled buttons */
+.profile-form button:disabled {
+    background-color: #ccc;
+    color: #666;
+    cursor: not-allowed;                    /* shows disabled cursor */
+    border: 1px solid #aaa;
+    opacity: 0.6;                           /* slightly transparent */
+}
+
+
+/* Styling for newsletter subscription link */
+.newsletter-link {
+    color: #007BFF;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+
+/* On hover, remove the underline */
+.newsletter-link:hover {
+    text-decoration: none;
+}
