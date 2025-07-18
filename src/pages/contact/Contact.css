@@ -1,0 +1,59 @@
+/* ========== CONTACT PAGE CONTAINER ========== */
+.contact-page {
+    padding-top: 3rem;                                      /* space from the top, just below navbar */
+    max-width: 800px;                                       /* limit form width for better readability */
+    margin: 2rem auto;                                      /* center the form horizontally with vertical spacing */
+}
+
+
+/* ========== CONTACT FORM STYLING ========== */
+.contact-form {
+    display: flex;
+    flex-direction: column;                                 /* stack inputs vertically */
+    gap: 1rem;                                              /* space between form fields */
+    background: #f9f9f9;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);                  /* soft shadow for depth */
+}
+
+
+/* Shared styles for all form controls */
+.contact-form input,
+.contact-form select,
+.contact-form textarea {
+    padding: 0.35rem 0.5rem;                                /* comfortable spacing inside fields */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%;
+    font-size: 0.95rem;
+}
+
+
+/* Additional rules specific to textarea */
+.contact-form textarea {
+    box-sizing: border-box;
+    width: 100%;
+    resize: vertical;                                        /* allow vertical resizing only */
+}
+
+
+/* Asterisk or field marker to show required fields */
+.required {
+    color: red;
+}
+
+/* Form button alignment and sizing */
+.contact-form button {
+    width: fit-content;                                         /* button shrinks to fit its text content */
+}
+
+
+/* Disabled state for the submit button */
+.contact-form button:disabled {
+    background-color: #ccc;
+    color: #666;
+    cursor: not-allowed;                                    /* visual indicator for unclickable state */
+    border: 1px solid #aaa;
+    opacity: 0.6;                                           /* appear "faded" */
+}
