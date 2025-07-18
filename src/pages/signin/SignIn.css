@@ -1,0 +1,85 @@
+/* Main wrapper for the sign-in page */
+.signin-main {
+    flex: 1;                                     /* Fills available vertical space */
+    display: flex;
+    background: url('/src/assets/FAMM3.0.png') no-repeat center center;     /* background image centered */
+    background-size: cover;                     /* scales background image to cover entire area */
+    background-color: #f0f0f0;
+    min-height: calc(100vh - var(--nav-height) - var(--footer-height));     /* ensures full viewport height minus nav and footer */
+}
+
+
+/* Container to center the sign-in box vertically and horizontally */
+.signin-container {
+    display: flex;
+    flex-direction: column;                     /* stack children vertically */
+    justify-content: center;
+    align-items: center;
+    flex: 1;                                    /* take full available space */
+}
+
+
+/* styled sign-in box */
+.signin-box {
+    border: 1px solid #333;
+    padding: 20px;
+    background: rgba(249, 249, 249, 0.9);       /* semi-transparent white background */
+    width: 400px;                               /* fixed width for consistency */
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);       /* light shadow for depth effect */
+}
+
+
+/* Styling for all forms inside the sign-in box */
+form {
+    display: flex;
+    flex-direction: column;                     /* stack form fields vertically */
+}
+
+
+/* Each form label has space below */
+label {
+    margin-bottom: 10px;
+}
+
+
+/* All input fields inside the form */
+input {
+    display: block;                             /* ensure each input is on its own line */
+    width: 100%;
+    padding: 5px;
+    margin-top: 5px;
+    box-sizing: border-box;
+    height: 35px;                               /* consistent height for inputs */
+}
+
+
+/* submit button inside the sign-in box */
+.signin-box button {
+    background-color: #005bb5;
+    color: #fff;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+
+/* Optional back navigation button */
+.back-button {
+    background: none;                           /* transparent background */
+    border: none;
+    color: #333;
+    text-align: left;
+    padding: 0;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+
+/* error message styling */
+.error {
+    color: red;
+    font-size: 0.9em;                           /* slightly smaller text */
+    margin: 5px 0;
+}
