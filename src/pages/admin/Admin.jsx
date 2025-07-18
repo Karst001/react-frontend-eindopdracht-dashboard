@@ -11,7 +11,7 @@ const Admin = () => {
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
-    const [customerID, setCustomerID] = useState('0');
+    const [customerID, setCustomerID] = useState('');
     const [isAdmin, setIsAdmin] = useState(false);
 
     const [productTitle, setProductTitle] = useState('');
@@ -60,8 +60,7 @@ const Admin = () => {
         } catch (error) {
             console.error(error);
             setPopupMessage('There was a problem updating the users. Please try again.');
-        }
-        finally {
+        } finally {
             setLoading(false); //make sure to stop the spinner
         }
     };
@@ -71,7 +70,7 @@ const Admin = () => {
         return new Promise((resolve, reject) => {
             setTimeout(() => {
                 if (Math.random() < 0.9) {
-                    resolve({ success: true });
+                    resolve({success: true});
                 } else {
                     reject(new Error('Failed to add user on the server.'));
                 }
@@ -86,7 +85,7 @@ const Admin = () => {
             setTimeout(() => {
                 // Simulate 90% chance of success
                 if (Math.random() < 0.9) {
-                    resolve({ success: true });
+                    resolve({success: true});
                 } else {
                     reject(new Error('Failed to update users on the server.'));
                 }
@@ -101,7 +100,7 @@ const Admin = () => {
             setTimeout(() => {
                 // Simulate 90% chance of success
                 if (Math.random() < 0.9) {
-                    resolve({ success: true });
+                    resolve({success: true});
                 } else {
                     reject(new Error('Failed to update users on the server.'));
                 }
@@ -112,7 +111,7 @@ const Admin = () => {
 
     //This checks if all required fields are non-empty
     const canSubmitNewUser = Boolean(username.trim() && firstName.trim() && lastName.trim() && email.trim() && customerID.trim());
-    const canSubmitNewProduct =Boolean(productTitle.trim() !== '' && productDescription.trim() !== '' && productImage !== null);
+    const canSubmitNewProduct = Boolean(productTitle.trim() !== '' && productDescription.trim() !== '' && productImage !== null);
 
     return (
         <div className="admin-page">
@@ -121,9 +120,9 @@ const Admin = () => {
 
                 <div className="admin-layout">
                     <aside className="admin-sidebar">
-                        <Button text="Add User" onClick={() => setActiveSection('addUser')} />
-                        <Button text="Edit User" onClick={() => setActiveSection('deactivateUser')} />
-                        <Button text="Add Product" onClick={() => setActiveSection('addProduct')} />
+                        <Button text="Add User" onClick={() => setActiveSection('addUser')}/>
+                        <Button text="Edit User" onClick={() => setActiveSection('deactivateUser')}/>
+                        <Button text="Add Product" onClick={() => setActiveSection('addProduct')}/>
                     </aside>
 
                     <main className="admin-content">
@@ -157,23 +156,38 @@ const Admin = () => {
                                 }}>
 
                                     <Label label="User name:">
-                                        <input type="text" value={username} onChange={(e) => setUserName(e.target.value)} required />
+                                        <input type="text" value={username}
+                                               onChange={(e) => setUserName(e.target.value)} required
+                                               placeholder="Enter the user-name for this account"
+                                        />
                                     </Label>
 
                                     <Label label="First name:">
-                                        <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+                                        <input type="text" value={firstName}
+                                               onChange={(e) => setFirstName(e.target.value)} required
+                                               placeholder="Enter the first name for this user"
+                                        />
                                     </Label>
 
                                     <Label label="Last name:">
-                                        <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+                                        <input type="text" value={lastName}
+                                               onChange={(e) => setLastName(e.target.value)} required
+                                               placeholder="Enter the last name for this user"
+                                        />
                                     </Label>
 
                                     <Label label="Email:">
-                                        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                                        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                                               required
+                                               placeholder="Enter the email address for this user"
+                                        />
                                     </Label>
 
                                     <Label label="Customer ID:">
-                                        <input type="number" value={customerID} onChange={(e) => setCustomerID(e.target.value)} required/>
+                                        <input type="number" value={customerID}
+                                               onChange={(e) => setCustomerID(e.target.value)} required
+                                               placeholder="Enter the customer ID for this account (6 digits long)"
+                                        />
                                     </Label>
 
                                     <Label className="checkbox-label">
@@ -236,7 +250,7 @@ const Admin = () => {
                                     </tbody>
                                 </table>
 
-                                <Button text="Update User" onClick={handleUpdateUsers} />
+                                <Button text="Update User" onClick={handleUpdateUsers}/>
 
                                 <PopupMessage
                                     message={popupMessage}
@@ -253,99 +267,106 @@ const Admin = () => {
 
                         {activeSection === 'addProduct' && (
 
-                            <div className="add-product-section">
-                                <h2>Add Product:</h2>
+                            // <div className="add-product-section">
+                            <div className="admin-section">
+                                <div className="add-product-section">
+                                    <h2>Add Product:</h2>
 
-                                <form className="admin-form" onSubmit={async (e) => {
-                                    e.preventDefault();
-                                    setLoading(true);
+                                    <form className="admin-form" onSubmit={async (e) => {
+                                        e.preventDefault();
+                                        setLoading(true);
 
-                                    try {
-                                        const result = await mockAddedProducts({
-                                            username,
-                                            firstName,
-                                            lastName,
-                                            email,
-                                            customerID,
-                                            isAdmin
-                                        });
+                                        try {
+                                            const result = await mockAddedProducts({
+                                                username,
+                                                firstName,
+                                                lastName,
+                                                email,
+                                                customerID,
+                                                isAdmin
+                                            });
 
-                                        if (result.success) {
-                                            setPopupMessage('Product was added successfully.');
-                                            ResetForm();
+                                            if (result.success) {
+                                                setPopupMessage('Product was added successfully.');
+                                                ResetForm();
+                                            }
+                                        } catch (error) {
+                                            console.error(error);
+                                            setPopupMessage('There was a problem adding the user. Please try again.');
+                                        } finally {
+                                            setLoading(false);
                                         }
-                                    } catch (error) {
-                                        console.error(error);
-                                        setPopupMessage('There was a problem adding the user. Please try again.');
-                                    } finally {
-                                        setLoading(false);
-                                    }
-                                }}>
+                                    }}>
 
-                                    <Label label="Title:">
-                                        <input type="text" value={productTitle} onChange={(e) => setProductTitle(e.target.value)} required />
-                                    </Label>
+                                        <Label label="Title:">
+                                            <input type="text" value={productTitle}
+                                                   onChange={(e) => setProductTitle(e.target.value)} required
+                                                   placeholder="Enter the product title"
+                                            />
+                                        </Label>
 
-                                    <Label label="Description:">
+                                        <Label label="Description:">
                                         <textarea
                                             value={productDescription}
                                             onChange={(e) => setProductDescription(e.target.value)}
                                             rows={5}
                                             required
+                                            placeholder="Enter the description for this product"
                                         />
-                                    </Label>
+                                        </Label>
 
-                                    <label>
-                                        Product Image:
-                                        <div
-                                            className="image-uploader"
-                                            onDragOver={(e) => e.preventDefault()}
-                                            onDrop={(e) => {
-                                                e.preventDefault();
-                                                const file = e.dataTransfer.files[0];
-                                                if (file) {
-                                                    setProductImage(file);
-                                                    setProductImagePreview(URL.createObjectURL(file));
-                                                }
-                                            }}
-                                        >
-                                            <p>Drag and drop an image here, or click to select</p>
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                onChange={(e) => {
-                                                    const file = e.target.files[0];
+                                        <label>
+                                            Product Image:
+                                            <div
+                                                className="image-uploader"
+                                                onDragOver={(e) => e.preventDefault()}
+                                                onDrop={(e) => {
+                                                    e.preventDefault();
+                                                    const file = e.dataTransfer.files[0];
                                                     if (file) {
                                                         setProductImage(file);
                                                         setProductImagePreview(URL.createObjectURL(file));
                                                     }
                                                 }}
-                                            />
-                                        </div>
-
-                                        {productImagePreview && (
-                                            <div className="image-preview">
-                                                <img src={productImagePreview} alt="Product Preview" />
-                                                <p>{productImage.name}</p>
+                                            >
+                                                <p>Drag and drop an image here, or click to select</p>
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={(e) => {
+                                                        const file = e.target.files[0];
+                                                        if (file) {
+                                                            setProductImage(file);
+                                                            setProductImagePreview(URL.createObjectURL(file));
+                                                        }
+                                                    }}
+                                                />
                                             </div>
-                                        )}
-                                    </label>
 
-                                    <Button text="Create Product" type="submit" disabled={!canSubmitNewProduct || loading} />
+                                            {productImagePreview && (
+                                                <div className="image-preview">
+                                                    <img src={productImagePreview} alt="Product Preview"/>
+                                                    <p>{productImage.name}</p>
+                                                </div>
+                                            )}
+                                        </label>
 
-                                    <PopupMessage
-                                        message={popupMessage}
-                                        //navigate to home page after user clicks OK
-                                        onClose={() => {
-                                            setPopupMessage('');
-                                            ResetForm();
-                                        }}
-                                    />
+                                        <Button text="Create Product" type="submit"
+                                                disabled={!canSubmitNewProduct || loading}/>
 
-                                    {loading && <Spinner/>}
-                                </form>
+                                        <PopupMessage
+                                            message={popupMessage}
+                                            //navigate to home page after user clicks OK
+                                            onClose={() => {
+                                                setPopupMessage('');
+                                                ResetForm();
+                                            }}
+                                        />
+
+                                        {loading && <Spinner/>}
+                                    </form>
+                                </div>
                             </div>
-
                         )}
                     </main>
                 </div>

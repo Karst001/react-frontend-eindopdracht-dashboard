@@ -13,6 +13,7 @@ function Profile() {
     const [currentPassword, setCurrentPassword] = useState('');
 
     const [newPassword, setNewPassword] = useState('');
+    const [repeatNewPassword, setRepeatNewPassword] = useState('');
     const [subscribed, setSubscribed] = useState(user?.newsletter ?? true)
 
     const [loading, setLoading] = useState(false);
@@ -30,6 +31,11 @@ function Profile() {
 
         if (!newPassword || isPasswordWeak(newPassword)) {
             setErrorMsg('Password is too weak. Please choose at least 6 characters.');
+            return;
+        }
+
+        if (newPassword !== repeatNewPassword) {
+            setErrorMsg('Please check your new password with the value for repeat password; They must be the same..!');
             return;
         }
 
@@ -79,7 +85,7 @@ function Profile() {
     };
 
     //This checks if all required fields are non-empty
-    const canSubmitPassword = Boolean(currentPassword.trim() && newPassword.trim());
+    const canSubmitPassword = Boolean(currentPassword.trim() && newPassword.trim() && repeatNewPassword.trim());
 
     return (
         <div className="profile-page">
@@ -94,6 +100,7 @@ function Profile() {
                             type="password"
                             value={currentPassword}
                             onChange={(e) => setCurrentPassword(e.target.value)}
+                            placeholder="Enter your current password"
                         />
                     </Label>
 
@@ -102,6 +109,16 @@ function Profile() {
                             type="password"
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
+                            placeholder="Enter your new password"
+                        />
+                    </Label>
+
+                    <Label label="Repeat new password:">
+                        <input
+                            type="password"
+                            value={repeatNewPassword}
+                            onChange={(e) => setRepeatNewPassword(e.target.value)}
+                            placeholder="Repeat your new password"
                         />
                     </Label>
                 </section>

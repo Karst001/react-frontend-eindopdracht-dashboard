@@ -1,5 +1,6 @@
 import React from 'react';
 import './App.css';
+import { Routes, Route, useLocation } from 'react-router-dom';
 
 import Home from './pages/home/Home.jsx';
 import NewsLetter from './pages/newsletter/NewsLetter.jsx';
@@ -12,9 +13,11 @@ import Profile from "./pages/profile/Profile.jsx";
 import SignOut from "./pages/signout/SignOut.jsx";
 import Dashboard from "./pages/dashboard/Dashboard.jsx";
 import Admin from "./pages/admin/Admin.jsx";
-import {Routes, Route} from 'react-router-dom';
+
 
 function App() {
+    const location = useLocation();
+
     return (
         <>
             {/* <Navigation />  sits outside the <Routes> to ensure a nav bar shows up at the top*/}
@@ -63,13 +66,15 @@ function App() {
                 </Routes>
             </main>
 
-            {/*footer applied here so it shows up on all pages throughout the website*/}
-            <footer className="footer">
-                <div className="footer-inner">
-                    <span>ISO 9001:2015 Certification</span>
-                    <span>2025 AV Flexologic ALL Rights Reserved</span>
-                </div>
-            </footer>
+            {/* footer applied here so it shows up on all pages throughout the website except dashboard as i want graphs to show as large as possible*/}
+            {location.pathname !== "/dashboard" && (
+                <footer className="footer">
+                    <div className="footer-inner">
+                        <span>ISO 9001:2015 Certification</span>
+                        <span>2025 AV Flexologic ALL Rights Reserved</span>
+                    </div>
+                </footer>
+            )}
         </>
     );
 }

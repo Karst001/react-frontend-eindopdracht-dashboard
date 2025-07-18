@@ -121,6 +121,7 @@ const ContactUs = () => {
                         type="text"
                         value={companyName}
                         onChange={(e) => setCompanyName(e.target.value)}
+                        placeholder="Enter company name"
                     />
                 </Label>
 
@@ -130,6 +131,7 @@ const ContactUs = () => {
                         value={yourName}
                         onChange={(e) => setYourName(e.target.value)}
                         required
+                        placeholder="Enter your name"
                     />
                 </Label>
 
@@ -139,6 +141,7 @@ const ContactUs = () => {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
+                        placeholder="Enter your email address"
                     />
                 </Label>
 
@@ -147,6 +150,7 @@ const ContactUs = () => {
                         type="tel"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
+                        placeholder="Enter your phone number including area code and extension"
                     />
                 </Label>
 
@@ -154,8 +158,9 @@ const ContactUs = () => {
                     <textarea
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
-                        rows={5}
+                        rows={4}
                         required
+                        placeholder="Please describe how we can assist you"
                     />
                 </Label>
 

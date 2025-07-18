@@ -111,6 +111,7 @@ function SignIn() {
                     {step === 1 && (
                         <form onSubmit={checkEmail}>
                             <h2>Login</h2>
+
                             <p>Welcome to our Partner Portal</p>
 
                             <Label label="Enter your e-mail:">

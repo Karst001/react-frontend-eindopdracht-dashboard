@@ -5,13 +5,14 @@
     margin: 2rem auto;                              /* center the page horizontally with vertical spacing */
 }
 
-.admin-layout {
-    display: flex;                                  /* sidebar + main content side-by-side */
-}
-
 .admin-layout-wrapper {
     max-width: 1000px;
     margin: 0 auto;                                 /* center layout wrapper */
+}
+
+
+.admin-layout {
+    display: flex;                                  /* sidebar + main content side-by-side */
 }
 
 
@@ -43,7 +44,6 @@
 }
 
 
-
 .admin-form .admin-button {
     width: fit-content;                             /* when button appears in a form, size to content */
 }
@@ -57,8 +57,8 @@
 
 
 /* Admin section container with shadow & padding */
-.admin-section {
-    background: #f9f9f9;
+.admin-section, .add-user-section {
+    background: #f3f3f3;
     padding: 1rem;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
@@ -112,7 +112,7 @@
 
 
 .admin-user-table tr:hover {
-    background-color: #f1f1f1;                      /* highlight row on hover */
+    background-color: #ccc;                      /* highlight row on hover */
 }
 
 .admin-user-table input[type="checkbox"] {
@@ -190,8 +190,6 @@
     padding: 0.5rem;
     box-sizing: border-box;
     resize: vertical;
-    font-family: inherit;
-    font-size: 1rem;
 }
 
 
