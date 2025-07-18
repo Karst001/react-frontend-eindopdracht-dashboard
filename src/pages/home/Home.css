@@ -1,0 +1,160 @@
+/* ========== PAGE WRAPPER ========== */
+.page {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;                                      /* making sure full vertical space is used */
+}
+
+
+/* ========== VIDEO PLACEHOLDER (HERO SECTION) ========== */
+.video-placeholder {
+    max-width: 1400px;
+    margin: 50px auto;                                      /* center horizontally with top spacing */
+    position: fixed;                                        /* keep fixed while scrolling */
+    top: 60px;                                              /* push below navbar */
+    left: 50%;                                              /* center horizontally */
+    transform: translateX(-50%);                            /* true center with fixed position */
+    width: 80vw;
+    height: 85vh;
+    z-index: 500;                                           /* behind content but on top of background */
+    overflow: hidden;
+    background: #ccc;                                       /* fallback background color */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 1s ease-out;                        /* a smooth fade transition */
+}
+
+
+/* Hidden state for video placeholder (e.g. after scroll) */
+.video-placeholder.hidden {
+    opacity: 0;
+    pointer-events: none;
+    filter: blur(4px);                                      /* soft blur effect */
+}
+
+
+/* ========== OVERLAY TEXT (LEFT) ========== */
+.video-overlay-text-left {
+    position: absolute;
+    top: 47%;
+    left: 50%;
+    transform: translate(-150%, -50%);                      /* start far left of center */
+    color: #fff;
+    text-align: center;
+    opacity: 0;
+    transition: transform 1.8s ease-out, opacity 1.8s ease-out;
+}
+
+
+/* Show overlay from the left */
+.video-overlay-text-left.visible {
+    transform: translate(-50%, -50%) translateY(0);         /* move to center */
+    opacity: 1;
+    z-index: 600;                                           /* place it above the video */
+}
+
+
+/* ========== OVERLAY TEXT (RIGHT) ========== */
+.video-overlay-text-right {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(150%, 50%);                        /* start far right of center */
+    color: #fff;
+    text-align: center;
+    opacity: 0;
+    transition: transform 1.8s ease-out, opacity 1.8s ease-out;
+}
+
+.video-overlay-text-right.visible {
+    transform: translate(-50%, -10%) translateY(0);         /* move slightly upward and center */
+    opacity: 1;
+    z-index: 600;
+}
+
+
+/* ========== OVERLAY TEXT (BOTTOM) ========== */
+.video-overlay-text-bottom {
+    position: absolute;
+    top: 55%;
+    left: 50%;
+    transform: translate(-50%, 350%);                       /* start far below center */
+    color: #fff;
+    text-align: center;
+    opacity: 0;
+    transition: transform 1.8s ease-out, opacity 1.8s ease-out;
+}
+
+
+.video-overlay-text-bottom.visible {
+    transform: translate(-50%, 100%) translateY(0);         /* slide up into view */
+    opacity: 1;
+    z-index: 600;
+}
+
+
+/* ========== MAIN CONTENT SECTION (AFTER VIDEO) ========== */
+.content {
+    position: relative;
+    z-index: 600;                                           /* on top of video section */
+    margin-top: 95vh;                                       /* push content below video */
+    width: 80vw;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;                                     /* center horizontally */
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+
+/* Align heading to the left */
+.content h2 {
+    align-self: flex-start;
+}
+
+
+/* ========== BUTTON OVER VIDEO (CALL TO ACTION) ========== */
+.overlay-btn {
+    margin-top: 20px;
+    padding: 12px 24px;
+    font-size: 1rem;
+    color: #fff;
+    background-color: #0044cc;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.overlay-btn:hover {
+    background-color: #0056b3;
+}
+
+
+/* ========== RESPONSIVE DESIGN FOR MOBILE ========== */
+@media (max-width: 768px) {
+    .video-placeholder {
+        width: 95vw;                                        /* narrower width on small screens */
+        height: 50vh;
+        top: 70px;
+    }
+
+    .content {
+        width: 95vw;
+        margin-top: 55vh;                                   /* adjust spacing below video */
+    }
+
+    .video-overlay-text-left h1,
+    .video-overlay-text-right h1,
+    .video-overlay-text-bottom h1 {
+        font-size: 1.2rem;                                  /* smaller heading size on mobile */
+    }
+
+    .overlay-btn {
+        font-size: 0.8rem;
+        padding: 8px 16px;                                  /* smaller button padding */
+    }
+}
