@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import Spinner from "../../components/loader/Spinner.jsx";
 import Button from "../../components/button/Button.jsx";
 import Label from "../../components/label/Label.jsx";
+import Input from "../../components/input/Input.jsx";
+import Textarea from "../../components/textarea/Textarea.jsx";
 
 const ContactUs = () => {
     const [countries, setCountries] = useState([]);
@@ -13,7 +15,6 @@ const ContactUs = () => {
     const [companyName, setCompanyName] = useState('');
     const [yourName, setYourName] = useState('');
     const [email, setEmail] = useState('');
-    const [phone, setPhone] = useState('');
     const [department, setDepartment] = useState('');
     const [message, setMessage] = useState('');
     const [popupMessage, setPopupMessage] = useState('');
@@ -63,7 +64,6 @@ const ContactUs = () => {
                 companyName,
                 yourName,
                 email,
-                phone,
                 department,
                 message
             });
@@ -77,7 +77,6 @@ const ContactUs = () => {
                 setCompanyName('');
                 setYourName('');
                 setEmail('');
-                setPhone('');
                 setDepartment('');
                 setMessage('');
             }
@@ -117,49 +116,49 @@ const ContactUs = () => {
                 </Label>
 
                 <Label label="Company name:">
-                    <input
-                        type="text"
+                    <Input
                         value={companyName}
                         onChange={(e) => setCompanyName(e.target.value)}
+                        placeholder="Enter company name"
                     />
                 </Label>
 
                 <Label label={<><span>Your name:</span> <span className="required">*</span></>}>
-                    <input
-                        type="text"
+                    <Input
                         value={yourName}
                         onChange={(e) => setYourName(e.target.value)}
                         required
+                        placeholder="Enter your name"
                     />
                 </Label>
 
                 <Label label={<><span>Email:</span> <span className="required">*</span></>}>
-                    <input
+                    <Input
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
-                    />
-                </Label>
-
-                <Label label="Phone nr:">
-                    <input
-                        type="tel"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="Enter your email address"
                     />
                 </Label>
 
                 <Label label={<><span>Message:</span> <span className="required">*</span></>}>
-                    <textarea
+                    <Textarea
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
-                        rows={5}
+                        rows={3}
                         required
+                        placeholder="Please describe how we can assist you"
+                        minLength={20}
+                        maxLength={500}
+                        showValidation={true}
                     />
                 </Label>
 
-                <Button text="Send Message" type="submit" disabled={!canSubmit || loading} />
+                <Button
+                    type="submit" disabled={!canSubmit || loading} >
+                    Send Message
+                </Button>
 
                 <PopupMessage
                     message={popupMessage}

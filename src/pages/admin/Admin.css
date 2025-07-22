@@ -1,12 +1,8 @@
-/* ========== ADMIN PAGE ========== */
+/* admin page */
 .admin-page {
     padding-top: 3rem;                              /* space below navbar/header */
     max-width: 1200px;                              /* limit page width */
     margin: 2rem auto;                              /* center the page horizontally with vertical spacing */
-}
-
-.admin-layout {
-    display: flex;                                  /* sidebar + main content side-by-side */
 }
 
 .admin-layout-wrapper {
@@ -15,7 +11,12 @@
 }
 
 
-/* ========== SIDEBAR ========== */
+.admin-layout {
+    display: flex;                                  /* sidebar + main content side-by-side */
+}
+
+
+/* sidebar */
 .admin-sidebar {
     width: 200px;                                   /* use a  fixed width sidebar */
     background: #fff;
@@ -25,7 +26,7 @@
 }
 
 
-/* ========== SIDEBAR / GENERAL BUTTONS ========== */
+/* sidebar & general buttons */
 .admin-button {
     background-color: #0044cc;
     color: white;
@@ -43,13 +44,12 @@
 }
 
 
-
 .admin-form .admin-button {
     width: fit-content;                             /* when button appears in a form, size to content */
 }
 
 
-/* ========== MAIN CONTENT ========== */
+/* main content */
 .admin-content {
     flex-grow: 1;                                   /* fill remaining space beside sidebar */
     padding-left: 20px;
@@ -57,15 +57,15 @@
 
 
 /* Admin section container with shadow & padding */
-.admin-section {
-    background: #f9f9f9;
+.admin-section, .add-user-section {
+    background: #f3f3f3;
     padding: 1rem;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 
-/* ========== FORM ========== */
+/* admin form */
 .admin-form {
     display: flex;
     flex-direction: column;
@@ -82,19 +82,7 @@
 }
 
 
-.checkbox-label {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.checkbox-label input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-}
-
-
-/* ========== USER TABLE ========== */
+/* user table */
 .admin-user-table {
     width: 100%;
     border-collapse: separate;
@@ -112,17 +100,12 @@
 
 
 .admin-user-table tr:hover {
-    background-color: #f1f1f1;                      /* highlight row on hover */
-}
-
-.admin-user-table input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
+    background-color: #ccc;                      /* highlight row on hover */
 }
 
 
-/* ========== PRODUCT SECTION ========== */
+
+/* product section */
 .admin-form textarea {
     padding: 0.5rem;
     border: 1px solid #ccc;
@@ -132,7 +115,7 @@
 }
 
 
-/* ========== IMAGE UPLOADER ========== */
+/* image uploader */
 .image-uploader {
     border: 2px dashed #ccc;
     padding: 1rem;
@@ -170,8 +153,7 @@
 }
 
 
-/* ========== PRODUCT / USER SECTION ========== */
-
+/* product & add user section */
 .add-product-section button,
 .add-user-section button {
     width: fit-content;                                 /* make sure buttons don't stretch full width */
@@ -190,8 +172,6 @@
     padding: 0.5rem;
     box-sizing: border-box;
     resize: vertical;
-    font-family: inherit;
-    font-size: 1rem;
 }
 
 

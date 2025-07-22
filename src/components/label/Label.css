@@ -1,0 +1,17 @@
+/* checkbox label wrapper */
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.checkbox-label input[type="checkbox"] {
+    transform: scale(1.2);                  /* default width and height don't always work, with scale you can make the checkbox just a bit larger */
+    cursor: pointer;
+}
+
+.admin-user-table input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}

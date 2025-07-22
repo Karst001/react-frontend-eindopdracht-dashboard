@@ -1,0 +1,9 @@
+.custom-input {
+    font-family: inherit;
+}
+
+.custom-input::placeholder {
+    font-size: 0.9rem;
+    font-family: inherit;
+    color: #333;
+}

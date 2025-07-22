@@ -10,10 +10,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "ag-grid-community": "^34.0.2",
+    "ag-grid-react": "^34.0.2",
     "prop-types": "^15.8.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-router-dom": "^7.6.3"
+    "react-router-dom": "^7.6.3",
+    "recharts": "^3.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",

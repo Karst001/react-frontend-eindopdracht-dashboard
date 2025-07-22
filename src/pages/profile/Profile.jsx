@@ -6,6 +6,7 @@ import PopupMessage from '../../components/popupmessage/PopupMessage';
 import {NavLink, useNavigate} from 'react-router-dom';
 import Button from "../../components/button/Button.jsx";
 import Label from "../../components/label/Label.jsx";
+import Input from "../../components/input/Input.jsx";
 
 function Profile() {
     const {user} = useContext(AuthContext);
@@ -13,6 +14,7 @@ function Profile() {
     const [currentPassword, setCurrentPassword] = useState('');
 
     const [newPassword, setNewPassword] = useState('');
+    const [repeatNewPassword, setRepeatNewPassword] = useState('');
     const [subscribed, setSubscribed] = useState(user?.newsletter ?? true)
 
     const [loading, setLoading] = useState(false);
@@ -30,6 +32,11 @@ function Profile() {
 
         if (!newPassword || isPasswordWeak(newPassword)) {
             setErrorMsg('Password is too weak. Please choose at least 6 characters.');
+            return;
+        }
+
+        if (newPassword !== repeatNewPassword) {
+            setErrorMsg('Please check your new password with the value for repeat password; They must be the same..!');
             return;
         }
 
@@ -79,7 +86,7 @@ function Profile() {
     };
 
     //This checks if all required fields are non-empty
-    const canSubmitPassword = Boolean(currentPassword.trim() && newPassword.trim());
+    const canSubmitPassword = Boolean(currentPassword.trim() && newPassword.trim() && repeatNewPassword.trim());
 
     return (
         <div className="profile-page">
@@ -90,23 +97,39 @@ function Profile() {
                 <section>
                     <h2>Change password:</h2>
                     <Label label="Current password:">
-                        <input
+                        <Input
                             type="password"
                             value={currentPassword}
                             onChange={(e) => setCurrentPassword(e.target.value)}
+                            required
+                            placeholder="Enter your current password"
                         />
                     </Label>
 
                     <Label label="New password:">
-                        <input
+                        <Input
                             type="password"
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
+                            required
+                            placeholder="Enter your new password"
+                        />
+                    </Label>
+
+                    <Label label="Repeat new password:">
+                        <Input
+                            type="password"
+                            value={repeatNewPassword}
+                            onChange={(e) => setRepeatNewPassword(e.target.value)}
+                            required
+                            placeholder="Repeat your new password"
                         />
                     </Label>
                 </section>
 
-                <Button text="Update Password" type="submit" disabled={!canSubmitPassword || loading}/>
+                <Button type="submit" disabled={!canSubmitPassword || loading}>
+                    Update Password
+                </Button>
             </form>
 
             <form className="profile-form" onSubmit={handleSubscriptionUpdate}>
@@ -120,18 +143,16 @@ function Profile() {
                                 onClick={() => navigate('/newsletter')}
                                 className="newsletter-link"
                             >
-          here
-        </span>{' '}
+                              here
+                            </span>{' '}
                             to sign up.
                         </p>
                     ) : (
                         <>
                             <p>You’re subscribed to our newsletter.</p>
-                            <Button
-                                text="Unsubscribe"
-                                type="submit"
-                                disabled={loading}
-                            />
+                            <Button type="submit" disabled={loading}>
+                                Unsubscribe
+                            </Button>
                         </>
                     )}
                 </section>

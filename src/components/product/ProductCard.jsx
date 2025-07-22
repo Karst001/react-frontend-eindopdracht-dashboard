@@ -24,14 +24,18 @@ const ProductCard = ({ product, direction }) => {
 
                         {/* buttons under the description */}
                         <div className="button-row">
-                            <Button text="More..." /> {/* to develop further */}
+                            <Button >
+                                More...
+                            </Button>
 
                             <Button
-                                text="↑ Back to Top"
+
                                 onClick={() => {
                                     window.scrollTo({ top: 0, behavior: 'smooth' });    // smooth scroll to the top of the page
                                 }}
-                            />
+                            >
+                                ↑ Back to Top
+                            </Button>
                         </div>
                     </div>
                 </>
@@ -43,14 +47,17 @@ const ProductCard = ({ product, direction }) => {
                         <p>{product.description}</p>
 
                         <div className="button-row">
-                            <Button text="More..." />
+                            <Button>
+                                More...
+                            </Button>
 
                             <Button
-                                text="↑ Back to Top"
                                 onClick={() => {
                                     window.scrollTo({ top: 0, behavior: 'smooth' });
                                 }}
-                            />
+                            >
+                                ↑ Back to Top
+                            </Button>
                         </div>
                     </div>
 

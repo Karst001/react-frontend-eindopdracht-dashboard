@@ -1,4 +1,4 @@
-/* ========== DASHBOARD GRID LAYOUT ========== */
+/* dashboard layout */
 .dashboard-container {
     display: grid;
     grid-template-columns: 220px 1fr;                   /* sidebar + main content */
@@ -10,18 +10,7 @@
 }
 
 
-/* ========== DASHBOARD HEADER ========== */
-.dashboard-header {
-    grid-column: 1 / -1;                                /* span full width across columns */
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    background: #f0f0f0;
-}
-
-
-/* ========== SIDEBAR ========== */
+/* sidebar */
 .dashboard-sidebar {
     display: flex;
     flex-direction: column;
@@ -45,36 +34,171 @@
 }
 
 
-/* ========== MAIN CONTENT ========== */
+/* main content */
 .dashboard-main {
     display: flex;
     flex-direction: column;
-    gap: 15px;
 }
 
 
-/* Responsive grid row for cards */
+/* Responsive grid row  */
 .dashboard-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));    /* responsive layout */
-    gap: 15px;
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
 }
 
-
-/* Individual card */
-.card {
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    padding: 10px;
+/* Individual sections */
+.today-schedule,
+.forecast,
+.mounting-summary,
+.forecast-tomorrow,
+.forecast-day-after-tomorrow {
+    flex: 1;
+    min-width: 280px;
     background: #fff;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.today-schedule {
+    flex: 0.9;
+}
+
+.forecast, .mounting-summary {
+    flex: 1.2;
+}
+
+.forecast-next-days {
+    display: flex;
+    gap: 0.5rem;
+    flex: 0.78;
 }
 
 
-/* ========== SCHEDULE STATS SECTION ========== */
+/* style for charts */
+.schedule-multi-donuts {
+    display: flex;
+    justify-content: space-between;  /* evenly spread out */
+    align-items: flex-start;
+    gap: 1rem;
+    margin-top: 1rem;
+    flex-wrap: nowrap;               /* keep them on one row */
+}
+
+.donut-chart {
+    flex: 1;
+    min-width: 100px;
+    max-width: 180px;
+    text-align: center;
+}
+
+
+.donut-label {
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+.responsiveContainerDonut {
+    width: 100%;
+    height: 160px;
+}
+
+.schedule-chart {
+    margin-top: 1rem;
+    height: 200px;
+}
+
+
+/* Forecast section */
+.forecast {
+    padding: 1rem;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.forecast-bar-label {
+    font-size: 1.3rem;
+    font-weight: 400;
+    fill: #333;
+}
+
+
+/* schedule section */
 .schedule-stats {
     display: flex;
     justify-content: space-around;
 }
+
+.custom-legend {
+    list-style: none;
+    display: flex;
+    justify-content: center;      /* centers the items */
+    align-items: center;
+    gap: 1rem;                    /* adjust to 0.5rem if needed */
+    margin-top: 10px;
+    padding: 0;
+}
+
+.centered-legend li {           /* moves the legend items closer together */
+    font-weight: 600;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+}
+
+.custom-legend li {
+    font-weight: 600;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+}
+
+.legend-box {
+    width: 14px;
+    height: 14px;
+    display: inline-block;
+    margin-right: 6px;
+    border-radius: 2px;
+}
+
+/* tooltip */
+.custom-tooltip {
+    background: #ffffff;
+    border: 1px solid #ccc;
+    padding: 10px;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.custom-tooltip ul {
+    list-style: none;
+    padding: 0;
+    margin: 8px 0 0 0;
+}
+
+.custom-tooltip li {
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    padding-left: 8px;                  /* Adds space to the left of each row to enhance readability of the tooltip */
+}
+
+.tooltip-color-box {
+    width: 12px;
+    height: 12px;
+    display: inline-block;
+    margin-right: 8px;
+    border-radius: 2px;
+}
+
+
 
 
 /* Individual stat area */
@@ -89,21 +213,82 @@
     font-weight: bold;
 }
 
-
-/* ========== FOOTER ========== */
-.dashboard-footer {
-    grid-column: 1 / -1;                            /* span full width */
-    text-align: center;
-    padding: 10px;
-    font-size: 0.9em;
-    background: #f0f0f0;
+/* mounting summary area */
+.mounting-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 1rem;
 }
 
 
-/* ========== CLOCK (FIXED POSITION) ========== */
+.mounting-item {
+    background: #f4f4f4;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 500;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.mounting-item:hover {
+    background: #e6f0ff;
+    transform: translateY(-2px);
+}
+
+
+.mounting-donuts {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    flex-wrap: nowrap;
+}
+
+.mounting-summary {
+    flex: 1;
+}
+
+.mounting-donuts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 2fr);
+
+}
+
+.mounting-donuts-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.time-period-label {
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-top: 2.5rem;
+    margin-left: 0.5rem;
+    white-space: nowrap;
+}
+
+.mounting-donuts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 2fr);
+    flex: 1;
+}
+
+
+/* forecast tomorrow */
+.forecast-stats.vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+
+/* clock, fixed lower left corner of screen */
 .dashboard-clock {
     position: fixed;
-    bottom: 100px;
+    bottom: 60px;
     left: 10px;
     background: rgba(255, 255, 255, 0.9);           /* slightly transparent */
     padding: 8px 12px;
@@ -135,7 +320,7 @@
 }
 
 
-/* ========== FORECAST STATS (like for 'tomorrow') ========== */
+/* forecast stats  */
 .forecast-stats {
     display: flex;
     justify-content: space-between;
@@ -164,17 +349,237 @@
 }
 
 
-/* Forecast stat label */
-.tomorrow-stat .label {
-    font-weight: normal;
-    font-size: 0.9rem;
-    color: #333;
-}
-
-
-/* Forecast stat value */
-.tomorrow-stat .value {
+/* styling for dropdown, the default OS styling is ugly */
+.dashboard-sidebar select {
+    appearance: none;
+    background-color: #ffffff;
+    border: 1px solid #0044cc;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 1rem;
     font-weight: bold;
-    font-size: 1.2rem;
     color: #0044cc;
+    cursor: pointer;
+    width: 100%;
+    box-sizing: border-box;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='%230044cc' height='28' viewBox='0 0 24 24' width='28' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 18px;
 }
+
+
+/* hover style with white arrow */
+.dashboard-sidebar select:hover {
+    background-color: #0044cc;
+    color: #ffffff;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='%23ffffff' height='28' viewBox='0 0 24 24' width='28' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+}
+
+/*  style the label above dropdown */
+.dashboard-sidebar label span {
+    display: block;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #0044cc;
+    margin-bottom: 6px;
+}
+
+/* modal popup for displaying graphs*/
+/* this sets the background screen to go into a 'greyed-out' screen*/
+.modal-overlay-graph-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* dark transparent overlay */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;          /*background becomes the layer behind the popup screen*/
+}
+
+.modal-graph-container-content {
+    position: fixed;
+    background-color: white;
+    padding: 40px;
+    text-align: start;
+    border-radius: 12px;
+    width: 94%;
+    height: 90%;
+}
+
+.modal-graph-container-content h2 {
+    margin-top: 50px;       /* extra space between Close button and H2 */
+}
+
+.close-panel-btn:disabled {  /* shows diabled when 2nd modal form is visible */
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* the component ResponsiveContainer at default uses inline css like */
+/* <ResponsiveContainer width="100%", height=300px; >*/
+/* as inline css is not efficient I wrapped it in div likes below */
+/* not the prettiest but cleaner */
+.responsiveContainerHeight300 {
+    width: 100%;
+    height: 300px;
+}
+
+.responsiveContainerHeight400 {
+    width: 100%;
+    height: 400px;
+}
+
+.responsiveContainerHeight400Padding60 {
+    width: 100%;
+    height: 400px;
+    padding-bottom: 60px;
+}
+
+
+/* drill down 'page' overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1100;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 1400px;          /* max vh of the modal */
+    max-height: 80vh;           /* max vh of the modal */
+    overflow-y: auto;
+    position: relative;
+}
+
+
+/* custom styling for the AgGrid */
+/* Base cell styling */
+.custom-ag-grid .ag-cell,
+.custom-ag-grid .ag-header-cell {
+    border: 1px solid #ccc;
+    padding: 2px 10px;
+    font-size: 1.1em;
+    font-family: inherit;
+}
+
+/* Header styling */
+.custom-ag-grid .ag-header-cell-label {
+    font-size: 1.2rem;
+    font-weight: bold;
+    justify-content: center;         /* center text horizontally */
+    width: 100%;
+}
+
+.custom-ag-grid .ag-header-cell {
+    height: 30px !important;          /* this sets the header row height */
+    display: flex;
+}
+
+/* Checkbox styling */
+.custom-ag-grid .ag-checkbox-input-wrapper input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+}
+
+
+
+
+
+
+/* Responsive Layout */
+@media (max-width: 1200px) {
+    .dashboard-row {
+        flex-direction: column;
+    }
+
+    .forecast-next-days {
+        flex-direction: column;
+    }
+
+    .forecast-tomorrow,
+    .forecast-day-after-tomorrow {
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .mounting-donuts-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-container {
+        grid-template-columns: 1fr; /* Stack sidebar and main */
+    }
+
+    .dashboard-sidebar {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: space-around;
+        padding-bottom: 1rem;
+    }
+
+    .dashboard-clock {
+        position: relative;
+        bottom: unset;
+        left: unset;
+        margin-top: 10px;
+    }
+
+    .dashboard-main {
+        padding: 0;
+    }
+
+    .schedule-multi-donuts {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .donut-chart {
+        max-width: 150px;
+    }
+
+    .mounting-summary {
+        flex: 1;
+    }
+
+    .custom-legend {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .clock-hms {
+        font-size: 32px;
+    }
+
+    .dashboard-sidebar select {
+        font-size: 0.9rem;
+    }
+
+    .donut-label {
+        font-size: 0.9rem;
+    }
+
+    .forecast-bar-label {
+        font-size: 1rem;
+    }
+}
+
