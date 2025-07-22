@@ -16,6 +16,7 @@ import Admin from "./pages/admin/Admin.jsx";
 
 
 function App() {
+    //track the location as in what page is the active page
     const location = useLocation();
 
     return (

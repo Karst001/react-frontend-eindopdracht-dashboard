@@ -1,4 +1,4 @@
-/* ========== CONTACT PAGE CONTAINER ========== */
+/* contact page container */
 .contact-page {
     padding-top: 3rem;                                      /* space from the top, just below navbar */
     max-width: 800px;                                       /* limit form width for better readability */
@@ -6,7 +6,7 @@
 }
 
 
-/* ========== CONTACT FORM STYLING ========== */
+/* contact form styling */
 .contact-form {
     display: flex;
     flex-direction: column;                                 /* stack inputs vertically */

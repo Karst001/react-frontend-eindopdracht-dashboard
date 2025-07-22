@@ -125,17 +125,19 @@ function SignIn() {
                             </Label>
                             {error && <p className="error">{error}</p>}
 
-                            <Button text="Next" type="submit" />
+                            <Button type="submit">
+                                Next
+                            </Button>
                         </form>
                     )}
 
                     {step === 2 && (
                         <form onSubmit={handleLogin}>
                             <Button
-                                text="◀ Back"
                                 type="button"
-                                onClick={() => setStep(1)}
-                            />
+                                onClick={() => setStep(1)}>
+                                ◀ Back
+                            </Button>
 
                             <h2>Login</h2>
 
@@ -154,7 +156,9 @@ function SignIn() {
 
                             {error && <p className="error">{error}</p>}
 
-                            <Button text="Continue" type="submit" />
+                            <Button type="submit" >
+                                Continue
+                            </Button>
                         </form>
                     )}
                 </div>

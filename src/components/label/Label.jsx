@@ -1,5 +1,5 @@
 import React from 'react';
-// import './Label.css';
+import './Label.css';
 
 //this is a reusable Label component
 const Label = ({ children, label, className = '' }) => {

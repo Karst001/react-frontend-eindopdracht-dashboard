@@ -5,7 +5,7 @@ import { AuthContext } from "./AuthContext";
 import { useNavigate } from 'react-router-dom';
 
 
-const auto_logout_time = 15 * 60 * 1000;                                        // Auto logout after 15 minutes of inactivity
+const auto_logout_time = 16* 60 * 1000;                                        // Auto logout after 15 minutes of inactivity
 const warning_before_signout = 10 * 1000;                                        // Show warning 10s before logout
 
 

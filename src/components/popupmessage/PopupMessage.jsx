@@ -12,7 +12,9 @@ const PopupMessage = ({ message, onClose }) => {
         <div className="popup-overlay" onClick={onClose}>
             <div className="popup-content" onClick={(e) => e.stopPropagation()}>  {/* stopPropagation prevents closing when clicking inside */}
                 <p>{message}</p>
-                <Button text="OK" onClick={onClose} />
+                <Button onClick={onClose}>
+                    OK
+                </Button>
             </div>
         </div>
     );

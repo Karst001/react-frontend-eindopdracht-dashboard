@@ -4,10 +4,11 @@ import './AnimatedNavigation.css';
 import logo from '../../assets/logo.png';
 import {useContext} from "react";
 import {AuthContext} from "../../context/AuthContext.jsx";
+import Button from "../../components/button/Button.jsx";
 
 //This is a component that contains the logic to animate the NavLink when user clicks on it
 //It is made into a component so it can be called from the main website entry and also when a <Button> or <Lnk> a page is clicked
-//like page 'cavities', when user clicks this button it sets the useState and then in this component it triggers the animation
+//When user clicks a nav link it sets the useState and then in this component it triggers the animation, jumping a few times
 const AnimatedNavigation = () => {
     const location = useLocation();
     const auth = useContext(AuthContext);

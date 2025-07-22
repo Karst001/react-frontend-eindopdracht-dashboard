@@ -4,6 +4,8 @@ import Spinner from '../../components/loader/Spinner.jsx';
 import PopupMessage from "../../components/popupmessage/PopupMessage.jsx";
 import Button from "../../components/button/Button.jsx";
 import Label from "../../components/label/Label.jsx";
+import Input from '../../components/input/Input.jsx';
+import Textarea from "../../components/textarea/Textarea.jsx";
 
 const Admin = () => {
     const [activeSection, setActiveSection] = useState(null);
@@ -113,6 +115,7 @@ const Admin = () => {
     const canSubmitNewUser = Boolean(username.trim() && firstName.trim() && lastName.trim() && email.trim() && customerID.trim());
     const canSubmitNewProduct = Boolean(productTitle.trim() !== '' && productDescription.trim() !== '' && productImage !== null);
 
+
     return (
         <div className="admin-page">
             <div className="admin-layout-wrapper">
@@ -120,9 +123,15 @@ const Admin = () => {
 
                 <div className="admin-layout">
                     <aside className="admin-sidebar">
-                        <Button text="Add User" onClick={() => setActiveSection('addUser')}/>
-                        <Button text="Edit User" onClick={() => setActiveSection('deactivateUser')}/>
-                        <Button text="Add Product" onClick={() => setActiveSection('addProduct')}/>
+                        <Button onClick={() => setActiveSection('addUser')}>
+                            Add User
+                        </Button>
+                        <Button onClick={() => setActiveSection('deactivateUser')}>
+                            Edit User
+                        </Button>
+                        <Button onClick={() => setActiveSection('addProduct')}>
+                            Add Product
+                        </Button>
                     </aside>
 
                     <main className="admin-content">
@@ -156,50 +165,63 @@ const Admin = () => {
                                 }}>
 
                                     <Label label="User name:">
-                                        <input type="text" value={username}
-                                               onChange={(e) => setUserName(e.target.value)} required
-                                               placeholder="Enter the user-name for this account"
+                                        <Input
+                                            value={username}
+                                            onChange={(e) => setUserName(e.target.value)}
+                                            required
+                                            placeholder="Enter the user name for this account"
                                         />
                                     </Label>
 
                                     <Label label="First name:">
-                                        <input type="text" value={firstName}
-                                               onChange={(e) => setFirstName(e.target.value)} required
-                                               placeholder="Enter the first name for this user"
+                                        <Input
+                                            value={firstName}
+                                            onChange={(e) => setFirstName(e.target.value)}
+                                            required
+                                            placeholder="Enter the first name for this account"
                                         />
                                     </Label>
 
                                     <Label label="Last name:">
-                                        <input type="text" value={lastName}
-                                               onChange={(e) => setLastName(e.target.value)} required
-                                               placeholder="Enter the last name for this user"
+                                        <Input
+                                            value={lastName}
+                                            onChange={(e) => setLastName(e.target.value)}
+                                            required
+                                            placeholder="Enter the last name for this user"
                                         />
                                     </Label>
 
                                     <Label label="Email:">
-                                        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                                               required
-                                               placeholder="Enter the email address for this user"
+                                        <Input
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            required
+                                            placeholder="Enter the email address for this user"
                                         />
                                     </Label>
 
                                     <Label label="Customer ID:">
-                                        <input type="number" value={customerID}
-                                               onChange={(e) => setCustomerID(e.target.value)} required
-                                               placeholder="Enter the customer ID for this account (6 digits long)"
+                                        <Input
+                                            value={customerID}
+                                            onChange={(e) => setCustomerID(e.target.value)}
+                                            required
+                                            placeholder="Enter the customer ID for this account (6 digits long)"
                                         />
                                     </Label>
 
                                     <Label className="checkbox-label">
-                                        <input
+                                        <Input
                                             type="checkbox"
                                             checked={isAdmin}
                                             onChange={(e) => setIsAdmin(e.target.checked)}
                                         />
+
                                         This user has administrator rights
                                     </Label>
 
-                                    <Button text="Add User" type="submit" disabled={!canSubmitNewUser || loading}/>
+                                    <Button type="submit" disabled={!canSubmitNewUser || loading}>
+                                        Add User
+                                    </Button>
 
                                     <PopupMessage
                                         message={popupMessage}
@@ -250,7 +272,9 @@ const Admin = () => {
                                     </tbody>
                                 </table>
 
-                                <Button text="Update User" onClick={handleUpdateUsers}/>
+                                <Button onClick={handleUpdateUsers}>
+                                    Update User
+                                </Button>
 
                                 <PopupMessage
                                     message={popupMessage}
@@ -299,24 +323,28 @@ const Admin = () => {
                                     }}>
 
                                         <Label label="Title:">
-                                            <input type="text" value={productTitle}
-                                                   onChange={(e) => setProductTitle(e.target.value)} required
-                                                   placeholder="Enter the product title"
+                                            <Input
+                                                value={productTitle}
+                                                onChange={(e) => setProductTitle(e.target.value)}
+                                                required
+                                                placeholder="Enter the product title"
                                             />
                                         </Label>
 
                                         <Label label="Description:">
-                                        <textarea
-                                            value={productDescription}
-                                            onChange={(e) => setProductDescription(e.target.value)}
-                                            rows={5}
-                                            required
-                                            placeholder="Enter the description for this product"
-                                        />
+                                            <Textarea
+                                                value={productDescription}
+                                                onChange={(e) => setProductDescription(e.target.value)}
+                                                rows={5}
+                                                required
+                                                placeholder="Enter the description for this product"
+                                                minLength={300}
+                                                maxLength={750}
+                                                showValidation={true}
+                                            />
                                         </Label>
 
-                                        <label>
-                                            Product Image:
+                                        <Label label="Product Image:">
                                             <div
                                                 className="image-uploader"
                                                 onDragOver={(e) => e.preventDefault()}
@@ -330,7 +358,7 @@ const Admin = () => {
                                                 }}
                                             >
                                                 <p>Drag and drop an image here, or click to select</p>
-                                                <input
+                                                <Input
                                                     type="file"
                                                     accept="image/*"
                                                     onChange={(e) => {
@@ -340,19 +368,21 @@ const Admin = () => {
                                                             setProductImagePreview(URL.createObjectURL(file));
                                                         }
                                                     }}
+                                                    required
                                                 />
                                             </div>
 
                                             {productImagePreview && (
                                                 <div className="image-preview">
-                                                    <img src={productImagePreview} alt="Product Preview"/>
+                                                    <img src={productImagePreview} alt="Product Preview" />
                                                     <p>{productImage.name}</p>
                                                 </div>
                                             )}
-                                        </label>
+                                        </Label>
 
-                                        <Button text="Create Product" type="submit"
-                                                disabled={!canSubmitNewProduct || loading}/>
+                                        <Button type="submit" disabled={!canSubmitNewProduct || loading}>
+                                            Create Product
+                                        </Button>
 
                                         <PopupMessage
                                             message={popupMessage}

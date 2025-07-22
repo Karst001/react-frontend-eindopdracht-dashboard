@@ -6,6 +6,7 @@ import Spinner from '../../components/loader/Spinner.jsx';
 import PopupMessage from "../../components/popupmessage/PopupMessage.jsx";
 import Button from "../../components/button/Button.jsx";
 import Label from "../../components/label/Label.jsx";
+import Input from "../../components/input/Input.jsx";
 
 const NewsLetter = () => {
     const [name, setName] = useState('');
@@ -71,8 +72,7 @@ const NewsLetter = () => {
 
             <form className="newsletter-form" onSubmit={handleSubmit}>
                 <Label label="Name:">
-                    <input
-                        type="text"
+                    <Input
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         required
@@ -81,7 +81,7 @@ const NewsLetter = () => {
                 </Label>
 
                 <Label label="Email:">
-                    <input
+                    <Input
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -91,15 +91,19 @@ const NewsLetter = () => {
                 </Label>
 
                 <Label className="checkbox-label">
-                    <input
+                    <Input
                         type="checkbox"
-                        checked={agreed}
-                        onChange={(e) => setAgreed(e.target.checked)}
+                        value={agreed}
+                        onChange={(e) => setAgreed(e.target.value)}
                     />
+
                     I agree with the Terms and Conditions
                 </Label>
 
-                <Button text="Subscribe" type="submit" disabled={!canSubmit || loading} />
+                <Button
+                    type="submit" disabled={!canSubmit || loading} >
+                    Subscribe
+                </Button>
 
                 <PopupMessage
                     message={popupMessage}

@@ -6,6 +6,7 @@ import PopupMessage from '../../components/popupmessage/PopupMessage';
 import {NavLink, useNavigate} from 'react-router-dom';
 import Button from "../../components/button/Button.jsx";
 import Label from "../../components/label/Label.jsx";
+import Input from "../../components/input/Input.jsx";
 
 function Profile() {
     const {user} = useContext(AuthContext);
@@ -96,34 +97,39 @@ function Profile() {
                 <section>
                     <h2>Change password:</h2>
                     <Label label="Current password:">
-                        <input
+                        <Input
                             type="password"
                             value={currentPassword}
                             onChange={(e) => setCurrentPassword(e.target.value)}
+                            required
                             placeholder="Enter your current password"
                         />
                     </Label>
 
                     <Label label="New password:">
-                        <input
+                        <Input
                             type="password"
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
+                            required
                             placeholder="Enter your new password"
                         />
                     </Label>
 
                     <Label label="Repeat new password:">
-                        <input
+                        <Input
                             type="password"
                             value={repeatNewPassword}
                             onChange={(e) => setRepeatNewPassword(e.target.value)}
+                            required
                             placeholder="Repeat your new password"
                         />
                     </Label>
                 </section>
 
-                <Button text="Update Password" type="submit" disabled={!canSubmitPassword || loading}/>
+                <Button type="submit" disabled={!canSubmitPassword || loading}>
+                    Update Password
+                </Button>
             </form>
 
             <form className="profile-form" onSubmit={handleSubscriptionUpdate}>
@@ -137,18 +143,16 @@ function Profile() {
                                 onClick={() => navigate('/newsletter')}
                                 className="newsletter-link"
                             >
-          here
-        </span>{' '}
+                              here
+                            </span>{' '}
                             to sign up.
                         </p>
                     ) : (
                         <>
                             <p>You’re subscribed to our newsletter.</p>
-                            <Button
-                                text="Unsubscribe"
-                                type="submit"
-                                disabled={loading}
-                            />
+                            <Button type="submit" disabled={loading}>
+                                Unsubscribe
+                            </Button>
                         </>
                     )}
                 </section>

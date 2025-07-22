@@ -1,4 +1,4 @@
-/* ========== PAGE WRAPPER ========== */
+/* page wrapper */
 .page {
     display: flex;
     flex-direction: column;
@@ -6,7 +6,7 @@
 }
 
 
-/* ========== VIDEO PLACEHOLDER (HERO SECTION) ========== */
+/* video placeholder */
 .video-placeholder {
     max-width: 1400px;
     margin: 50px auto;                                      /* center horizontally with top spacing */
@@ -34,7 +34,7 @@
 }
 
 
-/* ========== OVERLAY TEXT (LEFT) ========== */
+/* overlay left side */
 .video-overlay-text-left {
     position: absolute;
     top: 47%;
@@ -55,7 +55,7 @@
 }
 
 
-/* ========== OVERLAY TEXT (RIGHT) ========== */
+/* overlay right side */
 .video-overlay-text-right {
     position: absolute;
     top: 50%;
@@ -74,7 +74,7 @@
 }
 
 
-/* ========== OVERLAY TEXT (BOTTOM) ========== */
+/* overlay from bottom */
 .video-overlay-text-bottom {
     position: absolute;
     top: 55%;
@@ -94,7 +94,7 @@
 }
 
 
-/* ========== MAIN CONTENT SECTION (AFTER VIDEO) ========== */
+/* main content section below the video content */
 .content {
     position: relative;
     z-index: 600;                                           /* on top of video section */
@@ -116,7 +116,7 @@
 }
 
 
-/* ========== BUTTON OVER VIDEO (CALL TO ACTION) ========== */
+/* button over video content, a call to action */
 .overlay-btn {
     margin-top: 20px;
     padding: 12px 24px;

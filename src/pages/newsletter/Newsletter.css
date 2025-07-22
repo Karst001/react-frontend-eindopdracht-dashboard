@@ -1,4 +1,4 @@
-/* ========== PAGE LAYOUT ========== */
+/* page layout */
 .newsletter-page {
     padding-top: 3rem;
     max-width: 800px;                           /* restrict content width for readability */
@@ -6,7 +6,7 @@
 }
 
 
-/* ========== FORM CONTAINER ========== */
+/* form container */
 .newsletter-form {
     display: flex;
     flex-direction: column;                     /* stack form elements vertically */
@@ -18,7 +18,7 @@
 }
 
 
-/* ========== FORM INPUT FIELDS ========== */
+/* form input fields */
 .newsletter-form input[type="text"],
 .newsletter-form input[type="email"] {
     padding: 0.5rem;
@@ -28,7 +28,7 @@
 }
 
 
-/* ========== DISABLED BUTTON ========== */
+/* disabled button */
 .newsletter-form button:disabled {
     background-color: #ccc;                     /* dim background to show disabled state */
     color: #666;                                /* dimmed text color */
@@ -38,15 +38,8 @@
 }
 
 
-/* ========== CHECKBOX LABEL WRAPPER ========== */
-.checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
 
-
-/* ========== ERROR / HELPER TEXT ========== */
+/* error & helper text */
 .helper-text {
     color: #cc0000;
     font-size: 0.9rem;
@@ -54,7 +47,7 @@
 }
 
 
-/* ========== SUBMIT BUTTON ========== */
+/* submit button */
 .newsletter-form button {
     width: fit-content;                         /* button adjusts to its text width */
 }
