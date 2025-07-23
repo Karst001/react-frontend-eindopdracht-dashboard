@@ -82,28 +82,6 @@
 }
 
 
-/* user table */
-.admin-user-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 5px 10px;                       /* horizontal and vertical spacing between cells */
-    margin-top: 1rem;
-}
-
-
-.admin-user-table th,
-.admin-user-table td {
-    border: 1px solid #ddd;
-    padding: 0.5rem;
-    text-align: left;
-}
-
-
-.admin-user-table tr:hover {
-    background-color: #ccc;                      /* highlight row on hover */
-}
-
-
 
 /* product section */
 .admin-form textarea {

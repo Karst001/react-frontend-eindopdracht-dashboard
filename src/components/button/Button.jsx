@@ -17,16 +17,3 @@ const Button = ({ children, onClick, type = "button", className = "", disabled  
 
 export default Button;
 
-
-// const Button = ({ text, onClick, type = "button", className = "", disabled  }) => {
-//     return (
-//         <button
-//             type={type}                             // specifies the button type like button, submit or reset
-//             className={`btn-primary ${className}`}  // takes 'btn-primary' as default unless overwritten by prop className
-//             onClick={onClick}
-//             disabled={disabled}
-//         >
-//             {text}                                  {/* displays the text on the button */}
-//         </button>
-//     );
-// };

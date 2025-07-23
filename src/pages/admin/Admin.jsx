@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import './Admin.css';
 import Spinner from '../../components/loader/Spinner.jsx';
 import PopupMessage from "../../components/popupmessage/PopupMessage.jsx";
@@ -6,6 +6,9 @@ import Button from "../../components/button/Button.jsx";
 import Label from "../../components/label/Label.jsx";
 import Input from '../../components/input/Input.jsx';
 import Textarea from "../../components/textarea/Textarea.jsx";
+import {h} from 'gridjs'; //a helper/handle needed for checkboxes inside custom grid
+import CustomGrid from '../../components/datagrid/CustomGrid.jsx';
+
 
 const Admin = () => {
     const [activeSection, setActiveSection] = useState(null);
@@ -23,20 +26,47 @@ const Admin = () => {
     const [loading, setLoading] = useState(false);
     const [popupMessage, setPopupMessage] = useState('');
 
+
     const [users, setUsers] = useState([
         {id: 1, username: 'jdoe', firstName: 'John', lastName: 'Doe', email: 'jdoe@test.com', active: true},
         {id: 2, username: 'asmith', firstName: 'Anna', lastName: 'Smith', email: 'asmith@test.com', active: false},
         {id: 3, username: 'bjones', firstName: 'Bob', lastName: 'Jones', email: 'bjones@test.com', active: true},
         {id: 4, username: 'akarsten', firstName: 'Ad', lastName: 'Karsten', email: 'ad@test.com', active: true},
+        {id: 5, username: 'gbisschop', firstName: 'Geert', lastName: 'Bottens', email: 'geert@bottens.nl', active: true},
     ]);
 
-    const toggleUserActive = (id) => {
-        setUsers(prevUsers =>
-            prevUsers.map(user =>
+
+    //handles the toggle when user clicks on the checkbox inside the grid
+    const handleToggle = (id) => {
+        setUsers(prev =>
+            prev.map(user =>
                 user.id === id ? {...user, active: !user.active} : user
             )
         );
+
     };
+
+    //build array
+    const tableData = users.map(user => [
+        user.username,
+        user.firstName,
+        user.lastName,
+        user.email,
+        h('input', {
+            type: 'checkbox',
+            checked: user.active,
+            onClick: () => handleToggle(user.id),
+            className: 'toggle-switch'
+        })
+    ]);
+
+    //need useEffect to store state after it was commited, update it later with api call
+    useEffect(() => {
+        console.log("Updated users:", users);
+    }, [users]);
+
+
+
 
     const ResetForm = () => {
         setUserName('');
@@ -178,7 +208,7 @@ const Admin = () => {
                                             value={firstName}
                                             onChange={(e) => setFirstName(e.target.value)}
                                             required
-                                            placeholder="Enter the first name for this account"
+                                            placeholder="Enter the first name for this user"
                                         />
                                     </Label>
 
@@ -241,36 +271,20 @@ const Admin = () => {
                             <div className="admin-section">
                                 <h2>Edit users:</h2>
 
-                                {/*used a html table for now, want to change using a grid */}
-                                <table className="admin-user-table">
-                                    <thead>
-                                    <tr>
-                                        <th>Username</th>
-                                        <th>First Name</th>
-                                        <th>Last Name</th>
-                                        <th>Email</th>
-                                        <th>Active?</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    {users.map(user => (
-                                        <tr key={user.id} onClick={() => toggleUserActive(user.id)}>
-                                            <td>{user.username}</td>
-                                            <td>{user.firstName}</td>
-                                            <td>{user.lastName}</td>
-                                            <td>{user.email}</td>
-                                            <td>
-                                                <input
-                                                    type="checkbox"
-                                                    checked={user.active}
-                                                    onChange={(e) => e.stopPropagation()} // prevent double toggle
-                                                    readOnly
-                                                />
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    </tbody>
-                                </table>
+                                <CustomGrid
+                                    data={tableData}
+                                    columns={[
+                                        { id: 'userName', name: 'User name', width: '120px' },
+                                        { id: 'firstName', name: 'First name', width: '130px' },
+                                        { id: 'lastName', name: 'Last name', width: '130px' },
+                                        { id: 'email', name: 'Email', width: '250px' },
+                                        { id: 'active', name: 'Active?', width: '110px' },
+                                    ]}
+                                    search={true}
+                                    pagination={true}
+                                    pageLimit={6}
+                                    sort={false}
+                                />
 
                                 <Button onClick={handleUpdateUsers}>
                                     Update User
@@ -285,6 +299,7 @@ const Admin = () => {
                                     }}
                                 />
                                 {loading && <Spinner/>}
+
                             </div>
                         )}
 
@@ -374,7 +389,7 @@ const Admin = () => {
 
                                             {productImagePreview && (
                                                 <div className="image-preview">
-                                                    <img src={productImagePreview} alt="Product Preview" />
+                                                    <img src={productImagePreview} alt="Product Preview"/>
                                                     <p>{productImage.name}</p>
                                                 </div>
                                             )}
