@@ -16,13 +16,9 @@ import {
     Legend,
 } from 'recharts';
 
-// to display a grid with data I am using an open source component from 'ag-grid'
-import { AgGridReact } from "ag-grid-react";
-import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
-ModuleRegistry.registerModules([ AllCommunityModule ]);
-import "ag-grid-community/styles/ag-grid.css";
-import "ag-grid-community/styles/ag-theme-alpine.css";
 import Clock from "../../components/clock/Clock.jsx";
+import CustomGrid from "../../components/datagrid/CustomGrid.jsx";
+
 
 
 const Dashboard = () => {
@@ -158,22 +154,32 @@ const Dashboard = () => {
         setSelectedMonth(null);
     };
 
-    const columnDefs = [
-        { field: "make", sortable: true, filter: true },
-        { field: "model", sortable: true, filter: true },
-        { field: "price", sortable: true, filter: true }
-    ];
-
-    const defaultColDef = {
-        resizable: true,
-        flex: 1,
-        minWidth: 100
-    };
-
 
     //datasource for the drilldown details
     const drilldownData = {
         'Jan 2024': [
+            { make: "Toyota", model: "Corolla", price: 20000 },
+            { make: "Mazda", model: "3", price: 18000 },
+            { make: "Toyota", model: "Corolla", price: 20000 },
+            { make: "Mazda", model: "3", price: 18000 },
+            { make: "Toyota", model: "Corolla", price: 20000 },
+            { make: "Mazda", model: "3", price: 18000 },
+            { make: "Toyota", model: "Corolla", price: 20000 },
+            { make: "Mazda", model: "3", price: 18000 },
+            { make: "Toyota", model: "Corolla", price: 20000 },
+            { make: "Mazda", model: "3", price: 18000 },
+            { make: "Toyota", model: "Corolla", price: 20000 },
+            { make: "Mazda", model: "3", price: 18000 },
+            { make: "Toyota", model: "Corolla", price: 20000 },
+            { make: "Mazda", model: "3", price: 18000 },
+            { make: "Toyota", model: "Corolla", price: 20000 },
+            { make: "Mazda", model: "3", price: 18000 },
+            { make: "Toyota", model: "Corolla", price: 20000 },
+            { make: "Mazda", model: "3", price: 18000 },
+            { make: "Toyota", model: "Corolla", price: 20000 },
+            { make: "Mazda", model: "3", price: 18000 },
+            { make: "Toyota", model: "Corolla", price: 20000 },
+            { make: "Mazda", model: "3", price: 18000 },
             { make: "Toyota", model: "Corolla", price: 20000 },
             { make: "Mazda", model: "3", price: 18000 }
         ],
@@ -186,7 +192,8 @@ const Dashboard = () => {
     };
 
     //filter based on selectedMonth, not found? shows Default value
-    const drilldownGridData = drilldownData[selectedMonth] || drilldownData['DEFAULT'];
+    const tableData = drilldownData[selectedMonth] || drilldownData['DEFAULT'];
+
 
     return (
         <div className="dashboard-container">
@@ -544,18 +551,18 @@ const Dashboard = () => {
                                     <h3>Sales details voor {selectedMonth}</h3>
                                     <hr/>
 
-                                    {/*80vh is max height of the modal, 70vh fits within w/o scroll bars*/}
-                                    <div className="ag-theme-alpine custom-ag-grid" style={{ height: '68vh', width: 1400 }}>
-                                        {/*{console.log("Selected Month:", selectedMonth)}*/}
-
-                                        <AgGridReact
-                                            rowData={drilldownGridData}
-                                            columnDefs={columnDefs}
-                                            defaultColDef={defaultColDef}
-                                            rowHeight={35}
-                                        />
-
-                                    </div>
+                                    <CustomGrid
+                                        data={tableData}
+                                        columns={[
+                                            { id: 'make', name: 'Make', width: '120px' },
+                                            { id: 'model', name: 'Model', width: '130px' },
+                                            { id: 'price', name: 'Price', width: '130px' },
+                                        ]}
+                                        search={true}
+                                        pagination={true}
+                                        pageLimit={14}
+                                        sort={true}
+                                    />
                                 </div>
                             </div>
                         )}

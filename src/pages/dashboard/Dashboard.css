@@ -415,9 +415,8 @@
     margin-top: 50px;       /* extra space between Close button and H2 */
 }
 
-.close-panel-btn:disabled {  /* shows diabled when 2nd modal form is visible */
-    opacity: 0.5;
-    cursor: not-allowed;
+.close-panel-btn:disabled {  /* hide button when 2nd modal form is visible */
+    opacity: 0.0;
 }
 
 /* the component ResponsiveContainer at default uses inline css like */
@@ -460,8 +459,8 @@
     padding: 2rem;
     border-radius: 10px;
     width: 90%;
-    max-width: 1400px;          /* max vh of the modal */
-    max-height: 80vh;           /* max vh of the modal */
+    max-width: 1500px;          /* max vh of the modal */
+    max-height: 90vh;           /* max vh of the modal */
     overflow-y: auto;
     position: relative;
 }

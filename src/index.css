@@ -73,50 +73,51 @@ select {
   }
 }
 
-/* ========== DEBUGGING ========== */
-/*
- * Use these for layout debugging, shows all outlines and background colors
- * very helpful
- */
-/*
 
-*{
-  outline: 2px solid red;
-}
+/* for debugging */
 
-html {
-  background: #eee;
-}
+/*Use these for layout debugging, shows all outlines and background colors*!*/
+/*very helpful*!*/
 
-body {
-  background: #ccc;
-}
 
-#root {
-  background: #faa;
-}
 
-main {
-  background: #afa;
-}
+/**{*/
+/*  outline: 2px solid red;*/
+/*}*/
 
-html {
-  box-sizing: border-box;
-}
+/*html {*/
+/*  background: #eee;*/
+/*}*/
 
-*, *::before, *::after {
-  box-sizing: inherit;
-}
+/*body {*/
+/*  background: #ccc;*/
+/*}*/
 
-.nav-inner {
-  background: rgba(255,0,0,0.1); // See nav bounds
-}
+/*#root {*/
+/*  background: #faa;*/
+/*}*/
 
-.logo {
-  background: rgba(0,255,0,0.1); // See logo bounds
-}
+/*main {*/
+/*  background: #afa;*/
+/*}*/
 
-.nav-links {
-  background: rgba(0,0,255,0.1); // See link bounds
-}
+/*html {*/
+/*  box-sizing: border-box;*/
+/*}*/
+
+/**, *::before, *::after {*/
+/*  box-sizing: inherit;*/
+/*}*/
+
+/*.nav-inner {*/
+/*  background: rgba(255,0,0,0.1); // See nav bounds*/
+/*}*/
+
+/*.logo {*/
+/*  background: rgba(0,255,0,0.1); // See logo bounds*/
+/*}*/
+
+/*.nav-links {*/
+/*  background: rgba(0,0,255,0.1); // See link bounds*/
+/*}*/
 

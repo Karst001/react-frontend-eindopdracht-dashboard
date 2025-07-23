@@ -1,0 +1,35 @@
+/* grid stying */
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+}
+
+.custom-header {
+    background-color: #0044cc;
+    color: white;
+    text-align: left;
+    height: 45px;
+    font-size: 1rem;
+}
+
+.custom-cell {
+    padding: 8px 12px;
+    border-bottom: 1px solid #ddd;
+    font-size: 0.95rem;
+}
+
+/* style checkbox */
+.toggle-switch {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+/* adjust font size in the grid header */
+.my-grid-wrapper .gridjs-th {
+    font-size: 15px;
+    padding: 6px 12px;
+}
+
+
