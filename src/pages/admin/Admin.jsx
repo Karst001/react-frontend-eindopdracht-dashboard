@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import './Admin.css';
 import Spinner from '../../components/loader/Spinner.jsx';
 import PopupMessage from "../../components/popupmessage/PopupMessage.jsx";
@@ -8,6 +8,7 @@ import Input from '../../components/input/Input.jsx';
 import Textarea from "../../components/textarea/Textarea.jsx";
 import {h} from 'gridjs'; //a helper/handle needed for checkboxes inside custom grid
 import CustomGrid from '../../components/datagrid/CustomGrid.jsx';
+import {validateEmail} from "../../helpers/emailvalidation/EmailValidation.jsx";
 
 
 const Admin = () => {
@@ -25,6 +26,8 @@ const Admin = () => {
     const [productImagePreview, setProductImagePreview] = useState(null);
     const [loading, setLoading] = useState(false);
     const [popupMessage, setPopupMessage] = useState('');
+    const [emailValid, setEmailValid] = useState(true);
+    const [customerIDValid, setCustomerIDValid] = useState(true);
 
 
     const [users, setUsers] = useState([
@@ -81,6 +84,22 @@ const Admin = () => {
         setProductImagePreview(null);
     };
 
+
+    const mockAddUser = (userData) => {
+        console.log('Sending user to API:', userData);
+
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                if (Math.random() < 0.9) {
+                    resolve({success: true});
+                } else {
+                    reject(new Error('Failed to add user on the server.'));
+                }
+            }, 1000);  // Simulate network delay
+        });
+    };
+
+
     const handleUpdateUsers = async () => {
         setLoading(true);
 
@@ -95,19 +114,6 @@ const Admin = () => {
         } finally {
             setLoading(false); //make sure to stop the spinner
         }
-    };
-
-    const mockAddUser = (userData) => {
-        console.log('Sending user to API:', userData);
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                if (Math.random() < 0.9) {
-                    resolve({success: true});
-                } else {
-                    reject(new Error('Failed to add user on the server.'));
-                }
-            }, 1000);  // Simulate network delay
-        });
     };
 
 
@@ -145,7 +151,6 @@ const Admin = () => {
     const canSubmitNewUser = Boolean(username.trim() && firstName.trim() && lastName.trim() && email.trim() && customerID.trim());
     const canSubmitNewProduct = Boolean(productTitle.trim() !== '' && productDescription.trim() !== '' && productImage !== null);
 
-
     return (
         <div className="admin-page">
             <div className="admin-layout-wrapper">
@@ -170,6 +175,7 @@ const Admin = () => {
                                 <h2>Add a new user:</h2>
                                 <form className="admin-form" onSubmit={async (e) => {
                                     e.preventDefault();
+
                                     setLoading(true);
 
                                     try {
@@ -221,22 +227,36 @@ const Admin = () => {
                                         />
                                     </Label>
 
+                                    {/*Validate email on blur, when user leaves the field*/}
+                                    {/*onBlur is fired when the email text field loses focus, then the validateEmail is called*/}
                                     <Label label="Email:">
                                         <Input
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
+                                            onBlur={(e) => { setEmailValid(validateEmail(e.target.value)); }}
                                             required
                                             placeholder="Enter the email address for this user"
                                         />
+                                        {!emailValid && <p className="error-text">Invalid email address</p>}
                                     </Label>
 
                                     <Label label="Customer ID:">
                                         <Input
+                                            type="text"
                                             value={customerID}
-                                            onChange={(e) => setCustomerID(e.target.value)}
+                                            onChange={(e) => {
+                                                const value = e.target.value;
+                                                setCustomerID(value);
+                                                setCustomerIDValid(/^\d{6,}$/.test(value)); // 6 or more digits only
+                                            }}
+                                            onBlur={(e) => {
+                                                const value = e.target.value;
+                                                setCustomerIDValid(/^\d{6,}$/.test(value));
+                                            }}
                                             required
                                             placeholder="Enter the customer ID for this account (6 digits long)"
                                         />
+                                        {!customerIDValid && <p className="error-text">Customer ID must be at least 6 digits, text is not allowed</p>}
                                     </Label>
 
                                     <Label className="checkbox-label">
@@ -249,7 +269,8 @@ const Admin = () => {
                                         This user has administrator rights
                                     </Label>
 
-                                    <Button type="submit" disabled={!canSubmitNewUser || loading}>
+                                    {/* button only enabled when there are no errors and email is valid and customerIDis valid */}
+                                    <Button type="submit" disabled={!canSubmitNewUser || loading || !emailValid || !customerIDValid}>
                                         Add User
                                     </Button>
 

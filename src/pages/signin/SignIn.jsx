@@ -5,6 +5,7 @@ import {AuthContext} from '../../context/AuthContext';
 import Spinner from "../../components/loader/Spinner.jsx";
 import Button from "../../components/button/Button.jsx";
 import Label from "../../components/label/Label.jsx";
+import {validateEmail} from "../../helpers/emailvalidation/EmailValidation.jsx";
 
 
 function SignIn() {
@@ -14,6 +15,7 @@ function SignIn() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [emailValid, setEmailValid] = useState(true);
 
     //navigation / authentication
     const navigate = useNavigate();
@@ -114,18 +116,22 @@ function SignIn() {
 
                             <p>Welcome to our Partner Portal</p>
 
+                            {/*Validate email on blur, when user leaves the field*/}
+                            {/*onBlur is fired when the email text field loses focus, then the validateEmail is called*/}
                             <Label label="Enter your e-mail:">
                                 <input
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
+                                    onBlur={(e) => { setEmailValid(validateEmail(e.target.value)); }}
                                     required
                                     ref={emailInputRef}
                                 />
+                                {!emailValid && <p className="error-text">Invalid email address</p>}
                             </Label>
-                            {error && <p className="error">{error}</p>}
+                            {error && <p className="error-text">{error}</p>}
 
-                            <Button type="submit">
+                            <Button type="submit" disabled={!emailValid}>
                                 Next
                             </Button>
                         </form>
@@ -135,7 +141,11 @@ function SignIn() {
                         <form onSubmit={handleLogin}>
                             <Button
                                 type="button"
-                                onClick={() => setStep(1)}>
+                                onClick={() => {
+                                    setStep(1);
+                                    setError('');
+                                }}
+                                >
                                 ◀ Back
                             </Button>
 
@@ -154,7 +164,7 @@ function SignIn() {
                                 />
                             </Label>
 
-                            {error && <p className="error">{error}</p>}
+                            {error && <p className="error-text">{error}</p>}
 
                             <Button type="submit" >
                                 Continue

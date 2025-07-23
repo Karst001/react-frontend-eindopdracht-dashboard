@@ -7,6 +7,8 @@ import Button from "../../components/button/Button.jsx";
 import Label from "../../components/label/Label.jsx";
 import Input from "../../components/input/Input.jsx";
 import Textarea from "../../components/textarea/Textarea.jsx";
+import {validateEmail} from "../../helpers/emailvalidation/EmailValidation.jsx";
+
 
 const ContactUs = () => {
     const [countries, setCountries] = useState([]);
@@ -20,6 +22,7 @@ const ContactUs = () => {
     const [popupMessage, setPopupMessage] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const [emailValid, setEmailValid] = useState(true);
 
 
     useEffect(() => {
@@ -132,14 +135,18 @@ const ContactUs = () => {
                     />
                 </Label>
 
+                {/*Validate email on blur, when user leaves the field*/}
+                {/*onBlur is fired when the email text field loses focus, then the validateEmail is called*/}
                 <Label label={<><span>Email:</span> <span className="required">*</span></>}>
                     <Input
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                        onBlur={(e) => { setEmailValid(validateEmail(e.target.value)); }}
                         required
                         placeholder="Enter your email address"
                     />
+                    {!emailValid && <p className="error-text">Invalid email address</p>}
                 </Label>
 
                 <Label label={<><span>Message:</span> <span className="required">*</span></>}>
@@ -156,7 +163,7 @@ const ContactUs = () => {
                 </Label>
 
                 <Button
-                    type="submit" disabled={!canSubmit || loading} >
+                    type="submit" disabled={!canSubmit || loading || !emailValid}>
                     Send Message
                 </Button>
 

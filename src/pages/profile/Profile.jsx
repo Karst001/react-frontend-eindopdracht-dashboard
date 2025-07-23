@@ -20,6 +20,7 @@ function Profile() {
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
     const [popupMessage, setPopupMessage] = useState('');
+    const [passwordMismatch, setPasswordMismatch] = useState(false);
 
     const navigate = useNavigate();
 
@@ -111,6 +112,9 @@ function Profile() {
                             type="password"
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
+                            onBlur={() => {
+                                setErrorMsg('');
+                            }}
                             required
                             placeholder="Enter your new password"
                         />
@@ -120,14 +124,26 @@ function Profile() {
                         <Input
                             type="password"
                             value={repeatNewPassword}
-                            onChange={(e) => setRepeatNewPassword(e.target.value)}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                setRepeatNewPassword(value);
+                                setPasswordMismatch(newPassword !== value); // check if password match while typing, when they match the warning goes away and button enabled right away
+                            }}
+                            onBlur={() => {
+                                setPasswordMismatch(newPassword !== repeatNewPassword); // fallback to make sure it is checked
+                            }}
                             required
                             placeholder="Repeat your new password"
                         />
+                        {passwordMismatch && (
+                            <p className="error-text">Passwords do not match</p>
+                        )}
                     </Label>
                 </section>
 
-                <Button type="submit" disabled={!canSubmitPassword || loading}>
+                {errorMsg && <p className="error-text">{errorMsg}</p>}
+
+                <Button type="submit" disabled={!canSubmitPassword || loading || passwordMismatch}>
                     Update Password
                 </Button>
             </form>
@@ -158,8 +174,6 @@ function Profile() {
                 </section>
             </form>
 
-            {/* === Shared Messages === */}
-            {errorMsg && <p className="error">{errorMsg}</p>}
             {loading && <Spinner/>}
 
             <PopupMessage

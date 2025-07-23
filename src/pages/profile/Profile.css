@@ -79,7 +79,6 @@
     background-color: #ccc;
     color: #666;
     cursor: not-allowed;                    /* shows disabled cursor */
-    border: 1px solid #aaa;
     opacity: 0.6;                           /* slightly transparent */
 }
 
