@@ -7,6 +7,8 @@ import PopupMessage from "../../components/popupmessage/PopupMessage.jsx";
 import Button from "../../components/button/Button.jsx";
 import Label from "../../components/label/Label.jsx";
 import Input from "../../components/input/Input.jsx";
+import {validateEmail} from "../../helpers/emailvalidation/EmailValidation.jsx";
+
 
 const NewsLetter = () => {
     const [name, setName] = useState('');
@@ -15,6 +17,7 @@ const NewsLetter = () => {
     const [popupMessage, setPopupMessage] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const [emailValid, setEmailValid] = useState(true);
 
     const mockSubscribeAPI = (subscriberData) => {
         console.log('Sending newsletter data to API:', subscriberData);
@@ -80,28 +83,33 @@ const NewsLetter = () => {
                     />
                 </Label>
 
+                {/*Validate email on blur, when user leaves the field*/}
+                {/*onBlur is fired when the email text field loses focus, then the validateEmail is called*/}
                 <Label label="Email:">
                     <Input
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                        onBlur={(e) => { setEmailValid(validateEmail(e.target.value)); }}
                         required
                         placeholder="Enter your email address"
                     />
+                    {!emailValid && <p className="error-text">Invalid email address</p>}
                 </Label>
 
                 <Label className="checkbox-label">
                     <Input
                         type="checkbox"
-                        value={agreed}
-                        onChange={(e) => setAgreed(e.target.value)}
+                        checked={agreed}
+                        onChange={(e) => setAgreed(e.target.checked)}
                     />
 
                     I agree with the Terms and Conditions
                 </Label>
 
+                {/* button only enabled when there are no errors and email is valid */}
                 <Button
-                    type="submit" disabled={!canSubmit || loading} >
+                    type="submit" disabled={!canSubmit || loading || !emailValid} >
                     Subscribe
                 </Button>
 

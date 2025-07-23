@@ -77,10 +77,3 @@ input {
 }
 
 
-/* error message styling */
-.error {
-    color: red;
-    font-size: 0.9em;                           /* slightly smaller text */
-    margin: 5px 0;
-}
-
