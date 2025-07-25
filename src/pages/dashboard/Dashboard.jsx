@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import "./Dashboard.css";
 import Button from "../../components/button/Button.jsx";
 import Label from "../../components/label/Label.jsx";
@@ -30,7 +30,10 @@ const Dashboard = () => {
     //used to track which month was selected and if a modal form was opened, this is used as drilldown function on the graphs
     const [selectedMonth, setSelectedMonth] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [pageLimit, setPageLimit] = useState(12); //to track the page limit in the CustomGrid
 
+    //used to track if screen is mobile or not, if mobile then the pie charts are smaller size
+    const isMobile = window.innerWidth <= 768;
 
     //set colors for donuts
     const donutColors = {
@@ -161,15 +164,15 @@ const Dashboard = () => {
             { make: "Toyota", model: "Corolla", price: 20000 },
             { make: "Mazda", model: "3", price: 18000 },
             { make: "Toyota", model: "Corolla", price: 20000 },
-            { make: "Mazda", model: "3", price: 18000 },
+            { make: "Mazda", model: "6", price: 18000 },
             { make: "Toyota", model: "Corolla", price: 20000 },
-            { make: "Mazda", model: "3", price: 18000 },
+            { make: "Mazda", model: "CX3", price: 18000 },
             { make: "Toyota", model: "Corolla", price: 20000 },
-            { make: "Mazda", model: "3", price: 18000 },
+            { make: "Mazda", model: "CX30", price: 18000 },
             { make: "Toyota", model: "Corolla", price: 20000 },
-            { make: "Mazda", model: "3", price: 18000 },
+            { make: "Mazda", model: "CX5", price: 18000 },
             { make: "Toyota", model: "Corolla", price: 20000 },
-            { make: "Mazda", model: "3", price: 18000 },
+            { make: "Mazda", model: "CX3M", price: 18000 },
             { make: "Toyota", model: "Corolla", price: 20000 },
             { make: "Mazda", model: "3", price: 18000 },
             { make: "Toyota", model: "Corolla", price: 20000 },
@@ -194,28 +197,45 @@ const Dashboard = () => {
     //filter based on selectedMonth, not found? shows Default value
     const tableData = drilldownData[selectedMonth] || drilldownData['DEFAULT'];
 
+    // the requirement is that on desktop the page limit for CustomGrid is 12
+    //on mobile it is 6 so the user is not required to scroll up/down
+    useEffect(() => {
+        const updatePageLimit = () => {
+            const isMobile = window.innerWidth <= 768;
+            setPageLimit(isMobile && isModalOpen ? 6 : 12);
+        };
+
+        updatePageLimit(); // run on mount and on modal open
+
+        window.addEventListener('resize', updatePageLimit);
+        return () => window.removeEventListener('resize', updatePageLimit);
+    }, [isModalOpen]);
+
 
     return (
         <div className="dashboard-container">
             <div className="dashboard-sidebar">
                 <Label label={<><span>Your machines:</span></>}>
                     <select value={machine} onChange={(e) => setMachine(e.target.value)} required>
-                        <option value="">-- Select machine --</option>
+                        <option value="">- Select machine -</option>
                         <option value="machine1">FAMM 3.0</option>
                         <option value="machine2">SAMM 2.0</option>
                     </select>
                 </Label>
 
                 {/*buttons to set toggle state that show a hidden div as overlay */}
-                <Button onClick={() => setShowJobPanel(true)}>
-                    Total Jobs, Sleeves, Plates
-                </Button>
-                <Button onClick={() => setShowAvgTimeBetweenJobsPanel(true)}>
-                    Avg. Time between Jobs
-                </Button>
-                <Button onClick={() => setShowAvgTimeBetweenSleevesPanel(true)}>
-                    Avg. Time between Sleeves
-                </Button>
+
+                <div className="dashboard-button-row">
+                    <Button onClick={() => setShowJobPanel(true)}>
+                        Jobs, Sleeves, Plates
+                    </Button>
+                    <Button onClick={() => setShowAvgTimeBetweenJobsPanel(true)}>
+                        Time between Jobs
+                    </Button>
+                    <Button onClick={() => setShowAvgTimeBetweenSleevesPanel(true)}>
+                        Time between Sleeves
+                    </Button>
+                </div>
 
                 <Clock />
             </div>
@@ -243,8 +263,8 @@ const Dashboard = () => {
                                                     <Pie
                                                         data={data}
                                                         dataKey="value"
-                                                        innerRadius={40}
-                                                        outerRadius={70}
+                                                        innerRadius={isMobile ? 35 : 40} //smaller on mobile
+                                                        outerRadius={isMobile ? 54 : 70} //smaller on mobile
                                                         startAngle={90}
                                                         endAngle={-270}
                                                         animationDuration={500}
@@ -377,8 +397,8 @@ const Dashboard = () => {
                                                         <Pie
                                                             data={data}
                                                             dataKey="value"
-                                                            innerRadius={40}
-                                                            outerRadius={70}
+                                                            innerRadius={isMobile ? 35 : 40} //smaller on mobile
+                                                            outerRadius={isMobile ? 54 : 70} //smaller on mobile
                                                             startAngle={90}
                                                             endAngle={-270}
                                                             animationDuration={500}
@@ -424,8 +444,8 @@ const Dashboard = () => {
                                                         <Pie
                                                             data={data}
                                                             dataKey="value"
-                                                            innerRadius={40}
-                                                            outerRadius={70}
+                                                            innerRadius={isMobile ? 35 : 40} //smaller on mobile
+                                                            outerRadius={isMobile ? 54 : 70} //smaller on mobile
                                                             startAngle={90}
                                                             endAngle={-270}
                                                             animationDuration={500}
@@ -548,7 +568,7 @@ const Dashboard = () => {
                                     {/*close-panel-btn*/}
                                     <button className="btn-primary" onClick={closePopup}>Close</button>
 
-                                    <h3>Sales details voor {selectedMonth}</h3>
+                                    <h3>Sales details for {selectedMonth}</h3>
                                     <hr/>
 
                                     <CustomGrid
@@ -560,7 +580,7 @@ const Dashboard = () => {
                                         ]}
                                         search={true}
                                         pagination={true}
-                                        pageLimit={14}
+                                        pageLimit={pageLimit} //dynamic page limit based on screen size
                                         sort={true}
                                     />
                                 </div>

@@ -168,3 +168,35 @@
     font-size: 0.85rem;
     margin-top: 4px;
 }
+
+/* Mobile: 768px and below */
+@media (max-width: 768px) {
+    .admin-layout {
+        flex-direction: column;
+    }
+    .admin-page {
+        padding: 3rem 1rem; /* top/bottom 3rem, left/right 1rem */
+    }
+
+    .admin-page h1 {
+        font-size: 1.75rem;   /* smaller heading for mobile */
+    }
+
+    .admin-sidebar {
+        width: 100%;
+        flex-direction: row;       /* change from column to row */
+        flex-wrap: wrap;           /* allow wrapping if buttons don't fit */
+        justify-content: center;   /* center horizontally */
+        gap: 0.5rem;               /* reduce spacing between buttons */
+        margin-bottom: 1rem;
+    }
+
+    .admin-sidebar button {
+        flex: 1;                   /* make buttons share space evenly */
+        min-width: 100px;          /* prevent being too small */
+    }
+
+    .admin-content {
+        padding-left: 0;
+    }
+}

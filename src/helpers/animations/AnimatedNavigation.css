@@ -169,7 +169,7 @@ nav a:hover {
 }
 
 
-/* ========== HAMBURGER MENU STYLES (Mobile) ========== */
+/* ham,burger menu style for mobile hide on desktop */
 .hamburger {
     display: none;
     font-size: 2rem;
@@ -179,10 +179,34 @@ nav a:hover {
     color: #000;
 }
 
-/* ========== RESPONSIVE STYLES ========== */
+/* responsive style */
 @media (max-width: 768px) {
+    .logo img {
+        max-width: 140px;
+        height: auto;
+        margin-top: 16px;
+    }
+
+    .nav-inner {
+        flex-direction: row-reverse;                /* reverse the order: hamburger left, logo right */
+        justify-content: space-between;
+    }
+
     .hamburger {
-        display: block;                             /* show hamburger on small screens */
+        display: block;
+        position: absolute;
+        left: 50%;                                  /* center menu */
+        transform: translateX(-50%);
+        font-size: 2rem;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #000;
+        z-index: 1001; /* make sure it's above nav links */
+    }
+
+    .logo {
+        margin-left: auto;  /* push logo right */
     }
 
     .nav-links li {
@@ -202,11 +226,17 @@ nav a:hover {
 
     .nav-links.open {
         display: flex;                              /* show menu when toggled open */
+        padding-bottom: 2rem;                       /* space at the bottom when open, otherwise to tight */
+        background: #f3f3f3;                        /* light gray background */
     }
 
     .nav-links li {
-        padding: 1rem;
         justify-content: flex-start;
+    }
+
+    .nav-username .dropdown-menu {
+        margin-top: 2rem;                           /* space from the top so it doesn't look cramped */
+        background: #f3f3f3;                        /* light gray background */
     }
 
     .dropdown-menu {
@@ -220,7 +250,7 @@ nav a:hover {
     }
 
 
-    /* Responsive adjustments for embedded videos or banners */
+    /* Responsive adjustments for embedded video */
     .video-placeholder {
         width: 93vw;
         height: auto;

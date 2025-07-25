@@ -141,8 +141,11 @@ const ContactUs = () => {
                     <Input
                         type="email"
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        onBlur={(e) => { setEmailValid(validateEmail(e.target.value)); }}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            setEmail(value);
+                            setEmailValid(validateEmail(value));        // continuous validation while typing
+                        }}
                         required
                         placeholder="Enter your email address"
                     />
