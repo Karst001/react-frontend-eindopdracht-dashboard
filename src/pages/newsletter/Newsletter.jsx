@@ -74,7 +74,7 @@ const NewsLetter = () => {
             </p>
 
             <form className="newsletter-form" onSubmit={handleSubmit}>
-                <Label label="Name:">
+                <Label label={<><span>Name:</span> <span className="required">*</span></>}>
                     <Input
                         value={name}
                         onChange={(e) => setName(e.target.value)}
@@ -85,12 +85,16 @@ const NewsLetter = () => {
 
                 {/*Validate email on blur, when user leaves the field*/}
                 {/*onBlur is fired when the email text field loses focus, then the validateEmail is called*/}
-                <Label label="Email:">
+                <Label label={<><span>E-mail:</span> <span className="required">*</span></>}>
                     <Input
                         type="email"
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        onBlur={(e) => { setEmailValid(validateEmail(e.target.value)); }}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            setEmail(value);
+                            setEmailValid(validateEmail(value));            // continuous validation while typing
+                        }}
+                        // onBlur={(e) => { setEmailValid(validateEmail(e.target.value)); }}
                         required
                         placeholder="Enter your email address"
                     />
@@ -104,7 +108,7 @@ const NewsLetter = () => {
                         onChange={(e) => setAgreed(e.target.checked)}
                     />
 
-                    I agree with the Terms and Conditions
+                    I agree with the Terms and Conditions<span className="required"> *</span>
                 </Label>
 
                 {/* button only enabled when there are no errors and email is valid */}

@@ -137,9 +137,9 @@ const Home = () => {
 
 
     return (
-        <div className="page">
+        // <div className="video-wrapper">
+        <div>
             <div className="video-placeholder">
-                {/*to be replaced with content from customer*/}
                 <video
                     src="https://www.w3schools.com/html/mov_bbb.mp4"
                     width="100%"
@@ -148,40 +148,50 @@ const Home = () => {
                     muted
                     loop
                     playsInline
-                    style={{objectFit: "cover"}}
+                    style={{ objectFit: "cover" }}
                 />
             </div>
 
-            <div className="video-overlay-text-left slide-in">
-                <h1>COMPLETE FLEXO SOLUTIONS</h1>
-            </div>
+            <div className="video-overlay">
+                <div className="video-overlay-text-left slide-in">
+                    <h1>COMPLETE FLEXO SOLUTIONS</h1>
+                </div>
 
-            <div className="video-overlay-text-right slide-in">
-                <h1>FOR EVERY FLEXOGRAPHIC PRINTER</h1>
-            </div>
+                <div className="video-overlay-text-right slide-in">
+                    <h1>FOR EVERY FLEXOGRAPHIC PRINTER</h1>
+                </div>
 
-            <div className="video-overlay-text-bottom">
-                <Button
-                    onClick={() => {
-                        const element = document.getElementById("products");
-                        if (element) {
-                            const targetY = element.getBoundingClientRect().top + window.scrollY - 100;
-                            window.scrollTo({top: targetY, behavior: 'smooth'});
-                        }
-                    }}
-                >
-                    OUR PRODUCTS
-                </Button>
+                <div className="video-overlay-text-bottom">
+                    <Button
+                        onClick={() => {
+                            // scroll to id=products
+                            const element = document.getElementById("products");
+
+                            //enable smooth scrolling on button click
+                            if (element) {
+                                const targetY = element.getBoundingClientRect().top + window.scrollY - 100;
+                                window.scrollTo({ top: targetY, behavior: 'smooth' });
+                            }
+                        }}
+                    >
+                        OUR PRODUCTS
+                    </Button>
+                </div>
             </div>
 
             <main className="content" id="products">
                 <h2>Our Products</h2>
-
+                {/* animate on scroll only work on desptop, on mobile the first product is always showsn to fill the screen */}
+                {/* once the user scrolls the rest is animated */}
+                {/* index !== 0 means the first one shows */}
                 {products.map((product, index) => (
                     <ProductCard
                         key={product.id}
                         product={product}
                         direction={index % 2 === 0 ? "from-left" : "from-right"}
+                        animateOnScroll={
+                            index !== 0 || (typeof window !== 'undefined' && window.innerWidth > 768)
+                        }
                     />
                 ))}
             </main>

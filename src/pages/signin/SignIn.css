@@ -24,8 +24,9 @@
     border: 1px solid #333;
     padding: 20px;
     background: rgba(249, 249, 249, 0.9);       /* semi-transparent white background */
-    width: 400px;                               /* fixed width for consistency */
     box-shadow: 0 0 10px rgba(0,0,0,0.3);       /* light shadow for depth effect */
+    width: 400px;                               /* fixed width for consistency */
+    margin: 0 auto;                             /* center horizontally */
 }
 
 
@@ -74,6 +75,19 @@ input {
     padding: 0;
     margin-bottom: 10px;
     cursor: pointer;
+}
+
+
+/* Mobile: 768px and below */
+@media (max-width: 768px) {
+    .signin-box {
+        width: 75%;                                 /* reduce box width for smaller screens */
+    }
+
+    .signin-container {
+        justify-content: flex-start;                /* align items to the top */
+        padding-top: 25%;                           /* space from top */
+    }
 }
 
 

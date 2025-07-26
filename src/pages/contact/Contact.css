@@ -5,6 +5,9 @@
     margin: 2rem auto;                                      /* center the form horizontally with vertical spacing */
 }
 
+.contact-page h1 {
+    font-size: 36px;
+}
 
 /* contact form styling */
 .contact-form {
@@ -55,4 +58,20 @@
     cursor: not-allowed;                                    /* visual indicator for unclickable state */
     border: 1px solid #aaa;
     opacity: 0.6;                                           /* appear "faded" */
+}
+
+
+/* Mobile: 768px and below */
+@media (max-width: 768px) {
+    .contact-page {
+        padding: 3rem 1rem; /* top/bottom 3rem, left/right 1rem */
+    }
+
+    .contact-page h1 {
+        font-size: 1.75rem;   /* smaller heading for mobile */
+    }
+
+    .contact-page-page h4 {
+        font-size: 1rem;
+    }
 }

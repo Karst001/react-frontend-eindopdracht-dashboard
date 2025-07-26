@@ -1,9 +1,9 @@
 /* page wrapper */
-.page {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;                                      /* making sure full vertical space is used */
-}
+/*.video-wrapper {*/
+/*    display: flex;*/
+/*    flex-direction: column;*/
+/*    min-height: 100vh;                                      !* making sure full vertical space is used *!*/
+/*}*/
 
 
 /* video placeholder */
@@ -115,6 +115,51 @@
     align-self: flex-start;
 }
 
+/* overlay animations */
+.video-overlay-text-left,
+.video-overlay-text-right,
+.video-overlay-text-bottom {
+    position: absolute;
+    color: #fff;
+    text-align: center;
+    width: 100%;
+    z-index: 600;
+    opacity: 0;
+    transition: transform 1.8s ease-out, opacity 1.8s ease-out;
+}
+
+.video-overlay-text-left {
+    top: 35%;
+    left: 50%;
+    transform: translate(-150%, -50%);
+}
+
+.video-overlay-text-left.visible {
+    transform: translate(-50%, -50%);
+    opacity: 1;
+}
+
+.video-overlay-text-right {
+    top: 45%;
+    left: 50%;
+    transform: translate(150%, -50%);
+}
+
+.video-overlay-text-right.visible {
+    transform: translate(-50%, -50%);
+    opacity: 1;
+}
+
+.video-overlay-text-bottom {
+    top: 60%;
+    left: 50%;
+    transform: translate(-50%, 300%);
+}
+
+.video-overlay-text-bottom.visible {
+    transform: translate(-50%, 0%);
+    opacity: 1;
+}
 
 /* button over video content, a call to action */
 .overlay-btn {
@@ -134,27 +179,68 @@
 }
 
 
-/* ========== RESPONSIVE DESIGN FOR MOBILE ========== */
+
+/* Mobile: 768px and below */
 @media (max-width: 768px) {
     .video-placeholder {
         width: 95vw;                                        /* narrower width on small screens */
-        height: 50vh;
-        top: 70px;
+        height: 50%;
+        top: 50px;
     }
 
     .content {
         width: 95vw;
-        margin-top: 55vh;                                   /* adjust spacing below video */
+        margin-top: 80%;
     }
+
 
     .video-overlay-text-left h1,
-    .video-overlay-text-right h1,
-    .video-overlay-text-bottom h1 {
-        font-size: 1.2rem;                                  /* smaller heading size on mobile */
+    .video-overlay-text-right h1 {
+        font-size: 2rem;                                  /* smaller heading size on mobile */
+        color: white;
     }
 
-    .overlay-btn {
-        font-size: 0.8rem;
-        padding: 8px 16px;                                  /* smaller button padding */
+    /* overlay animations */
+    .video-overlay-text-left,
+    .video-overlay-text-right {
+        /*position: absolute;*/
+        color: #fff;
+        text-align: center;
+        width: 100%;
+        z-index: 600;
+        opacity: 0;
+        transition: transform 1.8s ease-out, opacity 1.8s ease-out;
+    }
+
+    .video-overlay-text-left {
+        top: 15%;
+        left: 50%;
+        transform: translate(-150%, -50%);
+    }
+
+    .video-overlay-text-right {
+        top: 20%;
+        left: 50%;
+        transform: translate(150%, -50%);
+    }
+
+    .video-overlay-text-left.visible {
+        transform: translate(-50%, -50%);
+        opacity: 1;
+    }
+
+    .video-overlay-text-right.visible {
+        transform: translate(-50%, -50%);
+        opacity: 1;
+    }
+
+    /* hide button in video overlay bottom */
+    .video-overlay-text-bottom button {
+        display: none;
     }
 }
+
+
+
+
+

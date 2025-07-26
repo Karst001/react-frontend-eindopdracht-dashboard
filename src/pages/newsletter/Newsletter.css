@@ -5,6 +5,9 @@
     margin: 2rem auto;                          /* center horizontally with vertical spacing */
 }
 
+.newsletter-page h1 {
+    font-size: 36px;
+}
 
 /* form container */
 .newsletter-form {
@@ -50,4 +53,24 @@
 /* submit button */
 .newsletter-form button {
     width: fit-content;                         /* button adjusts to its text width */
+}
+
+
+/* Mobile: 768px and below */
+@media (max-width: 768px) {
+    .newsletter-page {
+        padding: 3rem 1rem;                     /* top/bottom 3rem, left/right 1rem */
+    }
+
+    .newsletter-page h1 {
+        font-size: 1.75rem;                     /* smaller heading for mobile */
+    }
+
+    .newsletter-page h4 {
+        font-size: 1rem;
+    }
+
+    .newsletter-form {
+        padding: 0.75rem;
+    }
 }

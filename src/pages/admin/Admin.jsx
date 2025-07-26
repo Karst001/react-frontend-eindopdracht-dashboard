@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import { useRef, useEffect } from 'react';
 import './Admin.css';
 import Spinner from '../../components/loader/Spinner.jsx';
 import PopupMessage from "../../components/popupmessage/PopupMessage.jsx";
@@ -28,25 +29,36 @@ const Admin = () => {
     const [popupMessage, setPopupMessage] = useState('');
     const [emailValid, setEmailValid] = useState(true);
     const [customerIDValid, setCustomerIDValid] = useState(true);
+    const [usersChanged, setUsersChanged] = useState(false);
+    const originalUsersRef = useRef([]); //store original value from users in a useRef to compare later
 
-
-    const [users, setUsers] = useState([
-        {id: 1, username: 'jdoe', firstName: 'John', lastName: 'Doe', email: 'jdoe@test.com', active: true},
-        {id: 2, username: 'asmith', firstName: 'Anna', lastName: 'Smith', email: 'asmith@test.com', active: false},
-        {id: 3, username: 'bjones', firstName: 'Bob', lastName: 'Jones', email: 'bjones@test.com', active: true},
-        {id: 4, username: 'akarsten', firstName: 'Ad', lastName: 'Karsten', email: 'ad@test.com', active: true},
-        {id: 5, username: 'gbisschop', firstName: 'Geert', lastName: 'Bottens', email: 'geert@bottens.nl', active: true},
-    ]);
+    const [users, setUsers] = useState(() => {
+        const initial = [
+            {id: 1, username: 'jdoe', firstName: 'John', lastName: 'Doe', email: 'jdoe@test.com', active: true},
+            {id: 2, username: 'asmith', firstName: 'Anna', lastName: 'Smith', email: 'asmith@test.com', active: false},
+            {id: 3, username: 'bjones', firstName: 'Bob', lastName: 'Jones', email: 'bjones@test.com', active: true},
+            {id: 4, username: 'akarsten', firstName: 'Ad', lastName: 'Karsten', email: 'ad@test.com', active: true},
+            {id: 5, username: 'gbisschop', firstName: 'Geert', lastName: 'Bottens', email: 'geert@bottens.nl', active: true},
+        ];
+        originalUsersRef.current = initial; //set original value so we can compare later, used to enable/disable the editUser button
+        return initial;
+    });
 
 
     //handles the toggle when user clicks on the checkbox inside the grid
     const handleToggle = (id) => {
-        setUsers(prev =>
-            prev.map(user =>
-                user.id === id ? {...user, active: !user.active} : user
-            )
-        );
+        setUsers(prev => {
+            const updated = prev.map(user =>
+                user.id === id ? { ...user, active: !user.active } : user
+            );
 
+            // Check if something actually changed compared to originalUsersRef
+            setUsersChanged(JSON.stringify(updated) !== JSON.stringify(originalUsersRef.current));
+            // console.log("handleToggle: Has user data changed?", hasChanged);
+            // setUsersChanged(hasChanged);
+
+            return updated;
+        });
     };
 
     //build array
@@ -58,18 +70,11 @@ const Admin = () => {
         h('input', {
             type: 'checkbox',
             checked: user.active,
-            onClick: () => handleToggle(user.id),
+            onChange: () => handleToggle(user.id),
             className: 'toggle-switch'
         })
+        //the onChange event triggers handleToggle
     ]);
-
-    //need useEffect to store state after it was commited, update it later with api call
-    useEffect(() => {
-        console.log("Updated users:", users);
-    }, [users]);
-
-
-
 
     const ResetForm = () => {
         setUserName('');
@@ -107,6 +112,8 @@ const Admin = () => {
             const result = await mockUpdateUsers(users);
             if (result.success) {
                 setPopupMessage('User was updated successfully.');
+                originalUsersRef.current = users;  // reset the comparison baseline
+                setUsersChanged(false);         // explicitly reset
             }
         } catch (error) {
             console.error(error);
@@ -149,7 +156,15 @@ const Admin = () => {
 
     //This checks if all required fields are non-empty
     const canSubmitNewUser = Boolean(username.trim() && firstName.trim() && lastName.trim() && email.trim() && customerID.trim());
+    const canSubmitEditUser = Boolean(usersChanged);
     const canSubmitNewProduct = Boolean(productTitle.trim() !== '' && productDescription.trim() !== '' && productImage !== null);
+
+    //capture the original value for users on page mount
+    useEffect(() => {
+        const changed = JSON.stringify(originalUsersRef.current) !== JSON.stringify(users);
+        setUsersChanged(changed);
+        console.log("useEffect: Has user data changed?", changed);
+    }, [users]);
 
     return (
         <div className="admin-page">
@@ -161,7 +176,7 @@ const Admin = () => {
                         <Button onClick={() => setActiveSection('addUser')}>
                             Add User
                         </Button>
-                        <Button onClick={() => setActiveSection('deactivateUser')}>
+                        <Button onClick={() => setActiveSection('editUser')}>
                             Edit User
                         </Button>
                         <Button onClick={() => setActiveSection('addProduct')}>
@@ -200,7 +215,7 @@ const Admin = () => {
                                     }
                                 }}>
 
-                                    <Label label="User name:">
+                                    <Label label={<><span>User name:</span> <span className="required">*</span></>}>
                                         <Input
                                             value={username}
                                             onChange={(e) => setUserName(e.target.value)}
@@ -209,7 +224,7 @@ const Admin = () => {
                                         />
                                     </Label>
 
-                                    <Label label="First name:">
+                                    <Label label={<><span>First name:</span> <span className="required">*</span></>}>
                                         <Input
                                             value={firstName}
                                             onChange={(e) => setFirstName(e.target.value)}
@@ -218,7 +233,7 @@ const Admin = () => {
                                         />
                                     </Label>
 
-                                    <Label label="Last name:">
+                                    <Label label={<><span>Last name:</span> <span className="required">*</span></>}>
                                         <Input
                                             value={lastName}
                                             onChange={(e) => setLastName(e.target.value)}
@@ -229,18 +244,22 @@ const Admin = () => {
 
                                     {/*Validate email on blur, when user leaves the field*/}
                                     {/*onBlur is fired when the email text field loses focus, then the validateEmail is called*/}
-                                    <Label label="Email:">
+                                    <Label label={<><span>E-mail:</span> <span className="required">*</span></>}>
                                         <Input
                                             value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
-                                            onBlur={(e) => { setEmailValid(validateEmail(e.target.value)); }}
+                                            onChange={(e) => {
+                                                const value = e.target.value;
+                                                setEmail(value);
+                                                setEmailValid(validateEmail(value));            // continuous validation while typing
+                                            }}
+
                                             required
                                             placeholder="Enter the email address for this user"
                                         />
                                         {!emailValid && <p className="error-text">Invalid email address</p>}
                                     </Label>
 
-                                    <Label label="Customer ID:">
+                                    <Label label={<><span>Customer ID:</span> <span className="required">*</span></>}>
                                         <Input
                                             type="text"
                                             value={customerID}
@@ -288,7 +307,7 @@ const Admin = () => {
                         )}
 
 
-                        {activeSection === 'deactivateUser' && (
+                        {activeSection === 'editUser' && (
                             <div className="admin-section">
                                 <h2>Edit users:</h2>
 
@@ -307,7 +326,8 @@ const Admin = () => {
                                     sort={false}
                                 />
 
-                                <Button onClick={handleUpdateUsers}>
+                                {/*button disabled when there are no changes*/}
+                                <Button onClick={handleUpdateUsers} disabled={!canSubmitEditUser}>
                                     Update User
                                 </Button>
 
@@ -320,14 +340,11 @@ const Admin = () => {
                                     }}
                                 />
                                 {loading && <Spinner/>}
-
                             </div>
                         )}
 
 
                         {activeSection === 'addProduct' && (
-
-                            // <div className="add-product-section">
                             <div className="admin-section">
                                 <div className="add-product-section">
                                     <h2>Add Product:</h2>
@@ -338,12 +355,9 @@ const Admin = () => {
 
                                         try {
                                             const result = await mockAddedProducts({
-                                                username,
-                                                firstName,
-                                                lastName,
-                                                email,
-                                                customerID,
-                                                isAdmin
+                                                productTitle,
+                                                productDescription,
+                                                productImage,
                                             });
 
                                             if (result.success) {
@@ -358,7 +372,7 @@ const Admin = () => {
                                         }
                                     }}>
 
-                                        <Label label="Title:">
+                                        <Label label={<><span>Title:</span> <span className="required">*</span></>}>
                                             <Input
                                                 value={productTitle}
                                                 onChange={(e) => setProductTitle(e.target.value)}
@@ -367,7 +381,7 @@ const Admin = () => {
                                             />
                                         </Label>
 
-                                        <Label label="Description:">
+                                        <Label label={<><span>Description:</span> <span className="required">*</span></>}>
                                             <Textarea
                                                 value={productDescription}
                                                 onChange={(e) => setProductDescription(e.target.value)}
@@ -380,7 +394,7 @@ const Admin = () => {
                                             />
                                         </Label>
 
-                                        <Label label="Product Image:">
+                                        <Label label={<><span>Product image:</span> <span className="required">*</span></>}>
                                             <div
                                                 className="image-uploader"
                                                 onDragOver={(e) => e.preventDefault()}

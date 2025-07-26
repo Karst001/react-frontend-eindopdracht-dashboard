@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import "./Dashboard.css";
 import Button from "../../components/button/Button.jsx";
 import Label from "../../components/label/Label.jsx";
@@ -20,7 +20,6 @@ import Clock from "../../components/clock/Clock.jsx";
 import CustomGrid from "../../components/datagrid/CustomGrid.jsx";
 
 
-
 const Dashboard = () => {
     const [machine, setMachine] = useState('');
     const [showJobPanel, setShowJobPanel] = useState(false);
@@ -30,7 +29,10 @@ const Dashboard = () => {
     //used to track which month was selected and if a modal form was opened, this is used as drilldown function on the graphs
     const [selectedMonth, setSelectedMonth] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [pageLimit, setPageLimit] = useState(12); //to track the page limit in the CustomGrid
 
+    //used to track if screen is mobile or not, if mobile then the pie charts are smaller size
+    const isMobile = window.innerWidth <= 768;
 
     //set colors for donuts
     const donutColors = {
@@ -59,7 +61,7 @@ const Dashboard = () => {
         {name: 'Juli 25', Jobs: 60, Sleeves: 120, Plates: 120}
     ];
 
-    //custom tooltip for forecast section
+    //custom tooltip
     const CustomTooltip = ({active, payload, label}) => {
         if (!active || !payload || !payload.length) return null;
 
@@ -158,328 +160,352 @@ const Dashboard = () => {
     //datasource for the drilldown details
     const drilldownData = {
         'Jan 2024': [
-            { make: "Toyota", model: "Corolla", price: 20000 },
-            { make: "Mazda", model: "3", price: 18000 },
-            { make: "Toyota", model: "Corolla", price: 20000 },
-            { make: "Mazda", model: "3", price: 18000 },
-            { make: "Toyota", model: "Corolla", price: 20000 },
-            { make: "Mazda", model: "3", price: 18000 },
-            { make: "Toyota", model: "Corolla", price: 20000 },
-            { make: "Mazda", model: "3", price: 18000 },
-            { make: "Toyota", model: "Corolla", price: 20000 },
-            { make: "Mazda", model: "3", price: 18000 },
-            { make: "Toyota", model: "Corolla", price: 20000 },
-            { make: "Mazda", model: "3", price: 18000 },
-            { make: "Toyota", model: "Corolla", price: 20000 },
-            { make: "Mazda", model: "3", price: 18000 },
-            { make: "Toyota", model: "Corolla", price: 20000 },
-            { make: "Mazda", model: "3", price: 18000 },
-            { make: "Toyota", model: "Corolla", price: 20000 },
-            { make: "Mazda", model: "3", price: 18000 },
-            { make: "Toyota", model: "Corolla", price: 20000 },
-            { make: "Mazda", model: "3", price: 18000 },
-            { make: "Toyota", model: "Corolla", price: 20000 },
-            { make: "Mazda", model: "3", price: 18000 },
-            { make: "Toyota", model: "Corolla", price: 20000 },
-            { make: "Mazda", model: "3", price: 18000 }
+            {make: "Toyota", model: "Corolla", price: 20000},
+            {make: "Mazda", model: "3", price: 18000},
+            {make: "Toyota", model: "Corolla", price: 20000},
+            {make: "Mazda", model: "6", price: 18000},
+            {make: "Toyota", model: "Corolla", price: 20000},
+            {make: "Mazda", model: "CX3", price: 18000},
+            {make: "Toyota", model: "Corolla", price: 20000},
+            {make: "Mazda", model: "CX30", price: 18000},
+            {make: "Toyota", model: "Corolla", price: 20000},
+            {make: "Mazda", model: "CX5", price: 18000},
+            {make: "Toyota", model: "Corolla", price: 20000},
+            {make: "Mazda", model: "CX3M", price: 18000},
+            {make: "Toyota", model: "Corolla", price: 20000},
+            {make: "Mazda", model: "3", price: 18000},
+            {make: "Toyota", model: "Corolla", price: 20000},
+            {make: "Mazda", model: "3", price: 18000},
+            {make: "Toyota", model: "Corolla", price: 20000},
+            {make: "Mazda", model: "3", price: 18000},
+            {make: "Toyota", model: "Corolla", price: 20000},
+            {make: "Mazda", model: "3", price: 18000},
+            {make: "Toyota", model: "Corolla", price: 20000},
+            {make: "Mazda", model: "3", price: 18000},
+            {make: "Toyota", model: "Corolla", price: 20000},
+            {make: "Mazda", model: "3", price: 18000}
         ],
         'Feb 2024': [
-            { make: "Ford", model: "Focus", price: 22000 }
+            {make: "Ford", model: "Focus", price: 22000}
         ],
         'DEFAULT': [
-            { make: 'No data', model: '—', price: 0 }
+            {make: 'No data', model: '—', price: 0}
         ]
     };
 
     //filter based on selectedMonth, not found? shows Default value
     const tableData = drilldownData[selectedMonth] || drilldownData['DEFAULT'];
 
+    // the requirement is that on desktop the page limit for CustomGrid is 12
+    //on mobile it is 6 so the user is not required to scroll up/down
+    useEffect(() => {
+        const updatePageLimit = () => {
+            const isMobile = window.innerWidth <= 768;
+            setPageLimit(isMobile && isModalOpen ? 6 : 12);
+        };
+
+        updatePageLimit(); // run on mount and on modal open
+
+        window.addEventListener('resize', updatePageLimit);
+        return () => window.removeEventListener('resize', updatePageLimit);
+    }, [isModalOpen]);
+
 
     return (
-        <div className="dashboard-container">
-            <div className="dashboard-sidebar">
-                <Label label={<><span>Your machines:</span></>}>
-                    <select value={machine} onChange={(e) => setMachine(e.target.value)} required>
-                        <option value="">-- Select machine --</option>
-                        <option value="machine1">FAMM 3.0</option>
-                        <option value="machine2">SAMM 2.0</option>
-                    </select>
-                </Label>
+        <>
+            {/* Main dashboard, only visible if not on mobile OR no panel is open */}
+            {!(isMobile && (showJobPanel || showAvgTimeBetweenJobsPanel || showAvgTimeBetweenSleevesPanel)) && (
+                <div className="dashboard-container">
+                    <div className="dashboard-sidebar">
+                        <Label>
+                            <select value={machine} onChange={(e) => setMachine(e.target.value)} required>
+                                <option value="">-- Select machine --</option>
+                                <option value="machine1">FAMM 3.0</option>
+                                <option value="machine2">SAMM 2.0</option>
+                            </select>
+                        </Label>
 
-                {/*buttons to set toggle state that show a hidden div as overlay */}
-                <Button onClick={() => setShowJobPanel(true)}>
-                    Total Jobs, Sleeves, Plates
-                </Button>
-                <Button onClick={() => setShowAvgTimeBetweenJobsPanel(true)}>
-                    Avg. Time between Jobs
-                </Button>
-                <Button onClick={() => setShowAvgTimeBetweenSleevesPanel(true)}>
-                    Avg. Time between Sleeves
-                </Button>
+                        <div className="dashboard-button-row">
+                            <Button onClick={() => setShowJobPanel(true)}>
+                                Jobs, Sleeves, Plates
+                            </Button>
+                            <Button onClick={() => setShowAvgTimeBetweenJobsPanel(true)}>
+                                Time between Jobs
+                            </Button>
+                            <Button onClick={() => setShowAvgTimeBetweenSleevesPanel(true)}>
+                                Time between Sleeves
+                            </Button>
+                        </div>
+                    </div>
 
-                <Clock />
-            </div>
+                    <div className="dashboard-main">
+                        {/* Row 1: Today + Forecast */}
+                        <div className="dashboard-row-top">
+                            <div className="today-schedule">
+                                <h2>Today's Schedule:</h2>
 
-            <div className="dashboard-main">
-                {/* Row 1: Today + Forecast */}
-                <div className="dashboard-row">
-                    <div className="today-schedule">
-                        <h2>Today's Schedule:</h2>
+                                <div className="schedule-multi-donuts">
+                                    {donutData.map(({label, value, color}) => {
+                                        const data = [
+                                            {name: label, value},
+                                            {name: 'Remaining', value: donutMax - value}
+                                        ];
 
-                        <div className="schedule-multi-donuts">
-                            {donutData.map(({label, value, color}) => {
-                                const data = [
-                                    {name: label, value},
-                                    {name: 'Remaining', value: donutMax - value}
-                                ];
+                                        return (
+                                            <div className="donut-chart" key={label}>
+                                                <div className="donut-label">{label}</div>
 
-                                return (
-                                    <div className="donut-chart" key={label}>
-                                        <div className="donut-label">{label}</div>
+                                                <div className="responsiveContainerDonut">
+                                                    <ResponsiveContainer>
+                                                        <PieChart>
+                                                            <Pie
+                                                                data={data}
+                                                                dataKey="value"
+                                                                innerRadius={isMobile ? 35 : 40} //smaller on mobile
+                                                                outerRadius={isMobile ? 54 : 70} //smaller on mobile
+                                                                startAngle={90}
+                                                                endAngle={-270}
+                                                                animationDuration={500}
+                                                                labelLine={false}
+                                                            >
 
-                                        <div className="responsiveContainerDonut">
-                                            <ResponsiveContainer>
-                                                <PieChart>
-                                                    <Pie
-                                                        data={data}
-                                                        dataKey="value"
-                                                        innerRadius={40}
-                                                        outerRadius={70}
-                                                        startAngle={90}
-                                                        endAngle={-270}
-                                                        animationDuration={500}
-                                                        labelLine={false}
-                                                    >
+                                                                <Cell fill={color}/>
+                                                                <Cell fill="#f0f0f0"/>
 
-                                                        <Cell fill={color}/>
-                                                        <Cell fill="#f0f0f0"/>
+                                                                {/* Custom label as a separate SVG element */}
+                                                                <text
+                                                                    x="50%"
+                                                                    y="50%"
+                                                                    textAnchor="middle"
+                                                                    dominantBaseline="middle"
+                                                                    fontSize={26}
+                                                                    fill="#333"
+                                                                >
+                                                                    {value}
+                                                                </text>
+                                                            </Pie>
+                                                        </PieChart>
+                                                    </ResponsiveContainer>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
 
-                                                        {/* Custom label as a separate SVG element */}
-                                                        <text
-                                                            x="50%"
-                                                            y="50%"
-                                                            textAnchor="middle"
-                                                            dominantBaseline="middle"
-                                                            fontSize={26}
-                                                            fill="#333"
-                                                        >
-                                                            {value}
-                                                        </text>
-                                                    </Pie>
-                                                </PieChart>
-                                            </ResponsiveContainer>
-                                        </div>
+                            <div className="forecast">
+                                <h2>Forecast up to 7 days:</h2>
+
+                                {/*same here, some inline CSS required by Rechart*/}
+                                <div className="responsiveContainerHeight300">
+                                    <ResponsiveContainer>
+                                        <BarChart
+                                            data={forecastData}
+                                            layout="vertical"
+                                            margin={{top: 10, right: 30, left: 60, bottom: 10}}
+                                        >
+                                            <XAxis type="number"/>
+                                            <YAxis
+                                                dataKey="name"
+                                                type="category"
+                                                tick={{className: 'forecast-bar-label'}}
+                                            />
+                                            <Tooltip content={<CustomTooltip/>}/>
+                                            <Legend
+                                                content={() => (
+                                                    <ul className="custom-legend">
+                                                        <li><span className="legend-box"
+                                                                  style={{backgroundColor: '#0088FE'}}></span> Jobs
+                                                        </li>
+                                                        <li><span className="legend-box"
+                                                                  style={{backgroundColor: '#00C49F'}}></span> Sleeves
+                                                        </li>
+                                                        <li><span className="legend-box"
+                                                                  style={{backgroundColor: '#FFBB28'}}></span> Plates
+                                                        </li>
+                                                    </ul>
+                                                )}
+                                            />
+                                            <Bar dataKey="Jobs" stackId="a" fill="#0088FE"/>
+                                            <Bar dataKey="Sleeves" stackId="a" fill="#00C49F"/>
+                                            <Bar dataKey="Plates" stackId="a" fill="#FFBB28"/>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Row 2: Mounting Summary + next 2 days */}
+                        <div className="dashboard-row-bottom">
+                            <div className="forecast-next-days">
+                                <div className="forecast-tomorrow"> {/* You can rename class later if needed */}
+                                    <h2>Next 2 Days</h2>
+                                    <div className="responsiveContainerHeight400">
+                                        <ResponsiveContainer>
+                                            <BarChart data={combinedForecastData}>
+                                                <XAxis
+                                                    dataKey="name"
+                                                    type="category"
+                                                    tick={{className: 'forecast-bar-label'}}
+                                                />
+                                                <YAxis/>
+                                                <Tooltip content={<CustomTooltip/>}/>
+                                                <Legend
+                                                    content={() => (
+                                                        <ul className="custom-legend">
+                                                            <li><span className="legend-box"
+                                                                      style={{backgroundColor: '#0088FE'}}></span> Jobs
+                                                            </li>
+                                                            <li><span className="legend-box"
+                                                                      style={{backgroundColor: '#00C49F'}}></span> Sleeves
+                                                            </li>
+                                                            <li><span className="legend-box"
+                                                                      style={{backgroundColor: '#FFBB28'}}></span> Plates
+                                                            </li>
+                                                        </ul>
+                                                    )}
+                                                />
+                                                <Bar dataKey="Jobs" fill={donutColors.Jobs}/>
+                                                <Bar dataKey="Sleeves" fill={donutColors.Sleeves}/>
+                                                <Bar dataKey="Plates" fill={donutColors.Plates}/>
+                                            </BarChart>
+                                        </ResponsiveContainer>
                                     </div>
-                                );
-                            })}
+                                </div>
+                            </div>
+
+                            <div className="mounting-summary">
+                                <h2>Mounting summary:</h2>
+
+                                <div className="mounting-donuts-row">
+                                    <div className="time-period-label">MTD</div>
+                                    <div className="mounting-donuts-grid">
+                                        {mountingSummaryMtd.map(({label, value, color}) => {
+                                            const data = [
+                                                {name: label, value},
+                                                {name: 'Remaining', value: mountingSummaryMax - value}
+                                            ];
+
+                                            return (
+                                                <div className="donut-chart" key={label}>
+                                                    <div className="donut-label">{label}</div>
+                                                    <div className="responsiveContainerDonut">
+                                                        <ResponsiveContainer>
+                                                            <PieChart>
+                                                                <Pie
+                                                                    data={data}
+                                                                    dataKey="value"
+                                                                    innerRadius={isMobile ? 35 : 40} //smaller on mobile
+                                                                    outerRadius={isMobile ? 54 : 70} //smaller on mobile
+                                                                    startAngle={90}
+                                                                    endAngle={-270}
+                                                                    animationDuration={500}
+                                                                    labelLine={false}
+                                                                >
+                                                                    <Cell fill={color}/>
+                                                                    <Cell fill="#f0f0f0"/>
+                                                                    <text
+                                                                        x="50%"
+                                                                        y="50%"
+                                                                        textAnchor="middle"
+                                                                        dominantBaseline="middle"
+                                                                        fontSize={24}
+                                                                        fill="#333"
+                                                                    >
+                                                                        {value}
+                                                                    </text>
+                                                                </Pie>
+                                                            </PieChart>
+                                                        </ResponsiveContainer>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                <div className="mounting-donuts-row">
+                                    <div className="time-period-label">YTD</div>
+                                    <div className="mounting-donuts-grid">
+                                        {mountingSummaryYtd.map(({label, value, color}) => {
+                                            const data = [
+                                                {name: label, value},
+                                                {name: 'Remaining', value: mountingSummaryMax - value}
+                                            ];
+
+                                            return (
+                                                <div className="donut-chart" key={label}>
+                                                    <div className="donut-label">{label}</div>
+                                                    <div className="responsiveContainerDonut">
+                                                        <ResponsiveContainer>
+                                                            <PieChart>
+                                                                <Pie
+                                                                    data={data}
+                                                                    dataKey="value"
+                                                                    innerRadius={isMobile ? 35 : 40} //smaller on mobile
+                                                                    outerRadius={isMobile ? 54 : 70} //smaller on mobile
+                                                                    startAngle={90}
+                                                                    endAngle={-270}
+                                                                    animationDuration={500}
+                                                                    labelLine={false}
+                                                                >
+                                                                    <Cell fill={color}/>
+                                                                    <Cell fill="#f0f0f0"/>
+                                                                    <text
+                                                                        x="50%"
+                                                                        y="50%"
+                                                                        textAnchor="middle"
+                                                                        dominantBaseline="middle"
+                                                                        fontSize={24}
+                                                                        fill="#333"
+                                                                    >
+                                                                        {value}
+                                                                    </text>
+                                                                </Pie>
+                                                            </PieChart>
+                                                        </ResponsiveContainer>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+
+                        {/*<Clock />*/}
                     </div>
 
-                    <div className="forecast">
-                        <h2>Forecast up to 7 days:</h2>
-
-                        {/*same here, some inline CSS required by Rechart*/}
-                        <div className="responsiveContainerHeight300">
-                            <ResponsiveContainer>
-                                <BarChart
-                                    data={forecastData}
-                                    layout="vertical"
-                                    margin={{top: 10, right: 30, left: 60, bottom: 10}}
-                                >
-                                    <XAxis type="number"/>
-                                    <YAxis
-                                        dataKey="name"
-                                        type="category"
-                                        tick={{className: 'forecast-bar-label'}}
-                                    />
-                                    <Tooltip content={<CustomTooltip/>}/>
-                                    <Legend
-                                        content={() => (
-                                            <ul className="custom-legend">
-                                                <li><span className="legend-box"
-                                                          style={{backgroundColor: '#0088FE'}}></span> Jobs
-                                                </li>
-                                                <li><span className="legend-box"
-                                                          style={{backgroundColor: '#00C49F'}}></span> Sleeves
-                                                </li>
-                                                <li><span className="legend-box"
-                                                          style={{backgroundColor: '#FFBB28'}}></span> Plates
-                                                </li>
-                                            </ul>
-                                        )}
-                                    />
-                                    <Bar dataKey="Jobs" stackId="a" fill="#0088FE"/>
-                                    <Bar dataKey="Sleeves" stackId="a" fill="#00C49F"/>
-                                    <Bar dataKey="Plates" stackId="a" fill="#FFBB28"/>
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </div>
                 </div>
+            )}
 
-                {/* Row 2: Mounting Summary + next 2 days */}
-                <div className="dashboard-row">
-                    <div className="forecast-next-days">
-                        <div className="forecast-tomorrow"> {/* You can rename class later if needed */}
-                            <h2>Next 2 Days</h2>
-                            <div className="responsiveContainerHeight400">
-                                <ResponsiveContainer>
-                                    <BarChart data={combinedForecastData}>
-                                        <XAxis
-                                            dataKey="name"
-                                            type="category"
-                                            tick={{className: 'forecast-bar-label'}}
-                                        />
-                                        <YAxis/>
-                                        <Tooltip content={<CustomTooltip/>}/>
-                                        <Legend
-                                            content={() => (
-                                                <ul className="custom-legend">
-                                                    <li><span className="legend-box"
-                                                              style={{backgroundColor: '#0088FE'}}></span> Jobs
-                                                    </li>
-                                                    <li><span className="legend-box"
-                                                              style={{backgroundColor: '#00C49F'}}></span> Sleeves
-                                                    </li>
-                                                    <li><span className="legend-box"
-                                                              style={{backgroundColor: '#FFBB28'}}></span> Plates
-                                                    </li>
-                                                </ul>
-                                            )}
-                                        />
-                                        <Bar dataKey="Jobs" fill={donutColors.Jobs}/>
-                                        <Bar dataKey="Sleeves" fill={donutColors.Sleeves}/>
-                                        <Bar dataKey="Plates" fill={donutColors.Plates}/>
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="mounting-summary">
-                        <h2>Mounting summary:</h2>
-
-                        <div className="mounting-donuts-row">
-                            <div className="time-period-label">MTD</div>
-                            <div className="mounting-donuts-grid">
-                                {mountingSummaryMtd.map(({label, value, color}) => {
-                                    const data = [
-                                        {name: label, value},
-                                        {name: 'Remaining', value: mountingSummaryMax - value}
-                                    ];
-
-                                    return (
-                                        <div className="donut-chart" key={label}>
-                                            <div className="donut-label">{label}</div>
-                                            <div className="responsiveContainerDonut">
-                                                <ResponsiveContainer>
-                                                    <PieChart>
-                                                        <Pie
-                                                            data={data}
-                                                            dataKey="value"
-                                                            innerRadius={40}
-                                                            outerRadius={70}
-                                                            startAngle={90}
-                                                            endAngle={-270}
-                                                            animationDuration={500}
-                                                            labelLine={false}
-                                                        >
-                                                            <Cell fill={color}/>
-                                                            <Cell fill="#f0f0f0"/>
-                                                            <text
-                                                                x="50%"
-                                                                y="50%"
-                                                                textAnchor="middle"
-                                                                dominantBaseline="middle"
-                                                                fontSize={24}
-                                                                fill="#333"
-                                                            >
-                                                                {value}
-                                                            </text>
-                                                        </Pie>
-                                                    </PieChart>
-                                                </ResponsiveContainer>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-
-                        <div className="mounting-donuts-row">
-                            <div className="time-period-label">YTD</div>
-                            <div className="mounting-donuts-grid">
-                                {mountingSummaryYtd.map(({label, value, color}) => {
-                                    const data = [
-                                        {name: label, value},
-                                        {name: 'Remaining', value: mountingSummaryMax - value}
-                                    ];
-
-                                    return (
-                                        <div className="donut-chart" key={label}>
-                                            <div className="donut-label">{label}</div>
-                                            <div className="responsiveContainerDonut">
-                                                <ResponsiveContainer>
-                                                    <PieChart>
-                                                        <Pie
-                                                            data={data}
-                                                            dataKey="value"
-                                                            innerRadius={40}
-                                                            outerRadius={70}
-                                                            startAngle={90}
-                                                            endAngle={-270}
-                                                            animationDuration={500}
-                                                            labelLine={false}
-                                                        >
-                                                            <Cell fill={color}/>
-                                                            <Cell fill="#f0f0f0"/>
-                                                            <text
-                                                                x="50%"
-                                                                y="50%"
-                                                                textAnchor="middle"
-                                                                dominantBaseline="middle"
-                                                                fontSize={24}
-                                                                fill="#333"
-                                                            >
-                                                                {value}
-                                                            </text>
-                                                        </Pie>
-                                                    </PieChart>
-                                                </ResponsiveContainer>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/*when user clicks on Total Jobs, the modal overlay with a graph is shown*/}
+            {/* Modals still render normally, below the condition */}
             {showJobPanel && (
                 <div className="modal-overlay-graph-container">
                     /* this button must be disabled when 2nd modal is showing */
-                    <Button className="close-panel-btn"
+                    {!isModalOpen && (
+                        <Button className="close-panel-btn"
                             onClick={() => setShowJobPanel(false)}
-                            disabled={isModalOpen}>
-                        Close
-                    </Button>
+                        >
+                            Close
+                        </Button>
+                    )}
 
                     <div className="modal-graph-container-content">
                         <h2>Total number of Jobs, Sleeves, Plates:</h2>
                         <div className="responsiveContainerHeight400Padding60">
                             <ResponsiveContainer>
                                 <BarChart data={mountData2024}
-                                  isAnimationActive={false}
-                                  onClick={(data) => {
-                                      // console.log('Clicked data:', data);
-                                      if (data && data.activeLabel) {
-                                          setSelectedMonth(data.activeLabel);
-                                          setIsModalOpen(true);
-                                          // console.log(data);
-                                      }
-                                  }}
+                                          isAnimationActive={false}
+                                          onClick={(data) => {
+
+                                              // console.log('Clicked data:', data);
+                                              if (data && data.activeLabel) {
+                                                  setSelectedMonth(data.activeLabel);
+                                                  setIsModalOpen(true);
+                                                  // console.log(data);
+                                              }
+                                          }}
                                 >
                                     <XAxis dataKey="name"/>
                                     <YAxis/>
@@ -499,9 +525,9 @@ const Dashboard = () => {
                                             </ul>
                                         )}
                                     />
-                                    <Bar dataKey="Jobs" fill={donutColors.Jobs} />
-                                    <Bar dataKey="Sleeves" fill={donutColors.Sleeves} />
-                                    <Bar dataKey="Plates" fill={donutColors.Plates} />
+                                    <Bar dataKey="Jobs" fill={donutColors.Jobs}/>
+                                    <Bar dataKey="Sleeves" fill={donutColors.Sleeves}/>
+                                    <Bar dataKey="Plates" fill={donutColors.Plates}/>
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
@@ -509,13 +535,13 @@ const Dashboard = () => {
                         <div className="responsiveContainerHeight400Padding60">
                             <ResponsiveContainer>
                                 <BarChart data={mountData2023}
-                                      onClick={(data) => {
-                                          if (data && data.activeLabel) {
-                                              setSelectedMonth(data.activeLabel);
-                                              setIsModalOpen(true);
-                                              console.log(data);
-                                          }
-                                      }}
+                                          onClick={(data) => {
+                                              if (data && data.activeLabel) {
+                                                  setSelectedMonth(data.activeLabel);
+                                                  setIsModalOpen(true);
+                                                  console.log(data);
+                                              }
+                                          }}
                                 >
                                     <XAxis dataKey="name"/>
                                     <YAxis/>
@@ -535,9 +561,9 @@ const Dashboard = () => {
                                             </ul>
                                         )}
                                     />
-                                    <Bar dataKey="Jobs" fill={donutColors.Jobs} />
-                                    <Bar dataKey="Sleeves" fill={donutColors.Sleeves} />
-                                    <Bar dataKey="Plates" fill={donutColors.Plates} />
+                                    <Bar dataKey="Jobs" fill={donutColors.Jobs}/>
+                                    <Bar dataKey="Sleeves" fill={donutColors.Sleeves}/>
+                                    <Bar dataKey="Plates" fill={donutColors.Plates}/>
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
@@ -546,21 +572,24 @@ const Dashboard = () => {
                             <div className="modal-overlay">
                                 <div className="modal-content">
                                     {/*close-panel-btn*/}
-                                    <button className="btn-primary" onClick={closePopup}>Close</button>
+                                    <button className="btn-primary"
+                                            onClick={closePopup}>
+                                        Close
+                                    </button>
 
-                                    <h3>Sales details voor {selectedMonth}</h3>
+                                    <h3>Sales details for {selectedMonth}</h3>
                                     <hr/>
 
                                     <CustomGrid
                                         data={tableData}
                                         columns={[
-                                            { id: 'make', name: 'Make', width: '120px' },
-                                            { id: 'model', name: 'Model', width: '130px' },
-                                            { id: 'price', name: 'Price', width: '130px' },
+                                            {id: 'make', name: 'Make', width: '120px'},
+                                            {id: 'model', name: 'Model', width: '130px'},
+                                            {id: 'price', name: 'Price', width: '130px'},
                                         ]}
                                         search={true}
                                         pagination={true}
-                                        pageLimit={14}
+                                        pageLimit={pageLimit} //dynamic page limit based on screen size
                                         sort={true}
                                     />
                                 </div>
@@ -667,7 +696,7 @@ const Dashboard = () => {
                     </div>
                 </div>
             )}
-        </div>
+        </>
     );
 };
 

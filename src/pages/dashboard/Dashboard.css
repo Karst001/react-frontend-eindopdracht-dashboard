@@ -3,10 +3,11 @@
     display: grid;
     grid-template-columns: 220px 1fr;                   /* sidebar + main content */
     grid-template-rows: auto 1fr auto;                  /* header, main, footer */
-    gap: 10px;
+    gap: 20px;
     padding: 10px;
-    box-sizing: border-box;
     margin-top: var(--nav-height);                      /* offset for fixed navbar height */
+    min-height: 100%;
+    box-sizing: border-box;
 }
 
 
@@ -16,7 +17,6 @@
     flex-direction: column;
     gap: 5px;
 }
-
 
 /* Dropdown in sidebar */
 .dashboard-sidebar select {
@@ -42,11 +42,15 @@
 
 
 /* Responsive grid row  */
-.dashboard-row {
+.dashboard-row-top,
+.dashboard-row-bottom {
     display: flex;
-    gap: 1rem;
-    margin-bottom: 0.5rem;
+    gap: 0.5rem;
     flex-wrap: wrap;
+}
+
+.dashboard-row-top {
+    margin-bottom: 0.5rem;       /* creates gap between the two rows */
 }
 
 /* Individual sections */
@@ -61,10 +65,12 @@
     border-radius: 8px;
     padding: 1rem;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+
+    border: 1px solid #0044cc; /* Add this line */
 }
 
 .today-schedule {
-    flex: 0.9;
+    flex: 0.89
 }
 
 .forecast, .mounting-summary {
@@ -198,7 +204,11 @@
     border-radius: 2px;
 }
 
-
+.dashboard-button-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
 
 
 /* Individual stat area */
@@ -388,6 +398,28 @@
 
 /* modal popup for displaying graphs*/
 /* this sets the background screen to go into a 'greyed-out' screen*/
+.graph-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.graph-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    width: 94%;
+    height: 90%;
+    overflow-y: auto;
+}
+
 .modal-overlay-graph-container {
     position: fixed;
     top: 0;
@@ -498,30 +530,39 @@
 
 
 
-
-
-/* Responsive Layout */
-@media (max-width: 1200px) {
-    .dashboard-row {
-        flex-direction: column;
-    }
-
-    .forecast-next-days {
-        flex-direction: column;
-    }
-
-    .forecast-tomorrow,
-    .forecast-day-after-tomorrow {
-        max-width: 100%;
-        width: 100%;
-    }
-
-    .mounting-donuts-grid {
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    }
-}
-
+/* Mobile: 768px and below */
 @media (max-width: 768px) {
+    /* hide clock on mobile, takes up too much space */
+    .dashboard-clock {
+        display: none !important;
+    }
+
+    .today-schedule,
+    .forecast-next-days,
+    .forecast,
+    .mounting-summary{
+        flex: 1;
+    }
+
+    /* on mobile have the 3 buttons beside each other */
+    .dashboard-button-row {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;                /* prevent wrapping */
+        justify-content: space-between;
+        gap: 4px;
+    }
+
+    .dashboard-button-row button {
+        font-size: 0.75rem;               /* control this manually */
+        padding: 8px 10px;
+        white-space: nowrap;              /* prevent text from breaking */
+        flex: 1 1 0;                      /* force equal width, no shrink */
+        min-width: 0;                     /* prevent overflow */
+    }
+    /* end */
+
+
     .dashboard-container {
         grid-template-columns: 1fr; /* Stack sidebar and main */
     }
@@ -558,27 +599,47 @@
         flex: 1;
     }
 
-    .custom-legend {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-}
 
-@media (max-width: 480px) {
-    .clock-hms {
-        font-size: 32px;
+    .centered-legend {
+        /* change the legend so it remains in one row */
+        flex-direction: row;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+
+    /* align the 'Your machines' and dropdown beside each other */
+    .dashboard-sidebar label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: nowrap;
     }
 
     .dashboard-sidebar select {
-        font-size: 0.9rem;
+        flex: 1;                            /* let it grow to fill space */
+        width: 180px
+    }
+    /* end */
+
+
+    /* used to display graphs on mobile */
+    .modal-overlay-graph-container {
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        overflow-y: auto;
+        z-index: 1000;
     }
 
-    .donut-label {
-        font-size: 0.9rem;
+    .modal-graph-container-content {
+        background-color: #fff;
+        overflow-x: hidden;
     }
-
-    .forecast-bar-label {
-        font-size: 1rem;
-    }
+    /* end */
 }
+
 
