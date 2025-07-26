@@ -7,7 +7,6 @@
   min-height: 100vh;                                          /* ensures the layout fills the full height of the viewport */
 }
 
-
 /* Main content area grows to fill space between fixed nav and footer */
 main {
   flex: 1;                                                    /* fills up all remaining vertical space */
@@ -33,8 +32,6 @@ main {
 }
 
 
-/* ========== MISC STYLES ========== */
-
 /* Simple card style */
 .card {
   padding: 2em;
@@ -45,9 +42,9 @@ main {
 }
 
 
-/* ========== FOOTER STYLES ========== */
+/* footer styling */
 .footer {
-  padding: 20px;
+  padding: 15px;
   background: linear-gradient(to right, #002f6c, #005bb5);            /* blue gradient background */
   color: white;
   width: 100%;                                                        /* footer over full page width */
@@ -62,4 +59,12 @@ main {
   align-items: center;
   max-width: 1200px;                                                  /* match main content width */
   margin: 0 auto;                                                     /* center horizontally */
+}
+
+/* media queries */
+@media (max-width: 768px) {
+  .footer {
+    font-size: 0.70rem;
+    height: 45px;                                                     /* change footer height so the <span> show up correct on mobile */
+  }
 }

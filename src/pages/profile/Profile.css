@@ -2,7 +2,11 @@
 .profile-page {
     max-width: 800px;
     margin: 2rem auto;                      /* centers content with vertical spacing */
-    padding: 1rem;                          /* some inner spacing */
+    padding: 3rem;                          /* some inner spacing */
+}
+
+.profile-page h1 {
+    font-size: 36px;
 }
 
 

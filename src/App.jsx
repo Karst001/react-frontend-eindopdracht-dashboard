@@ -71,8 +71,8 @@ function App() {
             {location.pathname !== "/dashboard" && (
                 <footer className="footer">
                     <div className="footer-inner">
-                        <span>ISO 9001:2015 Certification</span>
-                        <span>2025 AV Flexologic ALL Rights Reserved</span>
+                        <span>ISO 9001 : 2015 Certification</span>
+                        <span> 2025 AV Flexologic ALL Rights Reserved </span>
                     </div>
                 </footer>
             )}

@@ -97,7 +97,7 @@ function Profile() {
             <form className="profile-form" onSubmit={handlePasswordUpdate}>
                 <section>
                     <h2>Change password:</h2>
-                    <Label label="Current password:">
+                    <Label label={<><span>Current password:</span> <span className="required">*</span></>}>
                         <Input
                             type="password"
                             value={currentPassword}
@@ -107,7 +107,7 @@ function Profile() {
                         />
                     </Label>
 
-                    <Label label="New password:">
+                    <Label label={<><span>New password:</span> <span className="required">*</span></>}>
                         <Input
                             type="password"
                             value={newPassword}
@@ -120,7 +120,7 @@ function Profile() {
                         />
                     </Label>
 
-                    <Label label="Repeat new password:">
+                    <Label label={<><span>Repeat new password:</span> <span className="required">*</span></>}>
                         <Input
                             type="password"
                             value={repeatNewPassword}

@@ -5,6 +5,12 @@
     margin: 2rem auto;                              /* center the page horizontally with vertical spacing */
 }
 
+
+.admin-page h1 {
+    font-size: 36px;
+}
+
+
 .admin-layout-wrapper {
     max-width: 1000px;
     margin: 0 auto;                                 /* center layout wrapper */

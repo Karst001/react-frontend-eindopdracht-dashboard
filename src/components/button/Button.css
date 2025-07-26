@@ -35,3 +35,27 @@
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     transition: background 0.2s ease;
 }
+
+/* Disabled state */
+.btn-primary:disabled {
+    background-color: #ccc;
+    color: #666;
+    cursor: not-allowed;
+    box-shadow: none;
+    opacity: 0.6;
+}
+
+/* disable hover effect on disabled buttons */
+.btn-primary:disabled:hover {
+    box-shadow: none;
+    color: #666;
+}
+
+
+/* media queries */
+@media (max-width: 768px) {
+    .close-panel-btn {
+        top: 20px;
+        left: 20px;
+    }
+}

@@ -118,7 +118,7 @@ const ContactUs = () => {
                     </select>
                 </Label>
 
-                <Label label="Company name:">
+                <Label label={<><span>Company name:</span> <span className="required">*</span></>}>
                     <Input
                         value={companyName}
                         onChange={(e) => setCompanyName(e.target.value)}

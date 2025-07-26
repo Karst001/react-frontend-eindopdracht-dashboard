@@ -18,6 +18,8 @@ const AnimatedNavigation = () => {
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+    const isMobile = window.innerWidth <= 768;
+
     // Detect navigation state and trigger the animation
     useEffect(() => {
         if (location.state?.jump) {
@@ -79,8 +81,12 @@ const AnimatedNavigation = () => {
                 </div>
 
                 {/* Hamburger for mobile */}
-                <button className="hamburger" onClick={toggleMobileMenu}>
-                    ☰
+                {/*<button className="hamburger" onClick={toggleMobileMenu}>*/}
+                {/*    ☰*/}
+                {/*</button>*/}
+
+                <button className="hamburger" onClick={toggleMobileMenu} aria-label="Toggle menu">
+                    {mobileMenuOpen ? 'x' : '☰'}
                 </button>
 
                 {/* Nav links in center */}
@@ -141,6 +147,14 @@ const AnimatedNavigation = () => {
 
                         {dropdownOpen && (
                             <ul className="dropdown-menu">
+                                {isMobile && (
+                                    <li className="dropdown-close-btn">
+                                        <button onClick={() => setDropdownOpen(false)} aria-label="Close menu">
+                                            ✕
+                                        </button>
+                                    </li>
+                                )}
+
                                 {auth.user?.isAdmin && (
                                     <li>
                                         <NavLink
