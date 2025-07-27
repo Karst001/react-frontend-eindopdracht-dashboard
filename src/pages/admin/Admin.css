@@ -25,7 +25,7 @@
 /* sidebar */
 .admin-sidebar {
     width: 200px;                                   /* use a  fixed width sidebar */
-    background: #fff;
+    background: var(--color-white);
     display: flex;
     flex-direction: column;
     gap: 1rem;                                      /* spacing between sidebar buttons */
@@ -34,8 +34,8 @@
 
 /* sidebar & general buttons */
 .admin-button {
-    background-color: #0044cc;
-    color: white;
+    background-color: var(--color-background-blue);
+    color: var(--color-white);
     border: none;
     border-radius: 8px;
     cursor: pointer;
@@ -46,7 +46,7 @@
 
 .admin-sidebar button:hover,
 .admin-button:hover {
-    background-color: #003399;                      /* on hover: darken the button */
+    background-color: var(--color-background-dark-blue);       /* on hover: darken the button */
 }
 
 
@@ -64,7 +64,7 @@
 
 /* Admin section container with shadow & padding */
 .admin-section, .add-user-section {
-    background: #f3f3f3;
+    background: var(--color-light-grey);
     padding: 1rem;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
@@ -83,7 +83,7 @@
 .admin-form input[type="text"],
 .admin-form input[type="email"] {
     padding: 0.5rem;
-    border: 1px solid #ccc;
+    border: 1px solid var(--color-light-soft-grey);
     border-radius: 4px;
 }
 
@@ -92,7 +92,7 @@
 /* product section */
 .admin-form textarea {
     padding: 0.5rem;
-    border: 1px solid #ccc;
+    border: 1px solid var(--color-light-soft-grey);
     border-radius: 4px;
     resize: vertical;                               /* allow vertical resizing only */
     margin-top: -10px;                              /* slight negative margin to reduce space */
@@ -101,7 +101,7 @@
 
 /* image uploader */
 .image-uploader {
-    border: 2px dashed #ccc;
+    border: 2px dashed var(--color-light-soft-grey);
     padding: 1rem;
     text-align: center;
     border-radius: 6px;
@@ -162,15 +162,15 @@
 /* Disabled button styles when form is not validated yet */
 .add-product-section button:disabled,
 .add-user-section button:disabled {
-    background-color: #ccc;
-    color: #666;
+    background-color: var(--color-light-soft-grey);
+    color: var(--color-medium-grey);
     cursor: not-allowed;
     border: 1px solid #aaa;
     opacity: 0.6;
 }
 
 .error-text {
-    color: red;
+    color: var(--color-red);
     font-size: 0.85rem;
     margin-top: 4px;
 }

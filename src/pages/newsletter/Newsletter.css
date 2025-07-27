@@ -14,7 +14,7 @@
     display: flex;
     flex-direction: column;                     /* stack form elements vertically */
     gap: 1rem;
-    background: #f3f3f3;
+    background: var(--color-light-grey);
     padding: 1rem;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);      /* slight elevation effect */
@@ -25,7 +25,7 @@
 .newsletter-form input[type="text"],
 .newsletter-form input[type="email"] {
     padding: 0.5rem;
-    border: 1px solid #ccc;
+    border: 1px solid var(--color-light-soft-grey);
     border-radius: 4px;
     width: 100%;
 }
@@ -33,10 +33,10 @@
 
 /* disabled button */
 .newsletter-form button:disabled {
-    background-color: #ccc;                     /* dim background to show disabled state */
-    color: #666;                                /* dimmed text color */
+    background-color: var(--color-light-soft-grey);                     /* dim background to show disabled state */
+    color: var(--color-medium-grey);                                /* dimmed text color */
     cursor: not-allowed;                        /* visual feedback that button is inactive */
-    border: 1px solid #aaa;
+    border: 1px solid var(--color-light-soft-grey);
     opacity: 0.6;                               /* faded appearance */
 }
 
@@ -44,7 +44,7 @@
 
 /* error & helper text */
 .helper-text {
-    color: #cc0000;
+    color: var(--color-red);
     font-size: 0.9rem;
     margin-top: 0.25rem;
 }

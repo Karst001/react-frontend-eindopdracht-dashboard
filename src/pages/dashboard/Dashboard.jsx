@@ -222,14 +222,12 @@ const Dashboard = () => {
             {isMobile && !( showJobPanel || showAvgTimeBetweenJobsPanel || showAvgTimeBetweenSleevesPanel )
                 && (
                 <>
-
-
                     {/*create a space at top of page so content scrolls behind*/}
                     <div className="mobile-header-spacer" />
 
                     <div className="mobile-header-controls">
                         <button
-                            className="mobile-hamburger"
+                            className="mobile-hamburger btn-naked"
                             onClick={() => setHamburgerOpen(prev => !prev)}
                             aria-label="Toggle dashboard menu"
                         >
@@ -243,12 +241,12 @@ const Dashboard = () => {
                             </div>
                         )}
 
-                        <button
+                        <Button
                             className="mobile-home-btn"
                             onClick={() => window.location.href = '/'}
                         >
                             Home
-                        </button>
+                        </Button>
                     </div>
 
                     {hamburgerOpen && (
@@ -257,10 +255,6 @@ const Dashboard = () => {
                                 <Label>
                                     <select
                                         value={machine}
-                                        // onChange={(e) => {
-                                        //     setMachine(e.target.value);
-                                        //     setHamburgerOpen(false);    //close the hamburgern menu when selection was made
-                                        // }}
                                         onChange={(e) => {
                                             const selectedOption = e.target.selectedOptions[0];
                                             setSelectedMachine({

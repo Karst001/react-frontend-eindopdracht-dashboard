@@ -14,7 +14,7 @@
     display: flex;
     flex-direction: column;                                 /* stack inputs vertically */
     gap: 1rem;                                              /* space between form fields */
-    background: #f3f3f3;
+    background: var(--color-light-grey);
     padding: 1rem;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);                  /* soft shadow for depth */
@@ -26,7 +26,7 @@
 .contact-form select,
 .contact-form textarea {
     padding: 0.35rem 0.5rem;                                /* comfortable spacing inside fields */
-    border: 1px solid #ccc;
+    border: 1px solid var(--color-soft-grey);
     border-radius: 4px;
     width: 100%;
 }
@@ -42,7 +42,7 @@
 
 /* Asterisk or field marker to show required fields */
 .required {
-    color: red;
+    color: var(--color-red);
 }
 
 /* Form button alignment and sizing */
@@ -54,7 +54,7 @@
 /* Disabled state for the submit button */
 .contact-form button:disabled {
     background-color: #ccc;
-    color: #666;
+    color: var(--color-medium-grey);
     cursor: not-allowed;                                    /* visual indicator for unclickable state */
     border: 1px solid #aaa;
     opacity: 0.6;                                           /* appear "faded" */

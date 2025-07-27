@@ -61,12 +61,11 @@
 .forecast-day-after-tomorrow {
     flex: 1;
     min-width: 280px;
-    background: #fff;
+    background: var(--color-white);
     border-radius: 8px;
     padding: 1rem;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-
-    border: 1px solid #0044cc; /* Add this line */
+    border: 1px solid var(--color-background-blue);
 }
 
 .today-schedule {
@@ -123,7 +122,7 @@
 /* Forecast section */
 .forecast {
     padding: 1rem;
-    background: #fff;
+    background: var(--color-white);
     border-radius: 8px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
@@ -131,7 +130,7 @@
 .forecast-bar-label {
     font-size: 1.3rem;
     font-weight: 400;
-    fill: #333;
+    fill: var(--color-dark-grey);
 }
 
 
@@ -175,8 +174,8 @@
 
 /* tooltip */
 .custom-tooltip {
-    background: #ffffff;
-    border: 1px solid #ccc;
+    background: var(--color-white);
+    border: 1px solid var(--color-soft-grey);
     padding: 10px;
     font-size: 0.9rem;
     border-radius: 4px;
@@ -233,7 +232,7 @@
 
 
 .mounting-item {
-    background: #f4f4f4;
+    background: var(--color-light-grey);
     padding: 10px;
     border-radius: 6px;
     font-size: 1rem;
@@ -242,7 +241,7 @@
 }
 
 .mounting-item:hover {
-    background: #e6f0ff;
+    background: var(--color-light-grey);
     transform: translateY(-2px);
 }
 
@@ -295,40 +294,6 @@
 }
 
 
-/* clock, fixed lower left corner of screen */
-.dashboard-clock {
-    position: fixed;
-    bottom: 60px;
-    left: 10px;
-    background: rgba(255, 255, 255, 0.9);           /* slightly transparent */
-    padding: 8px 12px;
-    border-radius: 6px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    font-family: sans-serif;
-}
-
-
-/* Date inside clock */
-.clock-date {
-    font-size: 18px;
-    font-weight: bold;
-    margin-bottom: 4px;
-}
-
-
-/* Clock container */
-.clock-time {
-    display: flex;
-    align-items: baseline;
-}
-
-
-/* Time digits (hours:minutes:seconds) */
-.clock-hms {
-    font-size: 40px;
-    font-weight: bold;
-}
-
 
 /* forecast stats  */
 .forecast-stats {
@@ -343,8 +308,8 @@
 .tomorrow-stat {
     flex: 1;
     text-align: center;
-    background: #e6f0ff;
-    border: 1px solid #0044cc;
+    background: var(--color-white);
+    border: 1px solid var(--color-background-blue);
     border-radius: 6px;
     padding: 8px 0;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -354,7 +319,7 @@
 
 /* Hover effect for forecast */
 .tomorrow-stat:hover {
-    background: #cce0ff;
+    background: var(--color-light-grey);
     transform: translateY(-2px);                /* slight lift-up on hover */
 }
 
@@ -362,13 +327,13 @@
 /* styling for dropdown, the default OS styling is ugly */
 .dashboard-sidebar select  {
     appearance: none;
-    background-color: #ffffff;
-    border: 1px solid #0044cc;
+    background-color: var(--color-white);
+    border: 1px solid var(--color-background-blue);
     border-radius: 6px;
     padding: 6px 10px;
     font-size: 1rem;
     font-weight: bold;
-    color: #0044cc;
+    color: var(--color-background-blue);
     cursor: pointer;
     width: 100%;
     box-sizing: border-box;
@@ -382,8 +347,8 @@
 
 /* hover style with white arrow */
 .dashboard-sidebar select:hover {
-    background-color: #0044cc;
-    color: #ffffff;
+    background-color: var(--color-background-blue);
+    color: var(--color-white);
     background-image: url("data:image/svg+xml;utf8,<svg fill='%23ffffff' height='28' viewBox='0 0 24 24' width='28' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
 }
 
@@ -392,7 +357,7 @@
     display: block;
     font-weight: 600;
     font-size: 1rem;
-    color: #0044cc;
+    color: var(--color-background-blue);
     margin-bottom: 6px;
 }
 
@@ -412,7 +377,7 @@
 }
 
 .graph-content {
-    background: white;
+    background: var(--color-white);
     padding: 2rem;
     border-radius: 10px;
     width: 94%;
@@ -426,7 +391,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* dark transparent overlay */
+    background-color: var(--transparent-dark-overlay); /* dark transparent overlay */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -435,7 +400,7 @@
 
 .modal-graph-container-content {
     position: fixed;
-    background-color: white;
+    background-color: var(--color-white);
     padding: 40px;
     text-align: start;
     border-radius: 12px;
@@ -479,7 +444,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0,0,0,0.5);
+    background-color: var(--transparent-dark-overlay);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -487,7 +452,7 @@
 }
 
 .modal-content {
-    background-color: white;
+    background-color: var(--color-white);
     padding: 2rem;
     border-radius: 10px;
     width: 90%;
@@ -502,7 +467,7 @@
 /* Base cell styling */
 .custom-ag-grid .ag-cell,
 .custom-ag-grid .ag-header-cell {
-    border: 1px solid #ccc;
+    border: 1px solid var(--color-light-soft-grey);
     padding: 2px 10px;
     font-size: 1.1em;
     font-family: inherit;
@@ -644,13 +609,13 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.6);
+        background-color: var(--transparent-dark-overlay);
         overflow-y: auto;
         z-index: 1000;
     }
 
     .modal-graph-container-content {
-        background-color: #fff;
+        background-color: var(--color-white);
         overflow-x: hidden;
     }
     /* end */
@@ -667,7 +632,7 @@
         left: 0;
         right: 0;
         height: 60px;
-        background-color: #ffffff;
+        background-color: var(--color-white);
         z-index: 1090;
         pointer-events: none;
     }
@@ -690,10 +655,10 @@
         left: 0;
         width: max-content;
         padding: 4rem 1rem 1rem 1rem; /* leave room for hamburger */
-        background: #ffffff;
+        background: var(--color-white);
         z-index: 1099;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        border-bottom: 1px solid #ddd;
+        border-bottom: 1px solid var(--color-soft-grey);
     }
 
     /* Mobile dropdown */
@@ -713,13 +678,13 @@
 
     .mobile-dropdown select  {
         appearance: none;
-        background-color: #ffffff;
-        border: 1px solid #0044cc;
+        background-color: var(--color-white);
+        border: 1px solid var(--color-background-blue);
         border-radius: 6px;
         padding: 6px 10px;
         font-size: 1rem;
         font-weight: bold;
-        color: #0044cc;
+        color: var(--color-background-blue);
         cursor: pointer;
         width: 100%;
         box-sizing: border-box;
@@ -744,8 +709,8 @@
     }
 
     .mobile-home-btn {
-        background-color: #0044cc;
-        color: #fff;
+        background-color: var(--color-background-blue);
+        color: var(--color-white);
         border: none;
         font-size: 0.9rem;
         padding: 15px 20px;
@@ -756,7 +721,7 @@
     }
 
     .mobile-home-btn:hover {
-        background-color: #0033aa;
+        background-color: var(--color-button-hover);
     }
 
     .mobile-machine-name {
@@ -764,7 +729,7 @@
         text-align: center;
         font-weight: bold;
         font-size: 1rem;
-        color: #0044cc;
+        color: var(--color-background-blue);
     }
 
     /* end */

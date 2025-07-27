@@ -46,7 +46,7 @@ main {
 .footer {
   padding: 15px;
   background: linear-gradient(to right, #002f6c, #005bb5);            /* blue gradient background */
-  color: white;
+  color: var(--color-white);
   width: 100%;                                                        /* footer over full page width */
   height: var(--footer-height);                                       /* uses predefined footer height variable */
 }

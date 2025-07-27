@@ -5,5 +5,5 @@
 .custom-input::placeholder {
     font-size: 0.9rem;
     font-family: inherit;
-    color: #333;
+    color: var(--color-dark-grey);
 }

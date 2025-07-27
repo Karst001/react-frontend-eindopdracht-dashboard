@@ -5,7 +5,7 @@
     left: 0;
     height: var(--nav-height);                      /* custom CSS variable for height */
     width: 100%;
-    background: #fff;                               /* white background */
+    background: var(--color-white);                               /* white background */
     box-shadow: 0 2px 5px rgba(0,0,0,0.5);          /* drop shadow for depth */
     z-index: 1000;                                  /* high z-index to stay above other content */
 }
@@ -37,7 +37,7 @@
 
 .nav-username-highlight {
     font-weight: 600;
-    color: #007BFF;                                 /* accent color */
+    color: var(--color-background-blue); /* was #007BFF*/                                 /* accent color */
     margin-left: 0.25rem;
     text-shadow: 0.5px 0.5px rgba(0, 0, 0, 0.05);   /* a subtle text depth */
     transition: color 0.3s ease;                    /* smooth color transition on hover */
@@ -73,12 +73,12 @@ ul li {
 nav a,
 nav a:visited {
     text-decoration: none;
-    color: #000;
+    color: var(--color-black);
     font-size: 1.2rem;
 }
 
 nav a:hover {
-    color: #007BFF;
+    color: var(--color-background-blue); /* was #007BFF*/
 }
 
 .nav-links {
@@ -92,7 +92,7 @@ nav a:hover {
 
 /* ========== ACTIVE LINK STYLES ========== */
 .default-menu-link {
-    border-bottom: 2px solid blue;                  /* underline for active link */
+    border-bottom: 2px solid var(--color-background-blue);                  /* underline for active link */
 }
 
 .active-menu-link {
@@ -136,7 +136,7 @@ nav a:hover {
 }
 
 .dropdown-toggle:hover {
-    color: #007BFF;
+    color: var(--color-background-blue); /* was #007BFF*/
 }
 
 .arrow {
@@ -152,7 +152,7 @@ nav a:hover {
     position: absolute;
     top: 100%;                                      /* place menu below the toggle button */
     left: 0;
-    background: white;
+    background: var(--color-white);
     list-style: none;
     padding: 0.5rem;
     margin: 0;
@@ -217,7 +217,7 @@ nav a:hover {
     .nav-links {
         display: none;                              /* hide by default */
         flex-direction: column;
-        background: #fff;
+        background: var(--color-white);
         position: absolute;
         top: 80px;
         left: 0;
@@ -229,7 +229,7 @@ nav a:hover {
     .nav-links.open {
         display: flex;                              /* show menu when toggled open */
         padding-bottom: 2rem;                       /* space at the bottom when open, otherwise to tight */
-        background: #f3f3f3;                        /* light gray background */
+        background: var(--color-light-grey);        /* light gray background */
     }
 
     .nav-links li {
@@ -238,7 +238,7 @@ nav a:hover {
 
     .nav-username .dropdown-menu {
         margin-top: 2rem;                           /* space from the top so it doesn't look cramped */
-        background: #f3f3f3;                        /* light gray background */
+        background: var(--color-light-grey);        /* light gray background */
     }
 
     .dropdown-menu {
@@ -246,7 +246,7 @@ nav a:hover {
         top: 90%;
         left: 50%;
         transform: translateX(-50%);
-        background: #f3f3f3;
+        background: var(--color-light-grey);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         border-radius: 4px;
         width: max-content;
@@ -319,7 +319,7 @@ nav a:hover {
     .video-overlay-text-right,
     .video-overlay-text-bottom {
         margin-top: 50px;
-        color: #000;
+        color: var(--color-black);
     }
 
     .video-overlay-text-left h1,
