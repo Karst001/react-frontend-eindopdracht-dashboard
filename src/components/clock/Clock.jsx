@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-// no style sheet for the clock
+import './Clock.css';
 
 //removed the clock from the dashboard as the useEffect was re-rendering the page each second, this was visible in the Console.log
 //Now its a separate component that can be called from any page if desired.

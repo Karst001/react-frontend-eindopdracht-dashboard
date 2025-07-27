@@ -18,7 +18,7 @@
     height: 85vh;
     z-index: 500;                                           /* behind content but on top of background */
     overflow: hidden;
-    background: #ccc;                                       /* fallback background color */
+    background: var(--color-light-soft-grey);               /* fallback background color */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -40,7 +40,7 @@
     top: 47%;
     left: 50%;
     transform: translate(-150%, -50%);                      /* start far left of center */
-    color: #fff;
+    color: var(--color-white);
     text-align: center;
     opacity: 0;
     transition: transform 1.8s ease-out, opacity 1.8s ease-out;
@@ -61,7 +61,7 @@
     top: 50%;
     left: 50%;
     transform: translate(150%, 50%);                        /* start far right of center */
-    color: #fff;
+    color: var(--color-white);
     text-align: center;
     opacity: 0;
     transition: transform 1.8s ease-out, opacity 1.8s ease-out;
@@ -80,7 +80,7 @@
     top: 55%;
     left: 50%;
     transform: translate(-50%, 350%);                       /* start far below center */
-    color: #fff;
+    color: var(--color-white);
     text-align: center;
     opacity: 0;
     transition: transform 1.8s ease-out, opacity 1.8s ease-out;
@@ -120,7 +120,7 @@
 .video-overlay-text-right,
 .video-overlay-text-bottom {
     position: absolute;
-    color: #fff;
+    color: var(--color-white);
     text-align: center;
     width: 100%;
     z-index: 600;
@@ -166,16 +166,12 @@
     margin-top: 20px;
     padding: 12px 24px;
     font-size: 1rem;
-    color: #fff;
-    background-color: #0044cc;
+    color: var(--color-white);
+    background-color: var(--color-background-blue);
     border: none;
     border-radius: 10px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-}
-
-.overlay-btn:hover {
-    background-color: #0056b3;
 }
 
 
@@ -197,14 +193,14 @@
     .video-overlay-text-left h1,
     .video-overlay-text-right h1 {
         font-size: 2rem;                                  /* smaller heading size on mobile */
-        color: white;
+        color: var(--color-white);
     }
 
     /* overlay animations */
     .video-overlay-text-left,
     .video-overlay-text-right {
         /*position: absolute;*/
-        color: #fff;
+        color: var(--color-white);
         text-align: center;
         width: 100%;
         z-index: 600;

@@ -6,7 +6,7 @@
 }
 
 .custom-header {
-    background-color: #0044cc;
+    background-color: var(--color-background-blue);
     color: white;
     text-align: left;
     height: 45px;
@@ -15,7 +15,7 @@
 
 .custom-cell {
     padding: 8px 12px;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid var(--color-soft-grey);
     font-size: 0.95rem;
 }
 

@@ -1,5 +1,5 @@
 nav {
-    background-color: #fff;             /* use white background */
+    background-color: var(--color-white);             /* use white background */
     display: flex;                      /* use Flexbox to arrange child elements */
     justify-content: center;            /* center the nav content horizontally */
 }
@@ -10,7 +10,7 @@ nav a:visited {
 }
 
 nav a:hover {
-    color: white;                       /* change text color to white on hover */
+    color: var(--color-white);                       /* change text color to white on hover */
 }
 
 ul {

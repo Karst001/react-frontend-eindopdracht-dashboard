@@ -4,7 +4,7 @@
     display: flex;
     background: url('/src/assets/FAMM3.0.png') no-repeat center center;     /* background image centered */
     background-size: cover;                     /* scales background image to cover entire area */
-    background-color: #f0f0f0;
+    background-color: var(--color-white);
     min-height: calc(100vh - var(--nav-height) - var(--footer-height));     /* ensures full viewport height minus nav and footer */
 }
 
@@ -23,7 +23,7 @@
 .signin-box {
     border: 1px solid #333;
     padding: 20px;
-    background: rgba(249, 249, 249, 0.9);       /* semi-transparent white background */
+    background: var(--transparent-semiwhite-overlay);       /* semi-transparent white background */
     box-shadow: 0 0 10px rgba(0,0,0,0.3);       /* light shadow for depth effect */
     width: 400px;                               /* fixed width for consistency */
     margin: 0 auto;                             /* center horizontally */
@@ -56,8 +56,8 @@ input {
 
 /* submit button inside the sign-in box */
 .signin-box button {
-    background-color: #005bb5;
-    color: #fff;
+    background-color: var(--color-background-blue);
+    color: var(--color-white);
     padding: 10px;
     border: none;
     border-radius: 5px;
@@ -70,7 +70,7 @@ input {
 .back-button {
     background: none;                           /* transparent background */
     border: none;
-    color: #333;
+    color: var(--color-dark-grey);
     text-align: left;
     padding: 0;
     margin-bottom: 10px;

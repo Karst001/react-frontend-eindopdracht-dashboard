@@ -12,7 +12,7 @@
 
 /* Base styling for the form area */
 .profile-form {
-    background: #f9f9f9;
+    background: var(--color-light-grey);
     padding: 1rem;                          /* inner spacing */
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);  /* light shadow for depth */
@@ -80,8 +80,8 @@
 
 /* Styles for disabled buttons */
 .profile-form button:disabled {
-    background-color: #ccc;
-    color: #666;
+    background-color: var(--color-soft-grey);
+    color: var(--color-medium-grey);
     cursor: not-allowed;                    /* shows disabled cursor */
     opacity: 0.6;                           /* slightly transparent */
 }
@@ -89,7 +89,7 @@
 
 /* Styling for newsletter subscription link */
 .newsletter-link {
-    color: #007BFF;
+    color: var(--color-background-blue);
     text-decoration: underline;
     cursor: pointer;
 }

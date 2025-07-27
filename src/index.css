@@ -15,6 +15,27 @@
 
   --nav-height: 80px;                                                   /* custom variable for consistent navbar height */
   --footer-height: 30px;                                                /* custom variable for footer height */
+
+  /* global colors, call with var(--color.......) */
+  --color-background-blue: #0044cc;
+  --color-background-dark-blue: #003399;
+  --color-background-soft-white: #ccc;
+
+  --color-black: #000;
+  --color-white: #fff;
+  --color-light-grey: #f3f3f3;
+  --color-light-soft-grey: #bbb;
+  --color-soft-grey: #ddd;
+  --color-medium-grey: #666;
+  --color-medium-dark: #999;
+  --color-dark-grey: #333;
+  --color-button-hover: #5BA7E2;
+  --color-red: red;
+  --color-yellow: #ffcc00;
+
+  --transparent-white-overlay: rgba(255, 255, 255, 0.8);
+  --transparent-semiwhite-overlay: rgba(249, 249, 249, 0.9);
+  --transparent-dark-overlay: rgba(0, 0, 0, 0.5);
 }
 
 

@@ -4,7 +4,7 @@
     justify-content: space-between;                     /* space between image and text */
     margin: 20px 0;                                     /* vertical spacing */
     padding: 20px;
-    background: #f3f3f3;                                /* light gray background */
+    background: var(--color-light-grey);                                /* light gray background */
     opacity: 0;                                         /* start hidden for animation */
     transform: translateX(500px);                       /* slide-in animation starting point */
     transition: opacity 1s ease, transform 1s ease;     /* smooth transition */
@@ -28,13 +28,13 @@
 .description strong {
     font-size: 1.5rem;
     font-weight: bold;
-    color: #0044cc;                                     /* blue color */
+    color: var(--color-background-blue);                /* blue color */
 }
 
 .image-placeholder {
     flex: 1;                                            /* takes equal space as the description */
     aspect-ratio: 4 / 3;                                /* maintain a natural image ratio */
-    background: #bbb;                                   /* gray background */
+    background: var(--color-light-soft-grey);          /* gray background */
     border-radius: 20px;
     overflow: hidden;                                   /* ensures rounded corners are enforced on inner image */
 }

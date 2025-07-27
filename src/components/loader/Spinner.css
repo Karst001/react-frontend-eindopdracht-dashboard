@@ -5,7 +5,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(255, 255, 255, 0.8);   /* semi-transparent white overlay */
+    background: var(--transparent-white-overlay);   /* semi-transparent white overlay */
     display: flex;                          /* use Flexbox for centering */
     flex-direction: column;
     justify-content: center;                /* center vertically */
@@ -15,8 +15,8 @@
 
 /* Spinner styling */
 .spinner {
-    border: 8px solid #f3f3f3;              /* light gray border */
-    border-top: 8px solid #0044cc;          /* blue top border for animation effect */
+    border: 8px solid var(--color-light-grey); /* light gray border */
+    border-top: 8px solid var(--color-background-blue);          /* blue top border for animation effect */
     border-radius: 50%;                     /* make it a circle */
     width: 60px;
     height: 60px;
