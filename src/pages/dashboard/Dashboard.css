@@ -360,7 +360,7 @@
 
 
 /* styling for dropdown, the default OS styling is ugly */
-.dashboard-sidebar select {
+.dashboard-sidebar select  {
     appearance: none;
     background-color: #ffffff;
     border: 1px solid #0044cc;
@@ -537,6 +537,20 @@
         display: none !important;
     }
 
+    /* hide the main navbar on mobile, slide dashboard buttons up */
+    .dashboard .navbar {
+        display: none !important;
+    }
+
+    .dashboard-container {
+        margin-top: 80px;
+        position: relative;
+        z-index: 1;
+    }
+    /* end */
+
+
+
     .today-schedule,
     .forecast-next-days,
     .forecast,
@@ -639,6 +653,120 @@
         background-color: #fff;
         overflow-x: hidden;
     }
+    /* end */
+
+
+    /* mobile hamburger menu */
+    .dashboard-sidebar {
+        display: none !important;
+    }
+
+    .mobile-header-spacer {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 60px;
+        background-color: #ffffff;
+        z-index: 1090;
+        pointer-events: none;
+    }
+
+    .mobile-hamburger {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        font-size: 2rem;
+        background: none;
+        border: none;
+        color: #000;
+        z-index: 1100;
+        cursor: pointer;
+    }
+
+    .mobile-menu-panel {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: max-content;
+        padding: 4rem 1rem 1rem 1rem; /* leave room for hamburger */
+        background: #ffffff;
+        z-index: 1099;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        border-bottom: 1px solid #ddd;
+    }
+
+    /* Mobile dropdown */
+    .mobile-dropdown select {
+        width: max-content;
+        font-size: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    /* Button row */
+    .mobile-button-row {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: max-content;
+    }
+
+    .mobile-dropdown select  {
+        appearance: none;
+        background-color: #ffffff;
+        border: 1px solid #0044cc;
+        border-radius: 6px;
+        padding: 6px 10px;
+        font-size: 1rem;
+        font-weight: bold;
+        color: #0044cc;
+        cursor: pointer;
+        width: 100%;
+        box-sizing: border-box;
+        transition: background-color 0.2s ease, color 0.2s ease;
+        background-image: url("data:image/svg+xml;utf8,<svg fill='%230044cc' height='28' viewBox='0 0 24 24' width='28' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        background-size: 18px;
+    }
+    /* end */
+
+    /* button to go back to home page on mobile */
+    .mobile-header-controls {
+        position: fixed;
+        top: 10px;
+        display: flex;
+        align-items: center;
+        gap: 50px;
+        z-index: 1100;
+        right: 10px;
+        justify-content: space-between;
+    }
+
+    .mobile-home-btn {
+        background-color: #0044cc;
+        color: #fff;
+        border: none;
+        font-size: 0.9rem;
+        padding: 15px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+        white-space: nowrap;
+    }
+
+    .mobile-home-btn:hover {
+        background-color: #0033aa;
+    }
+
+    .mobile-machine-name {
+        flex-grow: 1;
+        text-align: center;
+        font-weight: bold;
+        font-size: 1rem;
+        color: #0044cc;
+    }
+
     /* end */
 }
 

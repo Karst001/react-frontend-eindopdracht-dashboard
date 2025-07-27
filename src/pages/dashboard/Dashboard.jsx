@@ -22,6 +22,7 @@ import CustomGrid from "../../components/datagrid/CustomGrid.jsx";
 
 const Dashboard = () => {
     const [machine, setMachine] = useState('');
+    const [selectedMachine, setSelectedMachine] = useState({ value: '', label: '' });
     const [showJobPanel, setShowJobPanel] = useState(false);
     const [showAvgTimeBetweenJobsPanel, setShowAvgTimeBetweenJobsPanel] = useState(false);
     const [showAvgTimeBetweenSleevesPanel, setShowAvgTimeBetweenSleevesPanel] = useState(false);
@@ -33,6 +34,7 @@ const Dashboard = () => {
 
     //used to track if screen is mobile or not, if mobile then the pie charts are smaller size
     const isMobile = window.innerWidth <= 768;
+    const [hamburgerOpen, setHamburgerOpen] = useState(false);
 
     //set colors for donuts
     const donutColors = {
@@ -212,7 +214,98 @@ const Dashboard = () => {
 
 
     return (
-        <>
+        // wrapped inside a class because there is a Home button on mobile page
+        // when Home is pressed the Dashboard menu disappears and the default navbar appears again
+        <div class="dashboard">
+            {/*on mobile the buttons needs to be replaced by a hamburger menu*/}
+            {/*when any modal form is visible, hide the hamburger menu*/}
+            {isMobile && !( showJobPanel || showAvgTimeBetweenJobsPanel || showAvgTimeBetweenSleevesPanel )
+                && (
+                <>
+
+
+                    {/*create a space at top of page so content scrolls behind*/}
+                    <div className="mobile-header-spacer" />
+
+                    <div className="mobile-header-controls">
+                        <button
+                            className="mobile-hamburger"
+                            onClick={() => setHamburgerOpen(prev => !prev)}
+                            aria-label="Toggle dashboard menu"
+                        >
+                            {hamburgerOpen ? '✕' : '☰'}
+                        </button>
+
+                        {selectedMachine.label && (
+                            // display the selected machine between hamburger menu and home button
+                            <div className="mobile-machine-name">
+                                Current machine: {selectedMachine.label}
+                            </div>
+                        )}
+
+                        <button
+                            className="mobile-home-btn"
+                            onClick={() => window.location.href = '/'}
+                        >
+                            Home
+                        </button>
+                    </div>
+
+                    {hamburgerOpen && (
+                        <div className="mobile-menu-panel">
+                            <div className="mobile-dropdown">
+                                <Label>
+                                    <select
+                                        value={machine}
+                                        // onChange={(e) => {
+                                        //     setMachine(e.target.value);
+                                        //     setHamburgerOpen(false);    //close the hamburgern menu when selection was made
+                                        // }}
+                                        onChange={(e) => {
+                                            const selectedOption = e.target.selectedOptions[0];
+                                            setSelectedMachine({
+                                                value: selectedOption.value,
+                                                label: selectedOption.textContent,
+                                            });
+                                            setMachine(e.target.value);
+                                            setHamburgerOpen(false);
+                                        }}
+                                        required
+                                    >
+                                        <option value="">-- Select machine --</option>
+                                        <option value="machine1">FAMM 3.0</option>
+                                        <option value="machine2">SAMM 2.0</option>
+                                    </select>
+                                </Label>
+                            </div>
+
+                            <div className="mobile-button-row">
+                                <Button onClick={() => {
+                                    setShowJobPanel(true);
+                                    setHamburgerOpen(false);            //close the hamburgern menu when selection was made
+                                }}>
+                                    Jobs, Sleeves, Plates
+                                </Button>
+
+                                <Button onClick={() => {
+                                    setShowAvgTimeBetweenJobsPanel(true);
+                                    setHamburgerOpen(false);            //close the hamburgern menu when selection was made
+                                }}>
+                                    Time between Jobs
+                                </Button>
+
+                                <Button onClick={() => {
+                                    setShowAvgTimeBetweenSleevesPanel(true);
+                                    setHamburgerOpen(false);            //close the hamburgern menu when selection was made
+                                }}>
+                                    Time between Sleeves
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </>
+            )}
+
             {/* Main dashboard, only visible if not on mobile OR no panel is open */}
             {!(isMobile && (showJobPanel || showAvgTimeBetweenJobsPanel || showAvgTimeBetweenSleevesPanel)) && (
                 <div className="dashboard-container">
@@ -473,7 +566,7 @@ const Dashboard = () => {
                             </div>
                         </div>
 
-                        {/*<Clock />*/}
+                        <Clock />
                     </div>
 
                 </div>
@@ -696,7 +789,7 @@ const Dashboard = () => {
                     </div>
                 </div>
             )}
-        </>
+        </div>
     );
 };
 
