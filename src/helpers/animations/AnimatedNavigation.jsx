@@ -75,17 +75,11 @@ const AnimatedNavigation = () => {
     return (
         <nav className="navbar">
             <div className="nav-inner">
-                {/* Logo on the left */}
-                <div className="logo">
+                <div className="logo nav-item mobile-order-3">
                     <img src={logo} alt="Flexologic logo" />
                 </div>
 
-                {/* Hamburger for mobile */}
-                {/*<button className="hamburger" onClick={toggleMobileMenu}>*/}
-                {/*    ☰*/}
-                {/*</button>*/}
-
-                <button className="hamburger" onClick={toggleMobileMenu} aria-label="Toggle menu">
+                <button className="hamburger mobile-order-1" onClick={toggleMobileMenu} aria-label="Toggle menu">
                     {mobileMenuOpen ? 'x' : '☰'}
                 </button>
 
@@ -139,7 +133,7 @@ const AnimatedNavigation = () => {
 
                 {/*when user is authenticated, show a dropdown with links*/}
                 {auth.userIsAuthenticated && (
-                    <div className="nav-username dropdown">
+                    <div className="nav-username dropdown mobile-order-2">
                         <a className="dropdown-toggle" onClick={toggleDropdown}>
                             Hello! <span className="nav-username-highlight">{auth.user?.username || 'User'}</span>
                             <span className={`arrow ${dropdownOpen ? 'open' : ''}`}>▼</span>
@@ -147,14 +141,6 @@ const AnimatedNavigation = () => {
 
                         {dropdownOpen && (
                             <ul className="dropdown-menu">
-                                {isMobile && (
-                                    <li className="dropdown-close-btn">
-                                        <button onClick={() => setDropdownOpen(false)} aria-label="Close menu">
-                                            ✕
-                                        </button>
-                                    </li>
-                                )}
-
                                 {auth.user?.isAdmin && (
                                     <li>
                                         <NavLink
