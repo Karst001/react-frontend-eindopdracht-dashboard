@@ -1,59 +1,71 @@
-/* dashboard layout */
+/* entire layout */
 .dashboard-container {
     display: grid;
+    height: calc(100vh - var(--nav-height));
+    box-sizing: border-box;
     grid-template-columns: 220px 1fr;                   /* sidebar + main content */
     grid-template-rows: auto 1fr auto;                  /* header, main, footer */
     gap: 20px;
     padding: 10px;
     margin-top: var(--nav-height);                      /* offset for fixed navbar height */
-    min-height: 100%;
+}
+
+/* sidebar styling */
+.dashboard-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 15px;
+}
+
+.dashboard-sidebar button {
+    width: 100%;
+    padding: 8px 0;
+    margin: 5px 0;
+}
+/* end */
+
+
+.dashboard-sidebar select  {
+    appearance: none;
+    background-color: var(--color-white);
+    border: 1px solid var(--color-background-blue);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--color-background-blue);
+    cursor: pointer;
+    width: 100%;
+    box-sizing: border-box;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='%230044cc' height='28' viewBox='0 0 24 24' width='28' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 18px;
+}
+
+
+/* Main dashboard area */
+.dashboard-main {
+    display: grid;
+    grid-template-columns: 45% 55%;                                         /* divide into 2 unequal sections */
+    gap: 20px;
+    padding-top: 1%;
+    padding-right: 2%;
+    height: calc(100vh - var(--nav-height) - var(--footer-height) - 6px);  /* equal responsive distribution in height */
+    box-sizing: border-box;
+}
+
+/* styling to all sections */
+.dashboard-section {
+    height: 100%;
+    display: flex;                                                          /* Make child stretch in heigth, content varies */
+    flex-direction: column;
     box-sizing: border-box;
 }
 
 
-/* sidebar */
-.dashboard-sidebar {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-/* Dropdown in sidebar */
-.dashboard-sidebar select {
-    padding: 5px;
-    margin-bottom: 10px;
-}
-
-
-/* Buttons inside the sidebar */
-.dashboard-sidebar button {
-    width: 100%; /* Full width button */
-    align-self: center;
-    padding: 8px 0;
-    margin: 5px;
-}
-
-
-/* main content */
-.dashboard-main {
-    display: flex;
-    flex-direction: column;
-}
-
-
-/* Responsive grid row  */
-.dashboard-row-top,
-.dashboard-row-bottom {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-}
-
-.dashboard-row-top {
-    margin-bottom: 0.5rem;       /* creates gap between the two rows */
-}
-
-/* Individual sections */
 .today-schedule,
 .forecast,
 .mounting-summary,
@@ -68,22 +80,6 @@
     border: 1px solid var(--color-background-blue);
 }
 
-.today-schedule {
-    flex: 0.89
-}
-
-.forecast, .mounting-summary {
-    flex: 1.2;
-}
-
-.forecast-next-days {
-    display: flex;
-    gap: 0.5rem;
-    flex: 0.78;
-}
-
-
-/* style for charts */
 .schedule-multi-donuts {
     display: flex;
     justify-content: space-between;  /* evenly spread out */
@@ -113,33 +109,19 @@
     height: 160px;
 }
 
-.schedule-chart {
-    margin-top: 1rem;
-    height: 200px;
-}
-
-
-/* Forecast section */
-.forecast {
-    padding: 1rem;
-    background: var(--color-white);
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-}
-
 .forecast-bar-label {
     font-size: 1.3rem;
     font-weight: 400;
     fill: var(--color-dark-grey);
 }
 
-
-/* schedule section */
 .schedule-stats {
     display: flex;
     justify-content: space-around;
 }
 
+
+/* legend styling */
 .custom-legend {
     list-style: none;
     display: flex;
@@ -171,8 +153,10 @@
     margin-right: 6px;
     border-radius: 2px;
 }
+/* end */
 
-/* tooltip */
+
+/* tooltip styling */
 .custom-tooltip {
     background: var(--color-white);
     border: 1px solid var(--color-soft-grey);
@@ -202,68 +186,10 @@
     margin-right: 8px;
     border-radius: 2px;
 }
-
-.dashboard-button-row {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
+/* end */
 
 
-/* Individual stat area */
-.stat {
-    text-align: center;
-}
-
-
-/* Main stat value */
-.stat-value {
-    font-size: 1.5em;
-    font-weight: bold;
-}
-
-/* mounting summary area */
-.mounting-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-top: 1rem;
-}
-
-
-.mounting-item {
-    background: var(--color-light-grey);
-    padding: 10px;
-    border-radius: 6px;
-    font-size: 1rem;
-    font-weight: 500;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.mounting-item:hover {
-    background: var(--color-light-grey);
-    transform: translateY(-2px);
-}
-
-
-.mounting-donuts {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-top: 1.5rem;
-    flex-wrap: nowrap;
-}
-
-.mounting-summary {
-    flex: 1;
-}
-
-.mounting-donuts-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 2fr);
-
-}
-
+/* mounting summary styling */
 .mounting-donuts-row {
     display: flex;
     align-items: flex-start;
@@ -284,107 +210,9 @@
     grid-template-columns: repeat(3, 2fr);
     flex: 1;
 }
-
-
-/* forecast tomorrow */
-.forecast-stats.vertical {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-
-
-/* forecast stats  */
-.forecast-stats {
-    display: flex;
-    justify-content: space-between;
-    gap: 15px;
-    margin-top: 0.5rem;
-}
-
-
-/* Individual forecast card */
-.tomorrow-stat {
-    flex: 1;
-    text-align: center;
-    background: var(--color-white);
-    border: 1px solid var(--color-background-blue);
-    border-radius: 6px;
-    padding: 8px 0;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition: background 0.2s, transform 0.2s;
-}
-
-
-/* Hover effect for forecast */
-.tomorrow-stat:hover {
-    background: var(--color-light-grey);
-    transform: translateY(-2px);                /* slight lift-up on hover */
-}
-
-
-/* styling for dropdown, the default OS styling is ugly */
-.dashboard-sidebar select  {
-    appearance: none;
-    background-color: var(--color-white);
-    border: 1px solid var(--color-background-blue);
-    border-radius: 6px;
-    padding: 6px 10px;
-    font-size: 1rem;
-    font-weight: bold;
-    color: var(--color-background-blue);
-    cursor: pointer;
-    width: 100%;
-    box-sizing: border-box;
-    transition: background-color 0.2s ease, color 0.2s ease;
-    background-image: url("data:image/svg+xml;utf8,<svg fill='%230044cc' height='28' viewBox='0 0 24 24' width='28' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    background-size: 18px;
-}
-
-
-/* hover style with white arrow */
-.dashboard-sidebar select:hover {
-    background-color: var(--color-background-blue);
-    color: var(--color-white);
-    background-image: url("data:image/svg+xml;utf8,<svg fill='%23ffffff' height='28' viewBox='0 0 24 24' width='28' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
-}
-
-/*  style the label above dropdown */
-.dashboard-sidebar label span {
-    display: block;
-    font-weight: 600;
-    font-size: 1rem;
-    color: var(--color-background-blue);
-    margin-bottom: 6px;
-}
+/* end */
 
 /* modal popup for displaying graphs*/
-/* this sets the background screen to go into a 'greyed-out' screen*/
-.graph-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.graph-content {
-    background: var(--color-white);
-    padding: 2rem;
-    border-radius: 10px;
-    width: 94%;
-    height: 90%;
-    overflow-y: auto;
-}
-
 .modal-overlay-graph-container {
     position: fixed;
     top: 0;
@@ -415,6 +243,8 @@
 .close-panel-btn:disabled {  /* hide button when 2nd modal form is visible */
     opacity: 0.0;
 }
+/* end */
+
 
 /* the component ResponsiveContainer at default uses inline css like */
 /* <ResponsiveContainer width="100%", height=300px; >*/
@@ -435,7 +265,6 @@
     height: 400px;
     padding-bottom: 60px;
 }
-
 
 /* drill down 'page' overlay */
 .modal-overlay {
@@ -473,6 +302,7 @@
     font-family: inherit;
 }
 
+
 /* Header styling */
 .custom-ag-grid .ag-header-cell-label {
     font-size: 1.2rem;
@@ -491,135 +321,38 @@
     width: 18px;
     height: 18px;
 }
+/* end */
 
 
 
-
-/* Mobile: 768px and below */
-@media (max-width: 768px) {
+/* mobile response */
+@media screen and (max-width: 768px) {
     /* hide clock on mobile, takes up too much space */
     .dashboard-clock {
         display: none !important;
     }
 
-    /* hide the main navbar on mobile, slide dashboard buttons up */
-    .dashboard .navbar {
-        display: none !important;
-    }
-
     .dashboard-container {
-        margin-top: 80px;
-        position: relative;
-        z-index: 1;
-    }
-    /* end */
-
-
-
-    .today-schedule,
-    .forecast-next-days,
-    .forecast,
-    .mounting-summary{
-        flex: 1;
-    }
-
-    /* on mobile have the 3 buttons beside each other */
-    .dashboard-button-row {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: nowrap;                /* prevent wrapping */
-        justify-content: space-between;
-        gap: 4px;
-    }
-
-    .dashboard-button-row button {
-        font-size: 0.75rem;               /* control this manually */
-        padding: 8px 10px;
-        white-space: nowrap;              /* prevent text from breaking */
-        flex: 1 1 0;                      /* force equal width, no shrink */
-        min-width: 0;                     /* prevent overflow */
-    }
-    /* end */
-
-
-    .dashboard-container {
-        grid-template-columns: 1fr; /* Stack sidebar and main */
-    }
-
-    .dashboard-sidebar {
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 10px;
-        justify-content: space-around;
-        padding-bottom: 1rem;
-    }
-
-    .dashboard-clock {
-        position: relative;
-        bottom: unset;
-        left: unset;
-        margin-top: 10px;
+        grid-template-columns: 1fr;
+        height: auto;                                           /* allow full content height to scroll on mobile */
     }
 
     .dashboard-main {
-        padding: 0;
+        grid-template-columns: 1fr;
+        height: auto;
+        padding: 0 2%;
     }
 
-    .schedule-multi-donuts {
-        flex-wrap: wrap;
-        justify-content: center;
+    .dashboard-section {
+        width: 100%;
+        height: auto;
     }
-
-    .donut-chart {
-        max-width: 150px;
-    }
-
-    .mounting-summary {
-        flex: 1;
-    }
-
-
-    .centered-legend {
-        /* change the legend so it remains in one row */
-        flex-direction: row;
-        justify-content: center;
-        gap: 1rem;
-        flex-wrap: wrap;
-    }
-
-
-    /* align the 'Your machines' and dropdown beside each other */
-    .dashboard-sidebar label {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        flex-wrap: nowrap;
-    }
-
-    .dashboard-sidebar select {
-        flex: 1;                            /* let it grow to fill space */
-        width: 180px
-    }
-    /* end */
-
 
     /* used to display graphs on mobile */
-    .modal-overlay-graph-container {
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: var(--transparent-dark-overlay);
-        overflow-y: auto;
-        z-index: 1000;
-    }
-
     .modal-graph-container-content {
         background-color: var(--color-white);
         overflow-x: hidden;
     }
-    /* end */
-
 
     /* mobile hamburger menu */
     .dashboard-sidebar {
@@ -696,6 +429,7 @@
     }
     /* end */
 
+
     /* button to go back to home page on mobile */
     .mobile-header-controls {
         position: fixed;
@@ -731,8 +465,5 @@
         font-size: 1rem;
         color: var(--color-background-blue);
     }
-
     /* end */
 }
-
-

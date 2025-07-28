@@ -1,7 +1,7 @@
 /* clock, fixed lower left corner of screen */
 .dashboard-clock {
     position: fixed;
-    bottom: 55px;
+    bottom: 25px;
     left: 20px;
     background: var(--transparent-white-overlay);           /* slightly transparent */
     padding: 8px 12px;
