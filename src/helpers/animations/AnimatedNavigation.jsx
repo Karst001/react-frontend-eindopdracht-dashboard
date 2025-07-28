@@ -18,8 +18,6 @@ const AnimatedNavigation = () => {
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-    const isMobile = window.innerWidth <= 768;
-
     // Detect navigation state and trigger the animation
     useEffect(() => {
         if (location.state?.jump) {

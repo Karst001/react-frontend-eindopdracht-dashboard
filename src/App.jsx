@@ -59,6 +59,7 @@ function App() {
 
                     <Route path="/newsletter" element={<NewsLetter/>}/>
                     <Route path="/contact" element={<Contact/>}/>
+                    <Route path="/fix" element={<Dashboard/>}/>
                     <Route path="/signin" element={<SignIn/>}/>
                     <Route path="/signout" element={<SignOut/>}/>
                     <Route path="/dashboard" element={<Dashboard/>}/>

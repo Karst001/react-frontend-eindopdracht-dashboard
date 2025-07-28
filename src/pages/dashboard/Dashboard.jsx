@@ -19,7 +19,6 @@ import {
 import Clock from "../../components/clock/Clock.jsx";
 import CustomGrid from "../../components/datagrid/CustomGrid.jsx";
 
-
 const Dashboard = () => {
     const [machine, setMachine] = useState('');
     const [selectedMachine, setSelectedMachine] = useState({ value: '', label: '' });
@@ -53,8 +52,7 @@ const Dashboard = () => {
     // Calculate total based on highest value, this is done for proportional rendering instead of showing 3 donuts with 100% fill, kinda meaningless
     const donutMax = Math.max(...donutData.map(item => item.value));
 
-
-    //forcast section
+    //forecast section
     const forecastData = [
         {name: 'Juli 21', Jobs: 34, Sleeves: 60, Plates: 90},
         {name: 'Juli 22', Jobs: 68, Sleeves: 85, Plates: 130},
@@ -212,7 +210,6 @@ const Dashboard = () => {
         return () => window.removeEventListener('resize', updatePageLimit);
     }, [isModalOpen]);
 
-
     return (
         // wrapped inside a class because there is a Home button on mobile page
         // when Home is pressed the Dashboard menu disappears and the default navbar appears again
@@ -325,9 +322,10 @@ const Dashboard = () => {
                         </div>
                     </div>
 
+                    <Clock/>
+
                     <div className="dashboard-main">
-                        {/* Row 1: Today + Forecast */}
-                        <div className="dashboard-row-top">
+                        <div className="dashboard-section">
                             <div className="today-schedule">
                                 <h2>Today's Schedule:</h2>
 
@@ -348,8 +346,8 @@ const Dashboard = () => {
                                                             <Pie
                                                                 data={data}
                                                                 dataKey="value"
-                                                                innerRadius={isMobile ? 35 : 40} //smaller on mobile
-                                                                outerRadius={isMobile ? 54 : 70} //smaller on mobile
+                                                                innerRadius={isMobile ? 35 : 50} //smaller on mobile
+                                                                outerRadius={isMobile ? 54 : 80} //smaller on mobile
                                                                 startAngle={90}
                                                                 endAngle={-270}
                                                                 animationDuration={500}
@@ -380,6 +378,8 @@ const Dashboard = () => {
                                 </div>
                             </div>
 
+                        </div>
+                        <div className="dashboard-section">
                             <div className="forecast">
                                 <h2>Forecast up to 7 days:</h2>
 
@@ -421,9 +421,7 @@ const Dashboard = () => {
                                 </div>
                             </div>
                         </div>
-
-                        {/* Row 2: Mounting Summary + next 2 days */}
-                        <div className="dashboard-row-bottom">
+                        <div className="dashboard-section">
                             <div className="forecast-next-days">
                                 <div className="forecast-tomorrow"> {/* You can rename class later if needed */}
                                     <h2>Next 2 Days</h2>
@@ -461,6 +459,8 @@ const Dashboard = () => {
                                 </div>
                             </div>
 
+                        </div>
+                        <div className="dashboard-section">
                             <div className="mounting-summary">
                                 <h2>Mounting summary:</h2>
 
@@ -559,10 +559,7 @@ const Dashboard = () => {
                                 </div>
                             </div>
                         </div>
-
-                        <Clock />
                     </div>
-
                 </div>
             )}
 
@@ -572,7 +569,7 @@ const Dashboard = () => {
                     /* this button must be disabled when 2nd modal is showing */
                     {!isModalOpen && (
                         <Button className="close-panel-btn"
-                            onClick={() => setShowJobPanel(false)}
+                                onClick={() => setShowJobPanel(false)}
                         >
                             Close
                         </Button>
