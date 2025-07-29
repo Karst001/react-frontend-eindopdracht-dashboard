@@ -1,4 +1,4 @@
-import React, {useContext, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import './Profile.css';
 import {AuthContext} from '../../context/AuthContext';
 import Spinner from '../../components/loader/Spinner.jsx';
@@ -7,39 +7,29 @@ import {NavLink, useNavigate} from 'react-router-dom';
 import Button from "../../components/button/Button.jsx";
 import Label from "../../components/label/Label.jsx";
 import Input from "../../components/input/Input.jsx";
+import { usePasswordStrength } from '../../hooks/usePasswordStrength';                                 //use a hook to check password strength
+
 
 function Profile() {
     const {user} = useContext(AuthContext);
 
     const [currentPassword, setCurrentPassword] = useState('');
-
     const [newPassword, setNewPassword] = useState('');
-    const [repeatNewPassword, setRepeatNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [subscribed, setSubscribed] = useState(user?.newsletter ?? true)
-
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
     const [popupMessage, setPopupMessage] = useState('');
-    const [passwordMismatch, setPasswordMismatch] = useState(false);
+    const [hasTypedPassword, setHasTypedPassword] = useState(false);                /* track to see if user is typing password */
+    const [passwordsMatch, setPasswordsMatch] = useState(false);                    /* track to see when new and confirmed passwords match */
 
     const navigate = useNavigate();
 
-    const isPasswordWeak = (password) => password.length < 6;
 
     // === Update Password Only ===
     const handlePasswordUpdate = async (e) => {
         e.preventDefault();
         setErrorMsg('');
-
-        if (!newPassword || isPasswordWeak(newPassword)) {
-            setErrorMsg('Password is too weak. Please choose at least 6 characters.');
-            return;
-        }
-
-        if (newPassword !== repeatNewPassword) {
-            setErrorMsg('Please check your new password with the value for repeat password; They must be the same..!');
-            return;
-        }
 
         setLoading(true);
         try {
@@ -51,7 +41,7 @@ function Profile() {
                 setErrorMsg('Failed to update password.');
             }
         } catch (err) {
-            setErrorMsg('Server error. Please try again.');
+            setErrorMsg('Server error. Please try again.' + {err});
         } finally {
             setLoading(false);
         }
@@ -71,7 +61,7 @@ function Profile() {
                 setErrorMsg('Failed to update subscription.');
             }
         } catch (err) {
-            setErrorMsg('Server error. Please try again.');
+            setErrorMsg('Server error. Please try again. ' + {err});
         } finally {
             setLoading(false);
         }
@@ -86,16 +76,26 @@ function Profile() {
         });
     };
 
-    //This checks if all required fields are non-empty
-    const canSubmitPassword = Boolean(currentPassword.trim() && newPassword.trim() && repeatNewPassword.trim());
+    //this will check if the new password and confirmed password match or not
+    useEffect(() => {
+        if (newPassword && confirmPassword && newPassword === confirmPassword) {
+            setPasswordsMatch(true);
+        } else {
+            setPasswordsMatch(false);
+        }
+    }, [newPassword, confirmPassword]);
+
+    //call the hook to check password for validity and strength
+    //passwordStrength and isPasswordStrong are the returned values
+    const { strength: passwordStrength, isStrong: isPasswordStrong } = usePasswordStrength(newPassword);
 
     return (
-        <div className="profile-page">
-            <h1>Your profile:</h1>
+        <section className="profile-page">
+            <h1>Your profile</h1>
 
             {/* === Section 1: Details === */}
             <form className="profile-form" onSubmit={handlePasswordUpdate}>
-                <section>
+                <fieldset className="profile-form">
                     <h2>Change password:</h2>
                     <Label label={<><span>Current password:</span> <span className="required">*</span></>}>
                         <Input
@@ -111,7 +111,10 @@ function Profile() {
                         <Input
                             type="password"
                             value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
+                            onChange={(e) => {
+                                setNewPassword(e.target.value);
+                                setHasTypedPassword(true);
+                            }}
                             onBlur={() => {
                                 setErrorMsg('');
                             }}
@@ -120,32 +123,48 @@ function Profile() {
                         />
                     </Label>
 
-                    <Label label={<><span>Repeat new password:</span> <span className="required">*</span></>}>
+                    <Label label={<><span>Confirm new password:</span> <span className="required">*</span></>}>
                         <Input
                             type="password"
-                            value={repeatNewPassword}
+                            value={confirmPassword}
                             onChange={(e) => {
                                 const value = e.target.value;
-                                setRepeatNewPassword(value);
-                                setPasswordMismatch(newPassword !== value); // check if password match while typing, when they match the warning goes away and button enabled right away
+                                setConfirmPassword(value);
+                                setPasswordsMatch(newPassword === value); // check if password match while typing, when they match the warning goes away and button enabled right away
+                                setHasTypedPassword(true);
                             }}
                             onBlur={() => {
-                                setPasswordMismatch(newPassword !== repeatNewPassword); // fallback to make sure it is checked
+                                setPasswordsMatch(newPassword === confirmPassword); // fallback to make sure it is checked
                             }}
                             required
                             placeholder="Repeat your new password"
                         />
-                        {passwordMismatch && (
+
+                        {confirmPassword && !passwordsMatch && (
                             <p className="error-text">Passwords do not match</p>
                         )}
+
+                        {/*show the password policy and updates live while typing, as soon as password is strong the warnings should hide */}
+                        {!isPasswordStrong && hasTypedPassword && (
+                            <div className="password-rules">
+                                <p className={passwordStrength.length ? "valid" : "invalid"}>• At least 8 characters</p>
+                                <p className={passwordStrength.upper ? "valid" : "invalid"}>• At least one uppercase letter</p>
+                                <p className={passwordStrength.lower ? "valid" : "invalid"}>• At least one lowercase letter</p>
+                                <p className={passwordStrength.number ? "valid" : "invalid"}>• At least one number</p>
+                                <p className={passwordStrength.special ? "valid" : "invalid"}>• At least one special character</p>
+                            </div>
+                        )}
                     </Label>
-                </section>
 
-                {errorMsg && <p className="error-text">{errorMsg}</p>}
+                    {errorMsg && <p className="error-text">{errorMsg}</p>}
 
-                <Button type="submit" disabled={!canSubmitPassword || loading || passwordMismatch}>
-                    Update Password
-                </Button>
+                    {/*user can only update password to database once password is strong and both match*/}
+                    {passwordsMatch && isPasswordStrong && (
+                        <Button type="submit">
+                            Update Password
+                        </Button>
+                    )}
+                </fieldset>
             </form>
 
             <form className="profile-form" onSubmit={handleSubscriptionUpdate}>
@@ -183,7 +202,7 @@ function Profile() {
                     navigate('/');
                 }}
             />
-        </div>
+        </section>
     );
 }
 

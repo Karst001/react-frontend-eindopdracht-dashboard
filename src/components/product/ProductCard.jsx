@@ -17,7 +17,7 @@ const ProductCard = ({product, direction, animateOnScroll = true}) => {
         // apply dynamic classes for animation and layout direction
         // 'from-left' means image on left, text on right; otherwise reversed
         // <div className={`product slide-in ${direction}`}>
-        <div className={`product ${animationClass} ${direction}`}>
+        <article className={`product ${animationClass} ${direction}`}>
             {isMobile ? (
                 <>
                     {/* Always image first on mobile, then text, then buttons */}
@@ -26,7 +26,7 @@ const ProductCard = ({product, direction, animateOnScroll = true}) => {
                     </div>
 
                     <div className="description">
-                        <strong>{product.title}</strong>
+                        <h3>{product.title}</h3>
                         <p>{product.description}</p>
 
                         <div className="button-row">
@@ -48,7 +48,7 @@ const ProductCard = ({product, direction, animateOnScroll = true}) => {
 
                             {/* product details on the right */}
                             <div className="description">
-                                <strong>{product.title}</strong>
+                                <h3>{product.title}</h3>
                                 <p>{product.description}</p>
 
                                 {/* buttons under the description */}
@@ -72,7 +72,7 @@ const ProductCard = ({product, direction, animateOnScroll = true}) => {
                         <>
                             {/* Reversed layout: text on the left, image on the right */}
                             <div className="description">
-                                <strong>{product.title}</strong>
+                                <h3>{product.title}</h3>
                                 <p>{product.description}</p>
 
                                 <div className="button-row">
@@ -97,7 +97,7 @@ const ProductCard = ({product, direction, animateOnScroll = true}) => {
                     )}
                 </>
             )}
-        </div>
+        </article>
     );
 };
 

@@ -139,7 +139,7 @@ const Home = () => {
     return (
         // <div className="video-wrapper">
         <div>
-            <div className="video-placeholder">
+            <section className="video-placeholder">
                 <video
                     src="https://www.w3schools.com/html/mov_bbb.mp4"
                     width="100%"
@@ -150,16 +150,16 @@ const Home = () => {
                     playsInline
                     style={{ objectFit: "cover" }}
                 />
-            </div>
+            </section>
 
             <div className="video-overlay">
-                <div className="video-overlay-text-left slide-in">
+                <header className="video-overlay-text-left slide-in">
                     <h1>COMPLETE FLEXO SOLUTIONS</h1>
-                </div>
+                </header>
 
-                <div className="video-overlay-text-right slide-in">
+                <header className="video-overlay-text-right slide-in">
                     <h1>FOR EVERY FLEXOGRAPHIC PRINTER</h1>
-                </div>
+                </header>
 
                 <div className="video-overlay-text-bottom">
                     <Button
@@ -180,20 +180,22 @@ const Home = () => {
             </div>
 
             <main className="content" id="products">
-                <h2>Our Products</h2>
-                {/* animate on scroll only work on desptop, on mobile the first product is always showsn to fill the screen */}
-                {/* once the user scrolls the rest is animated */}
-                {/* index !== 0 means the first one shows */}
-                {products.map((product, index) => (
-                    <ProductCard
-                        key={product.id}
-                        product={product}
-                        direction={index % 2 === 0 ? "from-left" : "from-right"}
-                        animateOnScroll={
-                            index !== 0 || (typeof window !== 'undefined' && window.innerWidth > 768)
-                        }
-                    />
-                ))}
+                <section>
+                    <h2>Our Products</h2>
+                    {/* animate on scroll only work on desptop, on mobile the first product is always showsn to fill the screen */}
+                    {/* once the user scrolls the rest is animated */}
+                    {/* index !== 0 means the first one shows */}
+                    {products.map((product, index) => (
+                        <ProductCard
+                            key={product.id}
+                            product={product}
+                            direction={index % 2 === 0 ? "from-left" : "from-right"}
+                            animateOnScroll={
+                                index !== 0 || (typeof window !== 'undefined' && window.innerWidth > 768)
+                            }
+                        />
+                    ))}
+                </section>
             </main>
         </div>
     );

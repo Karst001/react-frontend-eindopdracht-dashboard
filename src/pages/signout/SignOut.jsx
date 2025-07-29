@@ -18,10 +18,10 @@ function SignedOut() {
 
 
     return (
-        <div className="SignOut">
+        <section className="SignOut">
             <h1>U bent nu uitgelogd</h1>
             <p>Tot ziens, u mag de browser nu afsluiten.</p>
-        </div>
+        </section>
     );
 }
 

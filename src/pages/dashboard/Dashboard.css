@@ -65,6 +65,11 @@
     box-sizing: border-box;
 }
 
+.forecast-next-days {
+    height: 100%;                                                           /* since the graph is not a large item, it was showing an empty space under when displaying the page in very large screens */
+    display: flex;
+    flex-direction: column;
+}
 
 .today-schedule,
 .forecast,
@@ -152,6 +157,18 @@
     display: inline-block;
     margin-right: 6px;
     border-radius: 2px;
+}
+
+.jobs {
+    background-color: var(--color-jobs);
+}
+
+.sleeves {
+    background-color: var(--color-sleeves);
+}
+
+.plates {
+    background-color: var(--color-plates);
 }
 /* end */
 
