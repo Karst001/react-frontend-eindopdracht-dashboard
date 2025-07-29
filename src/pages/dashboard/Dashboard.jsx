@@ -35,12 +35,29 @@ const Dashboard = () => {
     const isMobile = window.innerWidth <= 768;
     const [hamburgerOpen, setHamburgerOpen] = useState(false);
 
-    //set colors for donuts
-    const donutColors = {
-        Jobs: '#0088FE',
-        Sleeves: '#00C49F',
-        Plates: '#FFBB28',
-    };
+    //set colors for donuts via a state, load initial blank color value into state
+    const [donutColors, setDonutColors] = useState({
+        Jobs: '',
+        Sleeves: '',
+        Plates: '',
+        UnusedDonutArea: ''
+    });
+
+    //load the color values from CSS upon a page mount
+    useEffect(() => {
+        const getCSSVariable = name =>
+            getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+        setDonutColors({
+            Jobs: getCSSVariable('--color-jobs'),
+            Sleeves: getCSSVariable('--color-sleeves'),
+            Plates: getCSSVariable('--color-plates'),
+            UnusedDonutArea: getCSSVariable('--color-unused'),
+        });
+        //usage further in jsx: donutColors.Jobs instead of inline css
+    }, []);
+
+
 
     // Define donut data and colors
     const donutData = [
@@ -213,7 +230,7 @@ const Dashboard = () => {
     return (
         // wrapped inside a class because there is a Home button on mobile page
         // when Home is pressed the Dashboard menu disappears and the default navbar appears again
-        <div class="dashboard">
+        <div className="dashboard">
             {/*on mobile the buttons needs to be replaced by a hamburger menu*/}
             {/*when any modal form is visible, hide the hamburger menu*/}
             {isMobile && !( showJobPanel || showAvgTimeBetweenJobsPanel || showAvgTimeBetweenSleevesPanel )
@@ -353,9 +370,8 @@ const Dashboard = () => {
                                                                 animationDuration={500}
                                                                 labelLine={false}
                                                             >
-
                                                                 <Cell fill={color}/>
-                                                                <Cell fill="#f0f0f0"/>
+                                                                <Cell fill={donutColors.UnusedDonutArea}/>
 
                                                                 {/* Custom label as a separate SVG element */}
                                                                 <text
@@ -401,21 +417,18 @@ const Dashboard = () => {
                                             <Legend
                                                 content={() => (
                                                     <ul className="custom-legend">
-                                                        <li><span className="legend-box"
-                                                                  style={{backgroundColor: '#0088FE'}}></span> Jobs
+                                                        <li><span className="legend-box jobs"></span> Jobs
                                                         </li>
-                                                        <li><span className="legend-box"
-                                                                  style={{backgroundColor: '#00C49F'}}></span> Sleeves
+                                                        <li><span className="legend-box sleeves"></span> Sleeves
                                                         </li>
-                                                        <li><span className="legend-box"
-                                                                  style={{backgroundColor: '#FFBB28'}}></span> Plates
+                                                        <li><span className="legend-box plates"></span> Plates
                                                         </li>
                                                     </ul>
                                                 )}
                                             />
-                                            <Bar dataKey="Jobs" stackId="a" fill="#0088FE"/>
-                                            <Bar dataKey="Sleeves" stackId="a" fill="#00C49F"/>
-                                            <Bar dataKey="Plates" stackId="a" fill="#FFBB28"/>
+                                            <Bar dataKey="Jobs" stackId="a" fill={donutColors.Jobs}/>
+                                            <Bar dataKey="Sleeves" stackId="a" fill={donutColors.Sleeves}/>
+                                            <Bar dataKey="Plates" stackId="a" fill={donutColors.Plates}/>
                                         </BarChart>
                                     </ResponsiveContainer>
                                 </div>
@@ -423,7 +436,7 @@ const Dashboard = () => {
                         </div>
                         <div className="dashboard-section">
                             <div className="forecast-next-days">
-                                <div className="forecast-tomorrow"> {/* You can rename class later if needed */}
+                                <div className="forecast-tomorrow">
                                     <h2>Next 2 Days</h2>
                                     <div className="responsiveContainerHeight400">
                                         <ResponsiveContainer>
@@ -438,14 +451,11 @@ const Dashboard = () => {
                                                 <Legend
                                                     content={() => (
                                                         <ul className="custom-legend">
-                                                            <li><span className="legend-box"
-                                                                      style={{backgroundColor: '#0088FE'}}></span> Jobs
+                                                            <li><span className="legend-box jobs"></span> Jobs
                                                             </li>
-                                                            <li><span className="legend-box"
-                                                                      style={{backgroundColor: '#00C49F'}}></span> Sleeves
+                                                            <li><span className="legend-box sleeves"></span> Sleeves
                                                             </li>
-                                                            <li><span className="legend-box"
-                                                                      style={{backgroundColor: '#FFBB28'}}></span> Plates
+                                                            <li><span className="legend-box plates"></span> Plates
                                                             </li>
                                                         </ul>
                                                     )}
@@ -490,7 +500,7 @@ const Dashboard = () => {
                                                                     labelLine={false}
                                                                 >
                                                                     <Cell fill={color}/>
-                                                                    <Cell fill="#f0f0f0"/>
+                                                                    <Cell fill={donutColors.UnusedDonutArea}/>
                                                                     <text
                                                                         x="50%"
                                                                         y="50%"
@@ -537,7 +547,7 @@ const Dashboard = () => {
                                                                     labelLine={false}
                                                                 >
                                                                     <Cell fill={color}/>
-                                                                    <Cell fill="#f0f0f0"/>
+                                                                    <Cell fill={donutColors.UnusedDonutArea}/>
                                                                     <text
                                                                         x="50%"
                                                                         y="50%"
@@ -597,14 +607,11 @@ const Dashboard = () => {
                                     <Legend
                                         content={() => (
                                             <ul className="custom-legend centered-legend">
-                                                <li><span className="legend-box"
-                                                          style={{backgroundColor: '#0088FE'}}></span> Jobs
+                                                <li><span className="legend-box jobs"></span> Jobs
                                                 </li>
-                                                <li><span className="legend-box"
-                                                          style={{backgroundColor: '#00C49F'}}></span> Sleeves
+                                                <li><span className="legend-box sleeves"></span> Sleeves
                                                 </li>
-                                                <li><span className="legend-box"
-                                                          style={{backgroundColor: '#FFBB28'}}></span> Plates
+                                                <li><span className="legend-box plates"></span> Plates
                                                 </li>
                                             </ul>
                                         )}
@@ -633,14 +640,14 @@ const Dashboard = () => {
                                     <Legend
                                         content={() => (
                                             <ul className="custom-legend">
-                                                <li><span className="legend-box"
-                                                          style={{backgroundColor: '#0088FE'}}></span> Jobs
+                                                <li><span className="legend-box jobs"></span>
+                                                    Jobs
                                                 </li>
-                                                <li><span className="legend-box"
-                                                          style={{backgroundColor: '#00C49F'}}></span> Sleeves
+                                                <li><span className="legend-box sleeves"></span>
+                                                    Sleeves
                                                 </li>
-                                                <li><span className="legend-box"
-                                                          style={{backgroundColor: '#FFBB28'}}></span> Plates
+                                                <li><span className="legend-box plates"></span>
+                                                    Plates
                                                 </li>
                                             </ul>
                                         )}
@@ -698,8 +705,8 @@ const Dashboard = () => {
                                     <Legend
                                         content={() => (
                                             <ul className="custom-legend centered-legend">
-                                                <li><span className="legend-box"
-                                                          style={{backgroundColor: '#0088FE'}}></span> Jobs
+                                                <li><span className="legend-box jobs"></span>
+                                                    Jobs
                                                 </li>
                                             </ul>
                                         )}
@@ -718,8 +725,8 @@ const Dashboard = () => {
                                     <Legend
                                         content={() => (
                                             <ul className="custom-legend">
-                                                <li><span className="legend-box"
-                                                          style={{backgroundColor: '#0088FE'}}></span> Jobs
+                                                <li><span className="legend-box jobs"></span>
+                                                    Jobs
                                                 </li>
                                             </ul>
                                         )}
@@ -747,8 +754,8 @@ const Dashboard = () => {
                                     <Legend
                                         content={() => (
                                             <ul className="custom-legend centered-legend">
-                                                <li><span className="legend-box"
-                                                          style={{backgroundColor: '#00C49F'}}></span> Sleeves
+                                                <li><span className="legend-box sleeves"></span>
+                                                    Sleeves
                                                 </li>
                                             </ul>
                                         )}
@@ -767,8 +774,8 @@ const Dashboard = () => {
                                     <Legend
                                         content={() => (
                                             <ul className="custom-legend">
-                                                <li><span className="legend-box"
-                                                          style={{backgroundColor: '#00C49F'}}></span> Sleeves
+                                                <li><span className="legend-box sleeves"></span>
+                                                    Sleeves
                                                 </li>
                                             </ul>
                                         )}

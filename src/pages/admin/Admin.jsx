@@ -9,7 +9,8 @@ import Input from '../../components/input/Input.jsx';
 import Textarea from "../../components/textarea/Textarea.jsx";
 import {h} from 'gridjs'; //a helper/handle needed for checkboxes inside custom grid
 import CustomGrid from '../../components/datagrid/CustomGrid.jsx';
-import {validateEmail} from "../../helpers/emailvalidation/EmailValidation.jsx";
+import {validateEmail} from "../../helpers/emailvalidation/emailValidation.js";
+import { generateOTP } from '../../helpers/password/oneTimePassword.js';
 
 
 const Admin = () => {
@@ -54,8 +55,6 @@ const Admin = () => {
 
             // Check if something actually changed compared to originalUsersRef
             setUsersChanged(JSON.stringify(updated) !== JSON.stringify(originalUsersRef.current));
-            // console.log("handleToggle: Has user data changed?", hasChanged);
-            // setUsersChanged(hasChanged);
 
             return updated;
         });
@@ -159,6 +158,15 @@ const Admin = () => {
     const canSubmitEditUser = Boolean(usersChanged);
     const canSubmitNewProduct = Boolean(productTitle.trim() !== '' && productDescription.trim() !== '' && productImage !== null);
 
+    //used for onetime password (OTP)
+    const [otp, setOtp] = useState('');
+    const handleGenerate = () => {
+        const newOtp = generateOTP(10, { digits: true, upperCase: true, lowerCase: true });                  // generate a random OTP
+        setOtp(newOtp);
+    };
+    //when logic is written for API, send OTP with the request, using: handleGenerate
+    //this OTP is stored in the database, user will get email with login details
+
     //capture the original value for users on page mount
     useEffect(() => {
         const changed = JSON.stringify(originalUsersRef.current) !== JSON.stringify(users);
@@ -186,7 +194,7 @@ const Admin = () => {
 
                     <main className="admin-content">
                         {activeSection === 'addUser' && (
-                            <div className="add-user-section">
+                            <section className="add-user-section">
                                 <h2>Add a new user:</h2>
                                 <form className="admin-form" onSubmit={async (e) => {
                                     e.preventDefault();
@@ -215,100 +223,102 @@ const Admin = () => {
                                     }
                                 }}>
 
-                                    <Label label={<><span>User name:</span> <span className="required">*</span></>}>
-                                        <Input
-                                            value={username}
-                                            onChange={(e) => setUserName(e.target.value)}
-                                            required
-                                            placeholder="Enter the user name for this account"
-                                        />
-                                    </Label>
+                                    <fieldset className="admin-form">
+                                        <Label label={<><span>User name:</span> <span className="required">*</span></>}>
+                                            <Input
+                                                value={username}
+                                                onChange={(e) => setUserName(e.target.value)}
+                                                required
+                                                placeholder="Enter the user name for this account"
+                                            />
+                                        </Label>
 
-                                    <Label label={<><span>First name:</span> <span className="required">*</span></>}>
-                                        <Input
-                                            value={firstName}
-                                            onChange={(e) => setFirstName(e.target.value)}
-                                            required
-                                            placeholder="Enter the first name for this user"
-                                        />
-                                    </Label>
+                                        <Label label={<><span>First name:</span> <span className="required">*</span></>}>
+                                            <Input
+                                                value={firstName}
+                                                onChange={(e) => setFirstName(e.target.value)}
+                                                required
+                                                placeholder="Enter the first name for this user"
+                                            />
+                                        </Label>
 
-                                    <Label label={<><span>Last name:</span> <span className="required">*</span></>}>
-                                        <Input
-                                            value={lastName}
-                                            onChange={(e) => setLastName(e.target.value)}
-                                            required
-                                            placeholder="Enter the last name for this user"
-                                        />
-                                    </Label>
+                                        <Label label={<><span>Last name:</span> <span className="required">*</span></>}>
+                                            <Input
+                                                value={lastName}
+                                                onChange={(e) => setLastName(e.target.value)}
+                                                required
+                                                placeholder="Enter the last name for this user"
+                                            />
+                                        </Label>
 
-                                    {/*Validate email on blur, when user leaves the field*/}
-                                    {/*onBlur is fired when the email text field loses focus, then the validateEmail is called*/}
-                                    <Label label={<><span>E-mail:</span> <span className="required">*</span></>}>
-                                        <Input
-                                            value={email}
-                                            onChange={(e) => {
-                                                const value = e.target.value;
-                                                setEmail(value);
-                                                setEmailValid(validateEmail(value));            // continuous validation while typing
+                                        {/*Validate email on blur, when user leaves the field*/}
+                                        {/*onBlur is fired when the email text field loses focus, then the validateEmail is called*/}
+                                        <Label label={<><span>E-mail:</span> <span className="required">*</span></>}>
+                                            <Input
+                                                value={email}
+                                                onChange={(e) => {
+                                                    const value = e.target.value;
+                                                    setEmail(value);
+                                                    setEmailValid(validateEmail(value));            // continuous validation while typing
+                                                }}
+
+                                                required
+                                                placeholder="Enter the email address for this user"
+                                            />
+                                            {!emailValid && <p className="error-text">Invalid email address</p>}
+                                        </Label>
+
+                                        <Label label={<><span>Customer ID:</span> <span className="required">*</span></>}>
+                                            <Input
+                                                type="text"
+                                                value={customerID}
+                                                onChange={(e) => {
+                                                    const value = e.target.value;
+                                                    setCustomerID(value);
+                                                    setCustomerIDValid(/^\d{6,}$/.test(value)); // 6 or more digits only
+                                                }}
+                                                onBlur={(e) => {
+                                                    const value = e.target.value;
+                                                    setCustomerIDValid(/^\d{6,}$/.test(value));
+                                                }}
+                                                required
+                                                placeholder="Enter the customer ID for this account (6 digits long)"
+                                            />
+                                            {!customerIDValid && <p className="error-text">Customer ID must be at least 6 digits, text is not allowed</p>}
+                                        </Label>
+
+                                        <Label className="checkbox-label">
+                                            <Input
+                                                type="checkbox"
+                                                checked={isAdmin}
+                                                onChange={(e) => setIsAdmin(e.target.checked)}
+                                            />
+
+                                            This user has administrator rights
+                                        </Label>
+
+                                        {/* button only enabled when there are no errors and email is valid and customerIDis valid */}
+                                        <Button type="submit" disabled={!canSubmitNewUser || loading || !emailValid || !customerIDValid}>
+                                            Add User
+                                        </Button>
+
+                                        <PopupMessage
+                                            message={popupMessage}
+                                            //navigate to home page after user clicks OK
+                                            onClose={() => {
+                                                setPopupMessage('');
+                                                ResetForm();
                                             }}
-
-                                            required
-                                            placeholder="Enter the email address for this user"
                                         />
-                                        {!emailValid && <p className="error-text">Invalid email address</p>}
-                                    </Label>
-
-                                    <Label label={<><span>Customer ID:</span> <span className="required">*</span></>}>
-                                        <Input
-                                            type="text"
-                                            value={customerID}
-                                            onChange={(e) => {
-                                                const value = e.target.value;
-                                                setCustomerID(value);
-                                                setCustomerIDValid(/^\d{6,}$/.test(value)); // 6 or more digits only
-                                            }}
-                                            onBlur={(e) => {
-                                                const value = e.target.value;
-                                                setCustomerIDValid(/^\d{6,}$/.test(value));
-                                            }}
-                                            required
-                                            placeholder="Enter the customer ID for this account (6 digits long)"
-                                        />
-                                        {!customerIDValid && <p className="error-text">Customer ID must be at least 6 digits, text is not allowed</p>}
-                                    </Label>
-
-                                    <Label className="checkbox-label">
-                                        <Input
-                                            type="checkbox"
-                                            checked={isAdmin}
-                                            onChange={(e) => setIsAdmin(e.target.checked)}
-                                        />
-
-                                        This user has administrator rights
-                                    </Label>
-
-                                    {/* button only enabled when there are no errors and email is valid and customerIDis valid */}
-                                    <Button type="submit" disabled={!canSubmitNewUser || loading || !emailValid || !customerIDValid}>
-                                        Add User
-                                    </Button>
-
-                                    <PopupMessage
-                                        message={popupMessage}
-                                        //navigate to home page after user clicks OK
-                                        onClose={() => {
-                                            setPopupMessage('');
-                                            ResetForm();
-                                        }}
-                                    />
-                                    {loading && <Spinner/>}
+                                        {loading && <Spinner/>}
+                                    </fieldset>
                                 </form>
-                            </div>
+                            </section>
                         )}
 
 
                         {activeSection === 'editUser' && (
-                            <div className="admin-section">
+                            <section className="admin-section">
                                 <h2>Edit users:</h2>
 
                                 <CustomGrid
@@ -340,12 +350,12 @@ const Admin = () => {
                                     }}
                                 />
                                 {loading && <Spinner/>}
-                            </div>
+                            </section>
                         )}
 
 
                         {activeSection === 'addProduct' && (
-                            <div className="admin-section">
+                            <section className="admin-section">
                                 <div className="add-product-section">
                                     <h2>Add Product:</h2>
 
@@ -372,81 +382,83 @@ const Admin = () => {
                                         }
                                     }}>
 
-                                        <Label label={<><span>Title:</span> <span className="required">*</span></>}>
-                                            <Input
-                                                value={productTitle}
-                                                onChange={(e) => setProductTitle(e.target.value)}
-                                                required
-                                                placeholder="Enter the product title"
-                                            />
-                                        </Label>
-
-                                        <Label label={<><span>Description:</span> <span className="required">*</span></>}>
-                                            <Textarea
-                                                value={productDescription}
-                                                onChange={(e) => setProductDescription(e.target.value)}
-                                                rows={5}
-                                                required
-                                                placeholder="Enter the description for this product"
-                                                minLength={300}
-                                                maxLength={750}
-                                                showValidation={true}
-                                            />
-                                        </Label>
-
-                                        <Label label={<><span>Product image:</span> <span className="required">*</span></>}>
-                                            <div
-                                                className="image-uploader"
-                                                onDragOver={(e) => e.preventDefault()}
-                                                onDrop={(e) => {
-                                                    e.preventDefault();
-                                                    const file = e.dataTransfer.files[0];
-                                                    if (file) {
-                                                        setProductImage(file);
-                                                        setProductImagePreview(URL.createObjectURL(file));
-                                                    }
-                                                }}
-                                            >
-                                                <p>Drag and drop an image here, or click to select</p>
+                                        <fieldset className="admin-form">
+                                            <Label label={<><span>Title:</span> <span className="required">*</span></>}>
                                                 <Input
-                                                    type="file"
-                                                    accept="image/*"
-                                                    onChange={(e) => {
-                                                        const file = e.target.files[0];
+                                                    value={productTitle}
+                                                    onChange={(e) => setProductTitle(e.target.value)}
+                                                    required
+                                                    placeholder="Enter the product title"
+                                                />
+                                            </Label>
+
+                                            <Label label={<><span>Description:</span> <span className="required">*</span></>}>
+                                                <Textarea
+                                                    value={productDescription}
+                                                    onChange={(e) => setProductDescription(e.target.value)}
+                                                    rows={5}
+                                                    required
+                                                    placeholder="Enter the description for this product"
+                                                    minLength={300}
+                                                    maxLength={750}
+                                                    showValidation={true}
+                                                />
+                                            </Label>
+
+                                            <Label label={<><span>Product image:</span> <span className="required">*</span></>}>
+                                                <div
+                                                    className="image-uploader"
+                                                    onDragOver={(e) => e.preventDefault()}
+                                                    onDrop={(e) => {
+                                                        e.preventDefault();
+                                                        const file = e.dataTransfer.files[0];
                                                         if (file) {
                                                             setProductImage(file);
                                                             setProductImagePreview(URL.createObjectURL(file));
                                                         }
                                                     }}
-                                                    required
-                                                />
-                                            </div>
-
-                                            {productImagePreview && (
-                                                <div className="image-preview">
-                                                    <img src={productImagePreview} alt="Product Preview"/>
-                                                    <p>{productImage.name}</p>
+                                                >
+                                                    <p>Drag and drop an image here, or click to select</p>
+                                                    <Input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        onChange={(e) => {
+                                                            const file = e.target.files[0];
+                                                            if (file) {
+                                                                setProductImage(file);
+                                                                setProductImagePreview(URL.createObjectURL(file));
+                                                            }
+                                                        }}
+                                                        required
+                                                    />
                                                 </div>
-                                            )}
-                                        </Label>
 
-                                        <Button type="submit" disabled={!canSubmitNewProduct || loading}>
-                                            Create Product
-                                        </Button>
+                                                {productImagePreview && (
+                                                    <div className="image-preview">
+                                                        <img src={productImagePreview} alt="Product Preview"/>
+                                                        <p>{productImage.name}</p>
+                                                    </div>
+                                                )}
+                                            </Label>
 
-                                        <PopupMessage
-                                            message={popupMessage}
-                                            //navigate to home page after user clicks OK
-                                            onClose={() => {
-                                                setPopupMessage('');
-                                                ResetForm();
-                                            }}
-                                        />
+                                            <Button type="submit" disabled={!canSubmitNewProduct || loading}>
+                                                Create Product
+                                            </Button>
 
-                                        {loading && <Spinner/>}
+                                            <PopupMessage
+                                                message={popupMessage}
+                                                //navigate to home page after user clicks OK
+                                                onClose={() => {
+                                                    setPopupMessage('');
+                                                    ResetForm();
+                                                }}
+                                            />
+
+                                            {loading && <Spinner/>}
+                                        </fieldset>
                                     </form>
                                 </div>
-                            </div>
+                            </section>
                         )}
                     </main>
                 </div>

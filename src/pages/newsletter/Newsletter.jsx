@@ -7,7 +7,7 @@ import PopupMessage from "../../components/popupmessage/PopupMessage.jsx";
 import Button from "../../components/button/Button.jsx";
 import Label from "../../components/label/Label.jsx";
 import Input from "../../components/input/Input.jsx";
-import {validateEmail} from "../../helpers/emailvalidation/EmailValidation.jsx";
+import {validateEmail} from "../../helpers/emailvalidation/emailValidation.js";
 
 
 const NewsLetter = () => {
@@ -63,71 +63,74 @@ const NewsLetter = () => {
     const canSubmit = Boolean(name.trim() && email.trim() && agreed);
 
     return (
-        <div className="newsletter-page">
+        <section className="newsletter-page">
             <h1>Subscribe to Our Newsletter</h1>
 
-            <h4>
+            <h2>What is in it for you!</h2>
+            <p>
                 We aim to send out a monthly newsletters with product updates, new product announcements, software updates for your equipment, service bulletins and much more.
-            </h4>
+            </p>
             <p>
                 Please subscribe here, you can unsubscribe at anytime using your <Link to="/profile">profile</Link> page.
             </p>
 
             <form className="newsletter-form" onSubmit={handleSubmit}>
-                <Label label={<><span>Name:</span> <span className="required">*</span></>}>
-                    <Input
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        required
-                        placeholder="Enter your name"
-                    />
-                </Label>
+                <fieldset className="newsletter-form">
+                    <Label label={<><span>Name:</span> <span className="required">*</span></>}>
+                        <Input
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            required
+                            placeholder="Enter your name"
+                        />
+                    </Label>
 
-                {/*Validate email on blur, when user leaves the field*/}
-                {/*onBlur is fired when the email text field loses focus, then the validateEmail is called*/}
-                <Label label={<><span>E-mail:</span> <span className="required">*</span></>}>
-                    <Input
-                        type="email"
-                        value={email}
-                        onChange={(e) => {
-                            const value = e.target.value;
-                            setEmail(value);
-                            setEmailValid(validateEmail(value));            // continuous validation while typing
+                    {/*Validate email on blur, when user leaves the field*/}
+                    {/*onBlur is fired when the email text field loses focus, then the validateEmail is called*/}
+                    <Label label={<><span>E-mail:</span> <span className="required">*</span></>}>
+                        <Input
+                            type="email"
+                            value={email}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                setEmail(value);
+                                setEmailValid(validateEmail(value));            // continuous validation while typing
+                            }}
+                            // onBlur={(e) => { setEmailValid(validateEmail(e.target.value)); }}
+                            required
+                            placeholder="Enter your email address"
+                        />
+                        {!emailValid && <p className="error-text">Invalid email address</p>}
+                    </Label>
+
+                    <Label className="checkbox-label">
+                        <Input
+                            type="checkbox"
+                            checked={agreed}
+                            onChange={(e) => setAgreed(e.target.checked)}
+                        />
+
+                        I agree with the Terms and Conditions<span className="required"> *</span>
+                    </Label>
+
+                    {/* button only enabled when there are no errors and email is valid */}
+                    <Button
+                        type="submit" disabled={!canSubmit || loading || !emailValid} >
+                        Subscribe
+                    </Button>
+
+                    <PopupMessage
+                        message={popupMessage}
+                        //navigate to home page after user clicks OK
+                        onClose={() => {
+                            setPopupMessage('');
+                            navigate('/');
                         }}
-                        // onBlur={(e) => { setEmailValid(validateEmail(e.target.value)); }}
-                        required
-                        placeholder="Enter your email address"
                     />
-                    {!emailValid && <p className="error-text">Invalid email address</p>}
-                </Label>
-
-                <Label className="checkbox-label">
-                    <Input
-                        type="checkbox"
-                        checked={agreed}
-                        onChange={(e) => setAgreed(e.target.checked)}
-                    />
-
-                    I agree with the Terms and Conditions<span className="required"> *</span>
-                </Label>
-
-                {/* button only enabled when there are no errors and email is valid */}
-                <Button
-                    type="submit" disabled={!canSubmit || loading || !emailValid} >
-                    Subscribe
-                </Button>
-
-                <PopupMessage
-                    message={popupMessage}
-                    //navigate to home page after user clicks OK
-                    onClose={() => {
-                        setPopupMessage('');
-                        navigate('/');
-                    }}
-                />
-                {loading && <Spinner/>}
+                    {loading && <Spinner/>}
+                </fieldset>
             </form>
-        </div>
+        </section>
     );
 };
 

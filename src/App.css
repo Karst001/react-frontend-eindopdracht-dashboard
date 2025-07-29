@@ -68,3 +68,22 @@ main {
     height: 45px;                                                     /* change footer height so the <span> show up correct on mobile */
   }
 }
+
+/* global styles for password warnings */
+.password-rules {
+  margin-top: 10px;
+  font-size: 0.85rem;
+}
+
+.password-rules p {
+  margin: 2px 0;
+}
+
+.valid {
+  color: green;
+}
+
+.invalid {
+  color: red;
+}
+/* end */

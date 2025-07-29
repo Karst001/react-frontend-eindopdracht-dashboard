@@ -18,6 +18,10 @@
     flex: 1;                                    /* take full available space */
 }
 
+form h1 {
+    font-size: 30px;
+}
+
 
 /* styled sign-in box */
 .signin-box {
@@ -76,6 +80,8 @@ input {
     margin-bottom: 10px;
     cursor: pointer;
 }
+
+
 
 
 /* Mobile: 768px and below */

@@ -36,6 +36,14 @@
   --transparent-white-overlay: rgba(255, 255, 255, 0.8);
   --transparent-semiwhite-overlay: rgba(249, 249, 249, 0.9);
   --transparent-dark-overlay: rgba(0, 0, 0, 0.5);
+
+  /* global colors for graphs */
+  /* using this in jsx can call the color value from CSS into JSX "const getCSSVariable = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();" */
+  /* this avoids inline CSS in JSX */
+  --color-jobs: #0088FE;      /* jobs */
+  --color-sleeves: #00C49F;   /* sleeves */
+  --color-plates: #FFBB28;    /* plates */
+  --color-unused: #D1C3C0;
 }
 
 
