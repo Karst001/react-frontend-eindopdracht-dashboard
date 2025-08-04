@@ -7,6 +7,9 @@ import Button from "../../components/button/Button.jsx";
 import Label from "../../components/label/Label.jsx";
 import {validateEmail} from "../../helpers/emailvalidation/emailValidation.js";
 import { usePasswordStrength } from '../../hooks/usePasswordStrength';                                  //use a hook to check password strength
+import {hashPasswordToHex} from "../../helpers/password/passwordEncryption.js";                      //helper to encrypt the password
+import ErrorMessage from '../../components/errormessage/ErrorMessage.jsx';
+import { useInternetStatus  } from '../../hooks/useInternetStatus.js';                                   //helper to check if there is a internet connection
 
 
 function SignIn() {
@@ -22,6 +25,7 @@ function SignIn() {
     const [hasTypedEmail, setHasTypedEmail] = useState(false);                      /* track to see if user is typing email */
     const [hasTypedPassword, setHasTypedPassword] = useState(false);                /* track to see if user is typing password */
     const [passwordsMatch, setPasswordsMatch] = useState(false);                    /* track to see when new and confirmed passwords match */
+    const [showWelcomePopup, setShowWelcomePopup] = useState(false);                /* used to track if modal 'welcome' form is displayed */
 
     //navigation / authentication
     const navigate = useNavigate();
@@ -32,6 +36,146 @@ function SignIn() {
     const passwordInputRef = useRef(null);
     const newPasswordRef = useRef(null);
     const isNewUser = new URLSearchParams(location.search).get('newUser') === 'true';
+
+    //call the hook to check password for validity and strength
+    //passwordStrength and isPasswordStrong are the returned values
+    const { strength: passwordStrength, isStrong: isPasswordStrong } = usePasswordStrength(newPassword);
+    const isOnline = useInternetStatus();                                                 /* check if we have internet connection, used for better error handling */
+
+
+
+
+    //this form is a two step login, first enter email and check against server with API call
+    async function checkEmail(e) {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
+
+        const emailExists = await checkEmailExists(email);
+
+        if (emailExists) {
+            if (isNewUser) {
+                setStep(3); // new user, enforce setting password
+            } else {
+                setStep(2); // regular login for a registered
+            }
+        } else if (emailExists === false) {
+            // Only show this if no network error already triggered an error message in checkEmailExists
+            setError('Email does not exist.');
+        }
+
+        setLoading(false);
+    }
+
+    //2nd step to enter password and check against server with API call
+    async function handleLogin(e) {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
+
+        const rawCredentials = import.meta.env.VITE_API_KEY;
+        const encoded = btoa(rawCredentials);                   // convert to base64
+
+        if (isOnline) {
+            try {
+                const response = await fetch(`${import.meta.env.VITE_BASE_URL}/user/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Basic ${encoded}`
+                    },
+                    body: JSON.stringify({
+                        email,
+                        passwordHash: await hashPasswordToHex(password)
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok || !result.token) {
+                    setError('Login failed. Please check credentials.');
+                    setLoading(false);
+                    return;
+                }
+
+                auth.userLogIn(result);                                         // calls context provider and register result
+                setLoading(false);
+
+                if (result.user.UserIsAdmin) {
+                    navigate('/admin');                                         // admin user has access to Admin functions + dashboard
+                } else {
+                    navigate('/dashboard');                                     // any other registered user only has access to dashboard
+                }
+
+            } catch (err) {
+                setError(`A critical error occurred: "${err.message || err}"\nPlease contact your website developer.`);
+                setLoading(false);
+            }
+        } else {
+            setError('Internet connection not available.');
+        }
+    }
+
+
+    //when admin sends a link, it will be like : https://your-app.com/signin?newUser=true
+    //for this project that is fine, in product better to send a secure token from the server, inside that token is the value 'newUser=true' and the 'email address' it is intended for
+    //this page can extract and recognize
+    //for now to test this logic, url to http://localhost:5173/signin?newUser=true this works because it is a valid route
+    async function handleNewPasswordSubmit(e) {
+        e.preventDefault();
+        setError('');
+
+        setLoading(true);
+
+        // Replace with real registration logic
+        await fakeSetPassword(email, newPassword);
+
+        auth.userLogIn(email);
+        localStorage.setItem('token', import.meta.env.VITE_API_KEY);
+        setLoading(false);
+        // navigate('/dashboard');
+
+        setShowWelcomePopup(true);                                      /* show 'Welcome' popup and wait for user to continue */
+    }
+
+
+    async function checkEmailExists(email) {
+        if (isOnline) {
+            try {
+                const response = await fetch(`${import.meta.env.VITE_BASE_URL}/user/validate_email?email=${encodeURIComponent(email)}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Basic ${btoa(import.meta.env.VITE_API_KEY)}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}`);
+                }
+
+                const data = await response.json();
+                return data.exists === true;
+            } catch (err) {
+                setError(`A critical error occurred: "${err.message || err}"\nPlease contact your website developer.`);
+                setLoading(false);
+                return null;
+            }
+        } else {
+            setError('Internet connection not available.');
+        }
+    }
+
+    function fakeSetPassword(email, password) {
+        return new Promise(resolve => {
+            setTimeout(() => {
+                console.log(`Set new password for ${email}: ${password}`);
+                resolve(true);
+            }, 500);
+        });
+    }
+
+
 
     useEffect(() => {
         if (step === 1 && emailInputRef.current) {
@@ -62,251 +206,153 @@ function SignIn() {
     }, [newPassword, confirmPassword]);
 
 
-    //this form is a two step login, first enter email and check against server with API call
-    async function checkEmail(e) {
-        e.preventDefault();
-        setError('');
-        setLoading(true);
-
-        // Replace with real API
-        const emailExists = await fakeCheckEmail(email);
-        if (emailExists) {
-            if (isNewUser) {
-                setStep(3); // new user, enforce setting password
-            } else {
-                setStep(2); // regular login for a registered
-            }
-        } else {
-            //email was not found
-            setError('Email not found');
-        }
-        setLoading(false);
-    }
-
-    //2nd step to enter password and check against server with API call
-    async function handleLogin(e) {
-        e.preventDefault();
-        setError('');
-        setLoading(true);
-
-        const validLogin = await fakeCheckPassword(email, password);
-        if (validLogin) {
-            auth.userLogIn(email);
-
-            localStorage.setItem('token', import.meta.env.VITE_API_KEY);
-
-            setLoading(false);  // stop spinner
-
-            if (email === 'admin@test.com') {
-                navigate('/admin');
-            } else {
-                navigate('/dashboard');
-            }
-
-        } else {
-            setError('Incorrect password');
-            setLoading(false);  // stop spinner
-        }
-    }
-
-
-    //when admin sends a link, it will be like : https://your-app.com/signin?newUser=true
-    //for this project that is fine, in product better to send a secure token from the server, inside that token is the value 'newUser=true' and the 'email address' it is intended for
-    //this page can extract and recognize
-    //for now to test this logic, url to http://localhost:5173/signin?newUser=true this works because it is a valid route
-    async function handleNewPasswordSubmit(e) {
-        e.preventDefault();
-        setError('');
-
-        if (newPassword.length < 6) {
-            setError('Password must be at least 6 characters.');
-            return;
-        }
-        if (newPassword !== confirmPassword) {
-            setError('Passwords do not match.');
-            return;
-        }
-
-        setLoading(true);
-
-        // Replace with real registration logic
-        await fakeSetPassword(email, newPassword);
-
-        auth.userLogIn(email);
-        localStorage.setItem('token', import.meta.env.VITE_API_KEY);
-        setLoading(false);
-        navigate('/dashboard');
-    }
-
-
-    function fakeCheckEmail(email) {
-        const validEmails = ['ad@test.com', 'admin@test.com'];
-        return new Promise(resolve => {
-            setTimeout(() => resolve(validEmails.includes(email)), 500);
-        });
-    }
-
-
-    function fakeCheckPassword(email, password) {
-        return new Promise(resolve => {
-            setTimeout(() => {
-                if (email === 'ad@test.com' && password === '123') {
-                    resolve(true);
-                } else if (email === 'admin@test.com' && password === '456') {
-                    resolve(true);
-                } else {
-                    resolve(false);
-                }
-            }, 500);
-        });
-    }
-
-    function fakeSetPassword(email, password) {
-        return new Promise(resolve => {
-            setTimeout(() => {
-                console.log(`Set new password for ${email}: ${password}`);
-                resolve(true);
-            }, 500);
-        });
-    }
-
-    //call the hook to check password for validity and strength
-    //passwordStrength and isPasswordStrong are the returned values
-    const { strength: passwordStrength, isStrong: isPasswordStrong } = usePasswordStrength(newPassword);
-
     return (
         <main className="signin-main">
             {loading && <Spinner />}
             <div className="signin-container">
-                <section className="signin-box">
-                    {step === 1 && (
-                        <form onSubmit={checkEmail}>
-                            <h1>Login</h1>
+                {!showWelcomePopup && (                                 /* hide all steps at login once showWelcomePopup = true */
+                    <section className="signin-box">
+                        {step === 1 && (
+                            <form onSubmit={checkEmail}>
+                                <h1>Login</h1>
 
-                            <p>Welcome to our Partner Portal</p>
+                                <p>Welcome to our Partner Portal</p>
 
-                            {/*Validate email on blur, when user leaves the field*/}
-                            {/*onBlur is fired when the email text field loses focus, then the validateEmail is called*/}
-                            <Label label="Enter your e-mail:">
-                                <input
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => {
-                                        const value = e.target.value;
-                                        setEmail(value);
-                                        setEmailValid(validateEmail(value));                                        // validation while typing
-                                        if (!hasTypedEmail) setHasTypedEmail(true);                           // user is typing email
-                                    }}
-                                    required
-                                    placeholder="Please enter your email address"
-                                    ref={emailInputRef}
-                                />
-                                {hasTypedEmail && !emailValid && <p className="error-text">Invalid email address</p>}
-                            </Label>
-                            {error && <p className="error-text">{error}</p>}
+                                {/*Validate email on blur, when user leaves the field*/}
+                                {/*onBlur is fired when the email text field loses focus, then the validateEmail is called*/}
+                                <Label label="Enter your e-mail:">
+                                    <input
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            setEmail(value);
+                                            setEmailValid(validateEmail(value));                                        // validation while typing
+                                            if (!hasTypedEmail) setHasTypedEmail(true);                           // user is typing email
+                                        }}
+                                        required
+                                        placeholder="Please enter your email address"
+                                        ref={emailInputRef}
+                                    />
+                                    {hasTypedEmail && !emailValid && <p className="error-text">Invalid email address</p>}
+                                </Label>
+                                {error && <p className="error-text">{error}</p>}
 
-                            <Button type="submit" disabled={!emailValid}>
-                                Next
-                            </Button>
-                        </form>
-                    )}
-
-                    {step === 2 && (
-                        <form onSubmit={handleLogin}>
-                            <Button
-                                type="button"
-                                onClick={() => {
-                                    setStep(1);
-                                    setError('');
-                                }}
-                                >
-                                ◀ Back
-                            </Button>
-
-                            <h1>Login</h1>
-
-                            <p>Welcome to our Partner Portal</p>
-                            <p>Login to continue</p>
-
-                            <Label label="Enter your password:">
-                                <input
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => {
-                                        setPassword(e.target.value);
-                                        if (!hasTypedPassword) setHasTypedPassword(true);                           // user is typing password
-                                    }}
-                                    required
-                                    placeholder="Please enter your password"
-                                    ref={passwordInputRef}
-                                />
-                            </Label>
-
-                            {error && <p className="error-text">{error}</p>}
-
-                            <Button type="submit" disabled={!hasTypedPassword} >
-                                Continue
-                            </Button>
-                        </form>
-                    )}
-
-                    {step === 3 && (
-                        <form onSubmit={handleNewPasswordSubmit}>
-                            <Button type="button" onClick={() => { setStep(1); setError(''); }}>◀ Back</Button>
-                            <h1>Set New Password</h1>
-                            <p>Welcome! Please create your password to continue.</p>
-
-                            <Label label="New password:">
-                                <input
-                                    type="password"
-                                    value={newPassword}
-                                    onChange={(e) => {
-                                        setNewPassword(e.target.value);
-                                        setHasTypedPassword(true);
-                                    }}
-                                    required
-                                    placeholder="Enter your new password"
-                                    ref={newPasswordRef}
-                                />
-                            </Label>
-
-                            <Label label="Confirm password:">
-                                <input
-                                    type="password"
-                                    value={confirmPassword}
-                                    onChange={(e) => setConfirmPassword(e.target.value)}
-                                    required
-                                    placeholder="Confirm your new password"
-                                />
-                            </Label>
-
-                            {confirmPassword && !passwordsMatch && (
-                                <p className="error-text">Passwords do not match</p>
-                            )}
-
-
-                            {/*show the password policy and updates live while typing, as soon as password is strong the warnings should hide */}
-                            {!isPasswordStrong && hasTypedPassword && (
-                                <div className="password-rules">
-                                    <p className={passwordStrength.length ? "valid" : "invalid"}>• At least 8 characters</p>
-                                    <p className={passwordStrength.upper ? "valid" : "invalid"}>• At least one uppercase letter</p>
-                                    <p className={passwordStrength.lower ? "valid" : "invalid"}>• At least one lowercase letter</p>
-                                    <p className={passwordStrength.number ? "valid" : "invalid"}>• At least one number</p>
-                                    <p className={passwordStrength.special ? "valid" : "invalid"}>• At least one special character</p>
-                                </div>
-                            )}
-
-
-                            {/*user can only set password once password is strong and both match*/}
-                            {passwordsMatch && isPasswordStrong && (
-                                <Button type="submit">
-                                    Set Password
+                                <Button type="submit" disabled={!emailValid}>
+                                    Next
                                 </Button>
-                            )}
-                        </form>
-                    )}
-                </section>
+                            </form>
+                        )}
+
+                        {step === 2 && (
+                            <form onSubmit={handleLogin}>
+                                <Button
+                                    type="button"
+                                    onClick={() => {
+                                        setStep(1);
+                                        setError('');
+                                    }}
+                                    >
+                                    ◀ Back
+                                </Button>
+
+                                <h1>Login</h1>
+
+                                <p>Welcome to our Partner Portal</p>
+                                <p>Login to continue</p>
+
+                                <Label label="Enter your password:">
+                                    <input
+                                        type="password"
+                                        value={password}
+                                        onChange={(e) => {
+                                            setPassword(e.target.value);
+                                        }}
+                                        required
+                                        placeholder="Please enter your password"
+                                        ref={passwordInputRef}
+                                    />
+                                </Label>
+
+                                {error && <ErrorMessage message={error} />}
+
+                                <Button type="submit" disabled={!password}>
+                                    Continue
+                                </Button>
+                            </form>
+                        )}
+
+                        {step === 3 && (
+                            <form onSubmit={handleNewPasswordSubmit}>
+                                <Button type="button" onClick={() => { setStep(1); setError(''); }}>◀ Back</Button>
+                                <h1>Set New Password</h1>
+                                <p>Welcome! Please create your password to continue.</p>
+
+                                <Label label="New password:">
+                                    <input
+                                        type="password"
+                                        value={newPassword}
+                                        onChange={(e) => {
+                                            setNewPassword(e.target.value);
+                                            setHasTypedPassword(true);
+                                        }}
+                                        required
+                                        placeholder="Enter your new password"
+                                        ref={newPasswordRef}
+                                    />
+                                </Label>
+
+                                <Label label="Confirm password:">
+                                    <input
+                                        type="password"
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        required
+                                        placeholder="Confirm your new password"
+                                    />
+                                </Label>
+
+                                {confirmPassword && !passwordsMatch && (
+                                    <p className="error-text">Passwords do not match</p>
+                                )}
+
+
+                                {/*show the password policy and updates live while typing, as soon as password is strong the warnings should hide */}
+                                {!isPasswordStrong && hasTypedPassword && (
+                                    <div className="password-rules">
+                                        <p className={passwordStrength.length ? "valid" : "invalid"}>• At least 8 characters</p>
+                                        <p className={passwordStrength.upper ? "valid" : "invalid"}>• At least one uppercase letter</p>
+                                        <p className={passwordStrength.lower ? "valid" : "invalid"}>• At least one lowercase letter</p>
+                                        <p className={passwordStrength.number ? "valid" : "invalid"}>• At least one number</p>
+                                        <p className={passwordStrength.special ? "valid" : "invalid"}>• At least one special character</p>
+                                    </div>
+                                )}
+
+
+                                {/*user can only set password once password is strong and both match*/}
+                                {passwordsMatch && isPasswordStrong && (
+                                    <Button type="submit">
+                                        Set Password
+                                    </Button>
+                                )}
+                            </form>
+                        )}
+                    </section>
+                )}
             </div>
+
+            {/*overlay of Welcome message only when a new user registers successfully*/}
+            {showWelcomePopup && (
+                <div className="welcome-popup">
+                    <div className="welcome-content">
+                        <h2>Welcome!</h2>
+                        <p>You have successfully completed your registration.</p>
+                        <Button onClick={() => navigate('/dashboard')}>
+                            Continue to your dashboard
+                        </Button>
+                    </div>
+                </div>
+            )}
         </main>
     );
 }

@@ -58,31 +58,35 @@ input {
 }
 
 
-/* submit button inside the sign-in box */
-.signin-box button {
-    background-color: var(--color-background-blue);
-    color: var(--color-white);
-    padding: 10px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-top: 10px;
+/* styling for welcome message */
+.welcome-popup {
+    position: fixed;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border: 2px solid #3b82f6;
+    padding: 25px 40px;
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+    z-index: 9999;
+    text-align: center;
+    width: 90%;
+    max-width: 400px;
 }
 
-
-/* Optional back navigation button */
-.back-button {
-    background: none;                           /* transparent background */
-    border: none;
-    color: var(--color-dark-grey);
-    text-align: left;
-    padding: 0;
+.welcome-content h2 {
     margin-bottom: 10px;
-    cursor: pointer;
+    font-size: 24px;
+    color: #1d4ed8;
 }
 
-
-
+.welcome-content p {
+    margin-bottom: 20px;
+    font-size: 16px;
+    color: #333;
+}
+/* end */
 
 /* Mobile: 768px and below */
 @media (max-width: 768px) {

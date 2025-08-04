@@ -89,11 +89,25 @@ const AnimatedNavigation = () => {
                                 Home
                             </NavLink>
                         </li>
-                        <li>
-                            <NavLink to="/newsletter" onClick={handleNavClick} state={{ jump: true }} className={({ isActive }) => getLinkClass('/newsletter', isActive)}>
-                                Our Newsletter
-                            </NavLink>
-                        </li>
+
+                        {/*if newsletter = false, shows the narbav button so user can sign up, if user is signed-up, hide the navbar item*/}
+                        {/*{auth.user && auth.user.newsletter === false && (*/}
+                        {(auth?.user?.newsletter === false || auth?.user?.newsletter == null) && (
+                            <li>
+                                <NavLink to="/newsletter" onClick={handleNavClick} state={{ jump: true }}
+                                         className={({ isActive }) => getLinkClass('/newsletter', isActive)}>
+                                    Our Newsletter
+                                </NavLink>
+                            </li>
+                        )}
+
+                        {/*<li>*/}
+                        {/*    <NavLink to="/newsletter" onClick={handleNavClick} state={{ jump: true }}*/}
+                        {/*             className={({ isActive }) => getLinkClass('/newsletter', isActive)}>*/}
+                        {/*        Our Newsletter*/}
+                        {/*    </NavLink>*/}
+                        {/*</li>*/}
+
                         <li>
                             <NavLink to="/contact" onClick={handleNavClick} state={{ jump: true }} className={({ isActive }) => getLinkClass('/contact', isActive)}>
                                 Contact Us
@@ -133,7 +147,7 @@ const AnimatedNavigation = () => {
                 {auth.userIsAuthenticated && (
                     <div className="nav-username dropdown mobile-order-2">
                         <a className="dropdown-toggle" onClick={toggleDropdown}>
-                            Hello! <span className="nav-username-highlight">{auth.user?.username || 'User'}</span>
+                            Hello! <span className="nav-username-highlight">{auth.user?.username || 'Missing username'}</span>
                             <span className={`arrow ${dropdownOpen ? 'open' : ''}`}>▼</span>
                         </a>
 

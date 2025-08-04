@@ -23,6 +23,10 @@
     padding: 8px 0;
     margin: 5px 0;
 }
+
+.dashboard-sidebar .dashboard-clock {
+    width: 100%;                                        /* take the same size as the parent container */
+}
 /* end */
 
 
@@ -30,7 +34,7 @@
     appearance: none;
     background-color: var(--color-white);
     border: 1px solid var(--color-background-blue);
-    border-radius: 6px;
+    border-radius: var(--global-button-primary-radius);
     padding: 6px 10px;
     font-size: 1rem;
     font-weight: bold;
@@ -257,10 +261,6 @@
     margin-top: 50px;       /* extra space between Close button and H2 */
 }
 
-.close-panel-btn:disabled {  /* hide button when 2nd modal form is visible */
-    opacity: 0.0;
-}
-/* end */
 
 
 /* the component ResponsiveContainer at default uses inline css like */
@@ -430,7 +430,7 @@
         appearance: none;
         background-color: var(--color-white);
         border: 1px solid var(--color-background-blue);
-        border-radius: 6px;
+        border-radius: var(--global-button-primary-radius);
         padding: 6px 10px;
         font-size: 1rem;
         font-weight: bold;

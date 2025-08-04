@@ -336,10 +336,12 @@ const Dashboard = () => {
                             <Button onClick={() => setShowAvgTimeBetweenSleevesPanel(true)}>
                                 Time between Sleeves
                             </Button>
+
                         </div>
+
+                        <Clock className="dashboard-clock" />
                     </div>
 
-                    <Clock/>
 
                     <div className="dashboard-main">
                         <div className="dashboard-section">

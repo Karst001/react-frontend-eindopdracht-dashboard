@@ -1,0 +1,7 @@
+.error-text {
+    font-size: 1rem;
+    white-space: pre-wrap;
+    color:red;
+    margin-left: 5px;
+}
+

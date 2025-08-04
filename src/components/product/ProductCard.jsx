@@ -30,8 +30,8 @@ const ProductCard = ({product, direction, animateOnScroll = true}) => {
                         <p>{product.description}</p>
 
                         <div className="button-row">
-                            <Button>More...</Button>
-                            <Button onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}>
+                            <Button className="btn-primary">More...</Button>
+                            <Button className="btn-primary" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}>
                                 ↑ Back to Top
                             </Button>
                         </div>
@@ -58,7 +58,6 @@ const ProductCard = ({product, direction, animateOnScroll = true}) => {
                                     </Button>
 
                                     <Button
-
                                         onClick={() => {
                                             window.scrollTo({top: 0, behavior: 'smooth'});    // smooth scroll to the top of the page
                                         }}

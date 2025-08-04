@@ -153,19 +153,6 @@
     opacity: 1;
 }
 
-/* button over video content, a call to action */
-.overlay-btn {
-    margin-top: 20px;
-    padding: 12px 24px;
-    font-size: 1rem;
-    color: var(--color-white);
-    background-color: var(--color-background-blue);
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
 
 
 /* Mobile: 768px and below */

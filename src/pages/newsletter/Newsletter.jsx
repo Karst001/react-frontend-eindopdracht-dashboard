@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import './NewsLetter.css'; // We'll define some styles
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';

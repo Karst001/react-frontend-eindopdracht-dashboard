@@ -7,29 +7,28 @@ import {NavLink, useNavigate} from 'react-router-dom';
 import Button from "../../components/button/Button.jsx";
 import Label from "../../components/label/Label.jsx";
 import Input from "../../components/input/Input.jsx";
-import { usePasswordStrength } from '../../hooks/usePasswordStrength';                                 //use a hook to check password strength
+import { usePasswordStrength } from '../../hooks/usePasswordStrength';
+import ErrorMessage from "../../components/errormessage/ErrorMessage.jsx";                                 //use a hook to check password strength
 
 
 function Profile() {
-    const {user} = useContext(AuthContext);
-
+    const { user, updateSubscription } = useContext(AuthContext);
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [subscribed, setSubscribed] = useState(user?.newsletter ?? true)
     const [loading, setLoading] = useState(false);
-    const [errorMsg, setErrorMsg] = useState('');
+    const [errorMsgPassword, setErrorMsgPassword] = useState('');
+    const [errorMsgNewsLetter, setErrorMsgNewsLetter] = useState('');
     const [popupMessage, setPopupMessage] = useState('');
     const [hasTypedPassword, setHasTypedPassword] = useState(false);                /* track to see if user is typing password */
     const [passwordsMatch, setPasswordsMatch] = useState(false);                    /* track to see when new and confirmed passwords match */
-
     const navigate = useNavigate();
 
 
     // === Update Password Only ===
     const handlePasswordUpdate = async (e) => {
         e.preventDefault();
-        setErrorMsg('');
+        setErrorMsgPassword('');
 
         setLoading(true);
         try {
@@ -38,34 +37,83 @@ function Profile() {
                 setPopupMessage('Your password was updated successfully.');
                 setNewPassword('');
             } else {
-                setErrorMsg('Failed to update password.');
+                setErrorMsgPassword('Failed to update password.');
             }
         } catch (err) {
-            setErrorMsg('Server error. Please try again.' + {err});
+            setErrorMsgPassword('Server error. Please try again.' + {err});
         } finally {
             setLoading(false);
         }
     };
+
 
     // === Update Subscription Only ===
-    const handleSubscriptionUpdate = async (e) => {
-        e.preventDefault();
-        setErrorMsg('');
+    const handleSubscriptionUpdate = async (newSubscribedValue) => {
+        setErrorMsgPassword('');
         setLoading(true);
 
+        const now = new Date();
+
         try {
-            const result = await mockUpdateProfile({subscribed});
+            const result = await updateProfile({ email: user.email, newSubscribedValue, currentDate: now});
             if (result.success) {
+                // since the user unsubscribed, now re-enable to navbar menu NewsLetter in case the user changes their mind
+                updateSubscription(newSubscribedValue); // update context, this triggers a re-render everywhere
+
                 setPopupMessage('Your subscription setting has been updated.');
             } else {
-                setErrorMsg('Failed to update subscription.');
+                setErrorMsgNewsLetter('Failed to update subscription.');
             }
         } catch (err) {
-            setErrorMsg('Server error. Please try again. ' + {err});
+            setErrorMsgNewsLetter('Server error. Please try again. ' + (err.message || err.toString()));
         } finally {
             setLoading(false);
         }
     };
+
+    //make the call to the backend
+    const updateProfile = async ({email, subscribed, currentDate }) => {
+        const encoded = btoa(import.meta.env.VITE_API_KEY);
+
+        console.log('Sending request to API:', {
+            email,
+            subscribed,
+            currentDate,
+            url: `${import.meta.env.VITE_BASE_URL}/user/newsletter_update`
+        });
+
+        console.log('user.email:', user?.email);
+        console.log('subscribed:', typeof subscribed, subscribed);
+
+        try {
+            const response = await fetch(`${import.meta.env.VITE_BASE_URL}/user/newsletter_update`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Basic ${encoded}`,
+                },
+                body: JSON.stringify({
+                    email,
+                    subscribed,
+                    currentDate,
+                }),
+            });
+
+            console.log('Raw response:', response);
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok: ' + response.status);
+            }
+
+            const json = await response.json();
+            console.log('Parsed JSON response:', json);
+            return json;
+        } catch (fetchErr) {
+            console.error('Fetch failed:', fetchErr);
+            throw fetchErr;
+        }
+    };
+
 
     const mockUpdateProfile = (data) => {
         console.log('Mock sending:', data);
@@ -84,6 +132,7 @@ function Profile() {
             setPasswordsMatch(false);
         }
     }, [newPassword, confirmPassword]);
+
 
     //call the hook to check password for validity and strength
     //passwordStrength and isPasswordStrong are the returned values
@@ -116,7 +165,7 @@ function Profile() {
                                 setHasTypedPassword(true);
                             }}
                             onBlur={() => {
-                                setErrorMsg('');
+                                setErrorMsgPassword('');
                             }}
                             required
                             placeholder="Enter your new password"
@@ -156,7 +205,7 @@ function Profile() {
                         )}
                     </Label>
 
-                    {errorMsg && <p className="error-text">{errorMsg}</p>}
+                    {errorMsgPassword && <ErrorMessage message={errorMsgPassword} />}
 
                     {/*user can only update password to database once password is strong and both match*/}
                     {passwordsMatch && isPasswordStrong && (
@@ -171,7 +220,7 @@ function Profile() {
                 <section>
                     <h2>Newsletter:</h2>
 
-                    {!subscribed ? (
+                    {!user.newsletter ? (
                         <p className="newsletter-message">
                             Interested in our newsletter? Click{' '}
                             <span
@@ -184,12 +233,21 @@ function Profile() {
                         </p>
                     ) : (
                         <>
-                            <p>You’re subscribed to our newsletter.</p>
-                            <Button type="submit" disabled={loading}>
+                            <p>You are subscribed to our newsletter.</p>
+
+                            <Button
+                                type="button"
+                                disabled={loading}
+                                onClick={() => {
+                                    handleSubscriptionUpdate(false);           // now call the API to unsubscribe
+                                }}
+                            >
                                 Unsubscribe
                             </Button>
                         </>
                     )}
+
+                    {errorMsgNewsLetter && <ErrorMessage message={errorMsgNewsLetter} />}
                 </section>
             </form>
 
