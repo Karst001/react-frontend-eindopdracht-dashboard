@@ -7,7 +7,10 @@ import { useEffect, useState } from 'react';
 
 // Checks internet connectivity by pinging a reliable resource like Google
 // If google is blocked, can also use the API server, for testing Google is fine for now
+
 async function verifyInternetAccess(timeoutMs = 2000) {
+    if (!navigator.onLine) return false;                // quick check to see if app is online
+
     try {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), timeoutMs);

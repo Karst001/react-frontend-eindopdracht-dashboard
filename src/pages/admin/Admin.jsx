@@ -10,8 +10,10 @@ import Textarea from "../../components/textarea/Textarea.jsx";
 import {h} from 'gridjs'; //a helper/handle needed for checkboxes inside custom grid
 import CustomGrid from '../../components/datagrid/CustomGrid.jsx';
 import {validateEmail} from "../../helpers/emailvalidation/emailValidation.js";
-import { generateOTP } from '../../helpers/password/oneTimePassword.js';
-
+// import { generateOTP } from '../../helpers/password/oneTimePassword.js';
+import { getLocalIsoString } from '../../helpers/timeConverter/timeConverter.js';
+import { useInternetStatus  } from '../../hooks/useInternetStatus.js';
+import ErrorMessage from "../../components/errormessage/ErrorMessage.jsx";
 
 const Admin = () => {
     const [activeSection, setActiveSection] = useState(null);
@@ -32,6 +34,14 @@ const Admin = () => {
     const [customerIDValid, setCustomerIDValid] = useState(true);
     const [usersChanged, setUsersChanged] = useState(false);
     const originalUsersRef = useRef([]); //store original value from users in a useRef to compare later
+    const [error, setError] = useState('');
+    const isOnline = useInternetStatus();
+
+    //user to track if username and email do not exist yest in database
+    const [usernameValid, setUsernameValid] = useState(true);
+    const [usernameCheckMessage, setUsernameCheckMessage] = useState('');
+    const [userEmailValid, setUserEmailValid] = useState(true);
+    const [userEmailCheckMessage, setUserEmailCheckMessage] = useState('');
 
 
     const [users, setUsers] = useState(() => {
@@ -90,18 +100,17 @@ const Admin = () => {
     };
 
 
-    const mockAddUser = (userData) => {
-        console.log('Sending user to API:', userData);
-
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                if (Math.random() < 0.9) {
-                    resolve({success: true});
-                } else {
-                    reject(new Error('Failed to add user on the server.'));
-                }
-            }, 1000);  // Simulate network delay
+    const AddNewUser = async (userData) => {
+        const response = await fetch(`${import.meta.env.VITE_BASE_URL}/user/create`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Basic ${btoa(import.meta.env.VITE_API_KEY)}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(userData)
         });
+
+        return await response.json();
     };
 
 
@@ -154,17 +163,88 @@ const Admin = () => {
     };
 
 
+    //validate the username with records in the database, there can never be a duplicate username
+    const CheckUserNameExists = async () => {
+        if (!username.trim()) return;
+
+        if (isOnline) {
+            try {
+                const response = await fetch(`${import.meta.env.VITE_BASE_URL}/user/validate_username?username=${encodeURIComponent(username)}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Basic ${btoa(import.meta.env.VITE_API_KEY)}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.resultCode  === 1) {
+                    // Username is available
+                    setUsernameValid(true);
+                    setUsernameCheckMessage('');
+                } else {
+                    // Username already exists
+                    setUsernameValid(false);
+                    setUsernameCheckMessage('This username is already in use.');
+                }
+            } catch (err) {
+                console.error("Username validation failed:", err);
+                setUsernameValid(false);
+                setUsernameCheckMessage("Could not validate username.");
+            }
+        } else {
+            setError('Internet connection not available.');
+        }
+    };
+
+
+    //validate the email with records in the database, there can never be a duplicate email
+    const CheckEmailExists = async () => {
+        if (!username.trim()) return;
+
+        if (isOnline) {
+            try {
+                const response = await fetch(`${import.meta.env.VITE_BASE_URL}/user/validate_email_new_user?email=${encodeURIComponent(email)}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Basic ${btoa(import.meta.env.VITE_API_KEY)}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.resultCode  === 1) {
+                    // Email is available
+                    setUserEmailValid(true);
+                    setUserEmailCheckMessage('');
+                } else {
+                    // Email already exists
+                    setUserEmailValid(false);
+                    setUserEmailCheckMessage('This email is already in use.');
+                }
+            } catch (err) {
+                console.error("Email validation failed:", err);
+                setUserEmailValid(false);
+                setUserEmailCheckMessage("Could not validate email.");
+            }
+        } else {
+            setError('Internet connection not available.');
+        }
+    };
+
     //This checks if all required fields are non-empty
     const canSubmitNewUser = Boolean(username.trim() && firstName.trim() && lastName.trim() && email.trim() && customerID.trim());
     const canSubmitEditUser = Boolean(usersChanged);
     const canSubmitNewProduct = Boolean(productTitle.trim() !== '' && productDescription.trim() !== '' && productImage !== null);
 
     //used for onetime password (OTP)
-    const [otp, setOtp] = useState('');
-    const handleGenerate = () => {
-        const newOtp = generateOTP(10, { digits: true, upperCase: true, lowerCase: true });                  // generate a random OTP
-        setOtp(newOtp);
-    };
+    // const [otp, setOtp] = useState('');
+    // const handleGenerate = () => {
+    //     const newOtp = generateOTP(10, { digits: true, upperCase: true, lowerCase: true });                  // generate a random OTP
+    //     setOtp(newOtp);
+    // };
     //when logic is written for API, send OTP with the request, using: handleGenerate
     //this OTP is stored in the database, user will get email with login details
 
@@ -174,6 +254,16 @@ const Admin = () => {
         setUsersChanged(changed);
         console.log("useEffect: Has user data changed?", changed);
     }, [users]);
+
+
+    useEffect(() => {
+        if (isOnline) {
+            setError('');
+        } else
+        {
+            setError('Internet connection not available.');
+        }
+    }, [isOnline]);
 
     return (
         <div className="admin-page">
@@ -201,37 +291,47 @@ const Admin = () => {
                                     e.preventDefault();
 
                                     setLoading(true);
+                                    const localTime = getLocalIsoString();
 
-                                    try {
-                                        const result = await mockAddUser({
-                                            username,
-                                            firstName,
-                                            lastName,
-                                            email,
-                                            customerID,
-                                            isAdmin
-                                        });
+                                    if (isOnline) {
+                                        try {
+                                            const result = await AddNewUser({
+                                                UserName: username,
+                                                UserFirstName: firstName,
+                                                UserLastName: lastName,
+                                                UserEmailAddress: email,
+                                                UserIsAdmin: isAdmin,
+                                                UserCreatedDate: localTime,
+                                            });
 
-                                        if (result.success) {
-                                            setPopupMessage('User was added successfully.');
-                                            ResetForm();
+                                            if (result.success === 1) {
+                                                setPopupMessage('User was added successfully.');
+                                                ResetForm();
+                                            } else {
+                                                setPopupMessage(result.message || 'User creation failed.');
+                                            }
+                                        } catch (error) {
+                                            console.error(error);
+                                            setPopupMessage('There was a problem adding the user. Please try again.');
+                                        } finally {
+                                            setLoading(false);
                                         }
-                                    } catch (error) {
-                                        console.error(error);
-                                        setPopupMessage('There was a problem adding the user. Please try again.');
-                                    } finally {
-                                        setLoading(false);
+                                    } else {
+                                        setError('Internet connection not available.');
                                     }
                                 }}>
 
+                                    {/*onBlur is fired when the email text field loses focus, then the CheckUserNameExists is called*/}
                                     <fieldset className="admin-form">
                                         <Label label={<><span>User name:</span> <span className="required">*</span></>}>
                                             <Input
                                                 value={username}
                                                 onChange={(e) => setUserName(e.target.value)}
+                                                onBlur={CheckUserNameExists}
                                                 required
                                                 placeholder="Enter the user name for this account"
                                             />
+                                            {!usernameValid && <p className="error-text">{usernameCheckMessage}</p>}
                                         </Label>
 
                                         <Label label={<><span>First name:</span> <span className="required">*</span></>}>
@@ -253,7 +353,7 @@ const Admin = () => {
                                         </Label>
 
                                         {/*Validate email on blur, when user leaves the field*/}
-                                        {/*onBlur is fired when the email text field loses focus, then the validateEmail is called*/}
+                                        {/*onBlur is fired when the email text field loses focus, then the CheckEmailExists is called*/}
                                         <Label label={<><span>E-mail:</span> <span className="required">*</span></>}>
                                             <Input
                                                 value={email}
@@ -262,11 +362,12 @@ const Admin = () => {
                                                     setEmail(value);
                                                     setEmailValid(validateEmail(value));            // continuous validation while typing
                                                 }}
-
+                                                onBlur={CheckEmailExists}
                                                 required
                                                 placeholder="Enter the email address for this user"
                                             />
                                             {!emailValid && <p className="error-text">Invalid email address</p>}
+                                            {!userEmailValid && <p className="error-text">{userEmailCheckMessage}</p>}
                                         </Label>
 
                                         <Label label={<><span>Customer ID:</span> <span className="required">*</span></>}>
@@ -298,8 +399,10 @@ const Admin = () => {
                                             This user has administrator rights
                                         </Label>
 
+                                        {error && <ErrorMessage message={error} />}
+
                                         {/* button only enabled when there are no errors and email is valid and customerIDis valid */}
-                                        <Button type="submit" disabled={!canSubmitNewUser || loading || !emailValid || !customerIDValid}>
+                                        <Button type="submit" disabled={!canSubmitNewUser || loading || !emailValid || !customerIDValid || !usernameValid || !userEmailValid || !isOnline}>
                                             Add User
                                         </Button>
 
@@ -337,7 +440,9 @@ const Admin = () => {
                                     sort={false}
                                 />
 
+                                {error && <ErrorMessage message={error} />}
                                 {/*button disabled when there are no changes*/}
+
                                 <Button onClick={handleUpdateUsers} disabled={!canSubmitEditUser}>
                                     Update User
                                 </Button>
@@ -442,6 +547,7 @@ const Admin = () => {
                                                 )}
                                             </Label>
 
+                                            {error && <ErrorMessage message={error} />}
                                             <Button type="submit" disabled={!canSubmitNewProduct || loading}>
                                                 Create Product
                                             </Button>

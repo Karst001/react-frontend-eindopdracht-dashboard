@@ -9,7 +9,6 @@ import './ErrorMessage.css';
 //
 // Please contact your website developer.
 
-
 function ErrorMessage({ message }) {
     if (!message) return null;
 

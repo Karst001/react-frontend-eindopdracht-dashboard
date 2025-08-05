@@ -9,7 +9,9 @@ import Label from "../../components/label/Label.jsx";
 import Input from "../../components/input/Input.jsx";
 import { usePasswordStrength } from '../../hooks/usePasswordStrength';
 import ErrorMessage from "../../components/errormessage/ErrorMessage.jsx";                                 //use a hook to check password strength
-
+import { useInternetStatus  } from '../../hooks/useInternetStatus.js';
+import { getLocalIsoString } from '../../helpers/timeConverter/timeConverter.js';
+import {hashPasswordToHex} from "../../helpers/password/passwordEncryption.js";                      //helper to encrypt the password
 
 function Profile() {
     const { user, updateSubscription } = useContext(AuthContext);
@@ -17,57 +19,46 @@ function Profile() {
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
     const [errorMsgPassword, setErrorMsgPassword] = useState('');
     const [errorMsgNewsLetter, setErrorMsgNewsLetter] = useState('');
     const [popupMessage, setPopupMessage] = useState('');
     const [hasTypedPassword, setHasTypedPassword] = useState(false);                /* track to see if user is typing password */
     const [passwordsMatch, setPasswordsMatch] = useState(false);                    /* track to see when new and confirmed passwords match */
     const navigate = useNavigate();
+    const isOnline = useInternetStatus();
 
 
-    // === Update Password Only ===
-    const handlePasswordUpdate = async (e) => {
-        e.preventDefault();
-        setErrorMsgPassword('');
-
-        setLoading(true);
-        try {
-            const result = await mockUpdateProfile({newPassword});
-            if (result.success) {
-                setPopupMessage('Your password was updated successfully.');
-                setNewPassword('');
-            } else {
-                setErrorMsgPassword('Failed to update password.');
-            }
-        } catch (err) {
-            setErrorMsgPassword('Server error. Please try again.' + {err});
-        } finally {
-            setLoading(false);
-        }
-    };
-
-
-    // === Update Subscription Only ===
+    // Update subscription only
     const handleSubscriptionUpdate = async (newSubscribedValue) => {
         setErrorMsgPassword('');
         setLoading(true);
 
-        const now = new Date();
+        if (isOnline) {
+            const localTime = getLocalIsoString();
 
-        try {
-            const result = await updateProfile({ email: user.email, newSubscribedValue, currentDate: now});
-            if (result.success) {
-                // since the user unsubscribed, now re-enable to navbar menu NewsLetter in case the user changes their mind
-                updateSubscription(newSubscribedValue); // update context, this triggers a re-render everywhere
+            try {
+                const result = await updateProfile({
+                    email: user.email,
+                    newSubscribedValue,
+                    currentDate: localTime
+                });
 
-                setPopupMessage('Your subscription setting has been updated.');
-            } else {
-                setErrorMsgNewsLetter('Failed to update subscription.');
+                if (result.success) {
+                    // since the user unsubscribed, now re-enable to navbar menu NewsLetter in case the user changes their mind
+                    updateSubscription(newSubscribedValue); // update context, this triggers a re-render everywhere
+
+                    setPopupMessage('Your subscription setting has been updated.');
+                } else {
+                    setErrorMsgNewsLetter('Failed to update subscription.');
+                }
+            } catch (err) {
+                setErrorMsgNewsLetter('Server error. Please try again. ' + (err.message || err.toString()));
+            } finally {
+                setLoading(false);
             }
-        } catch (err) {
-            setErrorMsgNewsLetter('Server error. Please try again. ' + (err.message || err.toString()));
-        } finally {
-            setLoading(false);
+        } else {
+            setErrorMsgNewsLetter('Internet connection not available.');
         }
     };
 
@@ -82,11 +73,8 @@ function Profile() {
             url: `${import.meta.env.VITE_BASE_URL}/user/newsletter_update`
         });
 
-        console.log('user.email:', user?.email);
-        console.log('subscribed:', typeof subscribed, subscribed);
-
         try {
-            const response = await fetch(`${import.meta.env.VITE_BASE_URL}/user/newsletter_update`, {
+            const response = await fetch(`${import.meta.env.VITE_BASE_URL}/newsletter/newsletter_update`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -99,7 +87,7 @@ function Profile() {
                 }),
             });
 
-            console.log('Raw response:', response);
+            // console.log('Raw response:', response);
 
             if (!response.ok) {
                 throw new Error('Network response was not ok: ' + response.status);
@@ -115,13 +103,80 @@ function Profile() {
     };
 
 
-    const mockUpdateProfile = (data) => {
-        console.log('Mock sending:', data);
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve({success: Math.random() > 0.1}); // 90% success
-            }, 1000);
+    // Update password only
+    const handlePasswordUpdate = async (e) => {
+        e.preventDefault();
+        setErrorMsgPassword('');
+        setLoading(true);
+
+        // check if New Password is not equal to the Current Password
+        if (currentPassword === newPassword) {
+            setErrorMsgPassword('The new password cannot be the same as the current password')
+            setLoading(false);
+            return;
+        }
+
+        try {
+            const result = await updatePassword({
+                userId: user.userId,
+                currentPassword,
+                newPassword
+            });
+
+            if (result.resultCode === 0) {
+                setPopupMessage('Your password was updated successfully.');
+
+                // reset various states
+                setNewPassword('');
+                setCurrentPassword('');
+                setConfirmPassword('');
+                setHasTypedPassword(false);
+            } else if (result.resultCode === 2) {
+                setErrorMsgPassword(result.message || 'Incorrect current password.');
+            } else {
+                setErrorMsgPassword(result.message || 'Failed to update password.');
+            }
+        } catch (err) {
+            setErrorMsgPassword('Server error. Please try again. ' + (err.message || err.toString()));
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // API call to update password
+    const updatePassword = async ({ userId, currentPassword, newPassword }) => {
+        const encoded = btoa(import.meta.env.VITE_API_KEY);
+
+        console.log('Sending to API:', {
+            userId: user.userId,
+            currentPassword,
+            newPassword,
         });
+
+        try {
+            const response = await fetch(`${import.meta.env.VITE_BASE_URL}/user/password_update`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Basic ${encoded}`,
+                },
+                body: JSON.stringify({
+                    UserID: userId,
+                    CurrentPasswordHash: await hashPasswordToHex(currentPassword),
+                    NewPasswordHash: await hashPasswordToHex(newPassword),
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            return await response.json();
+
+        } catch (err) {
+            console.error('Password update failed:', err);
+            throw err;
+        }
     };
 
     //this will check if the new password and confirmed password match or not
@@ -132,6 +187,15 @@ function Profile() {
             setPasswordsMatch(false);
         }
     }, [newPassword, confirmPassword]);
+
+    useEffect(() => {
+        if (isOnline) {
+            setError('');
+        } else
+        {
+            setError('Internet connection not available.');
+        }
+    }, [isOnline]);
 
 
     //call the hook to check password for validity and strength
@@ -205,6 +269,7 @@ function Profile() {
                         )}
                     </Label>
 
+                    {error && <ErrorMessage message={error} />}
                     {errorMsgPassword && <ErrorMessage message={errorMsgPassword} />}
 
                     {/*user can only update password to database once password is strong and both match*/}
@@ -217,38 +282,43 @@ function Profile() {
             </form>
 
             <form className="profile-form" onSubmit={handleSubscriptionUpdate}>
-                <section>
-                    <h2>Newsletter:</h2>
+                <fieldset className="profile-form">
+                    <section>
+                        <h2>Newsletter:</h2>
 
-                    {!user.newsletter ? (
-                        <p className="newsletter-message">
-                            Interested in our newsletter? Click{' '}
-                            <span
-                                onClick={() => navigate('/newsletter')}
-                                className="newsletter-link"
-                            >
-                              here
-                            </span>{' '}
-                            to sign up.
-                        </p>
-                    ) : (
-                        <>
-                            <p>You are subscribed to our newsletter.</p>
+                        {!user.newsletter ? (
+                            <p className="newsletter-message">
+                                Interested in our newsletter? Click{' '}
+                                <span
+                                    onClick={() => navigate('/newsletter')}
+                                    className="newsletter-link"
+                                >
+                                  here
+                                </span>{' '}
+                                to sign up.
+                            </p>
+                        ) : (
+                            <>
+                                <p>You are subscribed to our newsletter.</p>
 
-                            <Button
-                                type="button"
-                                disabled={loading}
-                                onClick={() => {
-                                    handleSubscriptionUpdate(false);           // now call the API to unsubscribe
-                                }}
-                            >
-                                Unsubscribe
-                            </Button>
-                        </>
-                    )}
+                                {error && <ErrorMessage message={error} />}
+                                {errorMsgNewsLetter && <ErrorMessage message={errorMsgNewsLetter} />}
 
-                    {errorMsgNewsLetter && <ErrorMessage message={errorMsgNewsLetter} />}
-                </section>
+                                <Button
+                                    type="button"
+                                    disabled={loading}
+                                    onClick={() => {
+                                        handleSubscriptionUpdate(false);           // now call the API to unsubscribe
+                                    }}
+                                >
+                                    Unsubscribe
+                                </Button>
+                            </>
+                        )}
+
+                        {errorMsgNewsLetter && <ErrorMessage message={errorMsgNewsLetter} />}
+                    </section>
+                </fieldset>
             </form>
 
             {loading && <Spinner/>}

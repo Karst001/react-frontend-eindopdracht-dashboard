@@ -101,13 +101,6 @@ const AnimatedNavigation = () => {
                             </li>
                         )}
 
-                        {/*<li>*/}
-                        {/*    <NavLink to="/newsletter" onClick={handleNavClick} state={{ jump: true }}*/}
-                        {/*             className={({ isActive }) => getLinkClass('/newsletter', isActive)}>*/}
-                        {/*        Our Newsletter*/}
-                        {/*    </NavLink>*/}
-                        {/*</li>*/}
-
                         <li>
                             <NavLink to="/contact" onClick={handleNavClick} state={{ jump: true }} className={({ isActive }) => getLinkClass('/contact', isActive)}>
                                 Contact Us

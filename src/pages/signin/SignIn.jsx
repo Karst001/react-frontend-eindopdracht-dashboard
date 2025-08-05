@@ -43,25 +43,23 @@ function SignIn() {
     const isOnline = useInternetStatus();                                                 /* check if we have internet connection, used for better error handling */
 
 
-
-
     //this form is a two step login, first enter email and check against server with API call
     async function checkEmail(e) {
         e.preventDefault();
         setError('');
         setLoading(true);
 
-        const emailExists = await checkEmailExists(email);
+        const result = await checkEmailExists(email, isNewUser);
 
-        if (emailExists) {
+        if (result === 0) {
             if (isNewUser) {
                 setStep(3); // new user, enforce setting password
             } else {
                 setStep(2); // regular login for a registered
             }
-        } else if (emailExists === false) {
+        } else if (result === 1) {
             // Only show this if no network error already triggered an error message in checkEmailExists
-            setError('Email does not exist.');
+            setError('Email already used in a customer profile.');
         }
 
         setLoading(false);
@@ -98,6 +96,7 @@ function SignIn() {
                     return;
                 }
 
+                console.log('handleLogin', result.user);
                 auth.userLogIn(result);                                         // calls context provider and register result
                 setLoading(false);
 
@@ -128,21 +127,32 @@ function SignIn() {
         setLoading(true);
 
         // Replace with real registration logic
-        await fakeSetPassword(email, newPassword);
+        // await fakeSetPassword(email, newPassword);
+        await handleFirstTimePasswordSubmit(email, newPassword);
 
         auth.userLogIn(email);
         localStorage.setItem('token', import.meta.env.VITE_API_KEY);
         setLoading(false);
-        // navigate('/dashboard');
 
         setShowWelcomePopup(true);                                      /* show 'Welcome' popup and wait for user to continue */
     }
 
 
-    async function checkEmailExists(email) {
+    async function checkEmailExists(email, isNewUser) {
         if (isOnline) {
             try {
-                const response = await fetch(`${import.meta.env.VITE_BASE_URL}/user/validate_email?email=${encodeURIComponent(email)}`, {
+                let route= '';
+
+                //this function is used for existing and new users hence the if statement to filter what api route to take as back-end logic is different for each route
+                //using different flags like 'UserIsNew'
+                if (isNewUser) {
+                    route = '/user/validate_email_new_user?email=';
+                } else
+                {
+                    route = '/user/validate_email?email=';
+                }
+
+                const response = await fetch(`${import.meta.env.VITE_BASE_URL}${route}${encodeURIComponent(email)}`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Basic ${btoa(import.meta.env.VITE_API_KEY)}`,
@@ -155,7 +165,7 @@ function SignIn() {
                 }
 
                 const data = await response.json();
-                return data.exists === true;
+                return data.resultCode;  //0 = email is for new user and will be prompted to set password, 1 is for existing user and shown error message
             } catch (err) {
                 setError(`A critical error occurred: "${err.message || err}"\nPlease contact your website developer.`);
                 setLoading(false);
@@ -166,14 +176,61 @@ function SignIn() {
         }
     }
 
-    function fakeSetPassword(email, password) {
-        return new Promise(resolve => {
-            setTimeout(() => {
-                console.log(`Set new password for ${email}: ${password}`);
-                resolve(true);
-            }, 500);
-        });
+
+    async function handleFirstTimePasswordSubmit(e) {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
+
+        const encoded = btoa(import.meta.env.VITE_API_KEY);
+
+        if (isOnline) {
+            try {
+                // Step 1: Hash password
+                const hashedPasswordHex = await hashPasswordToHex(newPassword);
+
+                // Step 2: Send request to set password using email as unique key to lookup records in database, this is always unique
+                const response = await fetch(`${import.meta.env.VITE_BASE_URL}/user/set_first_password`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Basic ${encoded}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        UserEmailAddress: email,
+                        NewPasswordHash: Array.from(hashedPasswordHex)
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.resultCode === 0) {
+                    auth.userLogIn(email);
+                    localStorage.setItem('token', import.meta.env.VITE_API_KEY);
+                    setShowWelcomePopup(true);
+                } else {
+                    setError(result.message || 'Failed to activate account.');
+                }
+
+            } catch (err) {
+                console.error(err);
+                setError(`A critical error occurred: "${err.message || err}".`);
+            } finally {
+                setLoading(false);
+            }
+        } else {
+            setError('Internet connection not available.');
+        }
     }
+
+    // function fakeSetPassword(email, password) {
+    //     return new Promise(resolve => {
+    //         setTimeout(() => {
+    //             console.log(`Set new password for ${email}: ${password}`);
+    //             resolve(true);
+    //         }, 500);
+    //     });
+    // }
 
 
 
@@ -206,6 +263,16 @@ function SignIn() {
     }, [newPassword, confirmPassword]);
 
 
+    useEffect(() => {
+        if (isOnline) {
+            setError('');
+        } else
+        {
+            setError('Internet connection not available.');
+        }
+    }, [isOnline]);
+
+
     return (
         <main className="signin-main">
             {loading && <Spinner />}
@@ -236,9 +303,10 @@ function SignIn() {
                                     />
                                     {hasTypedEmail && !emailValid && <p className="error-text">Invalid email address</p>}
                                 </Label>
-                                {error && <p className="error-text">{error}</p>}
 
-                                <Button type="submit" disabled={!emailValid}>
+                                {error && <ErrorMessage message={error} />}
+
+                                <Button type="submit" disabled={!emailValid || !isOnline}>
                                     Next
                                 </Button>
                             </form>
@@ -328,7 +396,7 @@ function SignIn() {
                                     </div>
                                 )}
 
-
+                                {error && <ErrorMessage message={error} />}
                                 {/*user can only set password once password is strong and both match*/}
                                 {passwordsMatch && isPasswordStrong && (
                                     <Button type="submit">

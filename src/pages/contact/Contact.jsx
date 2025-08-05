@@ -8,7 +8,9 @@ import Label from "../../components/label/Label.jsx";
 import Input from "../../components/input/Input.jsx";
 import Textarea from "../../components/textarea/Textarea.jsx";
 import {validateEmail} from "../../helpers/emailvalidation/emailValidation.js";
-
+import { useInternetStatus  } from '../../hooks/useInternetStatus.js';
+import { getLocalIsoString } from '../../helpers/timeConverter/timeConverter.js';
+import ErrorMessage from "../../components/errormessage/ErrorMessage.jsx";
 
 const ContactUs = () => {
     const [countries, setCountries] = useState([]);
@@ -23,8 +25,11 @@ const ContactUs = () => {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const [emailValid, setEmailValid] = useState(true);
+    const isOnline = useInternetStatus();
+    const [error, setError] = useState('');
 
 
+    //load the list of countries on page mount
     useEffect(() => {
         // Fetch countries from a public API
         fetch('https://restcountries.com/v3.1/all?fields=name')
@@ -40,57 +45,72 @@ const ContactUs = () => {
             });
     }, []);
 
+    useEffect(() => {
+        if (isOnline) {
+            setError('');
+        } else
+        {
+            setError('Internet connection not available.');
+        }
+    }, [isOnline]);
 
-    const mockContactUsAPI = (contactUsData) => {
-        console.log('Sending Contact Us data to API:', contactUsData);
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                if (Math.random() < 0.9) {
-                    resolve({ success: true });
-                } else {
-                    reject(new Error('Contact form submission failed on the server.'));
-                }
-            }, 1000);
-        });
-    };
-
-
+    //call the API to add data
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        setLoading(true);
+        if (isOnline) {
+            setLoading(true);
+            const localTime = getLocalIsoString();
 
-        try {
-            const result = await mockContactUsAPI({
-                area,
-                country,
-                companyName,
-                yourName,
-                email,
-                department,
-                message
-            });
+            try {
+                const encoded = btoa(import.meta.env.VITE_API_KEY);
 
-            if (result.success) {
-                setPopupMessage('Your request was submitted and you will be contacted by our department within 48 hours.');
+                const response = await fetch(`${import.meta.env.VITE_BASE_URL}/contact/contactus_create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Basic ${encoded}`,
+                    },
+                    body: JSON.stringify({
+                        AreaOfInquiry: area,
+                        RequestFromCountry: country,
+                        CompanyName: companyName,
+                        RequestersName: yourName,
+                        RequestersEmail: email,
+                        Message: message,
+                        RequestSendDate: localTime,
+                    }),
+                });
 
-                // Reset form after success
-                setArea('');
-                setCountry('');
-                setCompanyName('');
-                setYourName('');
-                setEmail('');
-                setDepartment('');
-                setMessage('');
+                const result = await response.json();
+
+                if (response.ok && result.success === 1) {
+                    setPopupMessage('Your request was submitted and you will be contacted by our department within 48 hours.');
+
+                    // Reset form
+                    setArea('');
+                    setCountry('');
+                    setCompanyName('');
+                    setYourName('');
+                    setEmail('');
+                    setDepartment('');
+                    setMessage('');
+                } else {
+                    setPopupMessage(result.message || 'There was a problem submitting your request. Please try again later.');
+                }
+
+            } catch (error) {
+                console.error('Error submitting contact form:', error);
+                setPopupMessage('There was a problem submitting your request. Please try again later.');
+            } finally {
+                setLoading(false);
             }
-
-        } catch (error) {
-            console.error(error);
-            setPopupMessage('There was a problem submitting your request. Please try again later.');
-        } finally {
+        } else {
+            setError('Internet connection not available.');
             setLoading(false);
         }
     };
+
 
     //This checks if all required fields are non-empty
     const canSubmit = Boolean(area.trim() && country.trim() && yourName.trim() && email.trim() && message.trim());
@@ -166,8 +186,10 @@ const ContactUs = () => {
                         />
                     </Label>
 
+                    {error && <ErrorMessage message={error} />}
+
                     <Button
-                        type="submit" disabled={!canSubmit || loading || !emailValid}>
+                        type="submit" disabled={!canSubmit || loading || !emailValid || !isOnline}>
                         Send Message
                     </Button>
 

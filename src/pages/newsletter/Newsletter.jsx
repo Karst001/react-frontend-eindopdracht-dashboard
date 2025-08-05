@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import './NewsLetter.css'; // We'll define some styles
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
@@ -8,31 +8,25 @@ import Button from "../../components/button/Button.jsx";
 import Label from "../../components/label/Label.jsx";
 import Input from "../../components/input/Input.jsx";
 import {validateEmail} from "../../helpers/emailvalidation/emailValidation.js";
+import { useInternetStatus  } from '../../hooks/useInternetStatus.js';
+import ErrorMessage from "../../components/errormessage/ErrorMessage.jsx";
+import {AuthContext} from "../../context/AuthContext.jsx";
+import { getLocalIsoString } from '../../helpers/timeConverter/timeConverter.js';
 
 
 const NewsLetter = () => {
-    const [name, setName] = useState('');
+    const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
     const [agreed, setAgreed] = useState(false);
     const [popupMessage, setPopupMessage] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const [emailValid, setEmailValid] = useState(true);
+    const [error, setError] = useState('');
+    const isOnline = useInternetStatus();
+    const { updateSubscription } = useContext(AuthContext);
 
-    const mockSubscribeAPI = (subscriberData) => {
-        console.log('Sending newsletter data to API:', subscriberData);
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                if (Math.random() < 0.9) {
-                    resolve({ success: true });
-                } else {
-                    reject(new Error('Subscription failed on the server.'));
-                }
-            }, 1000); // Simulate network delay
-        });
-    };
-
-
+    //make the api call
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -42,25 +36,65 @@ const NewsLetter = () => {
         }
 
         setLoading(true);
+        const localTime = getLocalIsoString();
 
-        try {
-            const result = await mockSubscribeAPI({ name, email });
-            if (result.success) {
-                setPopupMessage('Thank you for subscribing to our newsletter.');
-                setName('');
-                setEmail('');
-                setAgreed(false);
+
+        if (isOnline) {
+            try {
+                const encoded = btoa(import.meta.env.VITE_API_KEY);
+
+                const response = await fetch(`${import.meta.env.VITE_BASE_URL}/newsletter/newsletter_create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Basic ${encoded}`,
+                    },
+                    body: JSON.stringify({
+                        email,
+                        fullName,
+                        Subscribed: true,
+                        CurrentDate: localTime
+                    }),
+                });
+
+                const result = await response.json();
+
+                if (result.success === 1) {
+                    updateSubscription(true); // update context, this triggers a re-render everywhere
+                    setFullName('');
+                    setEmail('');
+                    setAgreed(false);
+                    setPopupMessage('Thank you for subscribing to our newsletter.');
+                } else if (result.success === -1) {
+                    setPopupMessage('This email address is already subscribed.');
+                } else {
+                    setPopupMessage('Subscription failed. Please try again later.');
+                }
+            } catch (error) {
+                console.error(error);
+                setPopupMessage('There was a problem subscribing. Please try again later.');
+            } finally {
+                setLoading(false);
             }
-        } catch (error) {
-            console.error(error);
-            setPopupMessage('There was a problem subscribing. Please try again later.');
-        } finally {
+        } else {
+            setError('Internet connection not available.');
             setLoading(false);
         }
     };
 
+
+    useEffect(() => {
+        if (isOnline) {
+            setError('');
+        } else
+        {
+            setError('Internet connection not available.');
+        }
+    }, [isOnline]);
+
+
     //This checks if all required fields are non-empty
-    const canSubmit = Boolean(name.trim() && email.trim() && agreed);
+    const canSubmit = Boolean(fullName.trim() && email.trim() && agreed);
 
     return (
         <section className="newsletter-page">
@@ -76,10 +110,10 @@ const NewsLetter = () => {
 
             <form className="newsletter-form" onSubmit={handleSubmit}>
                 <fieldset className="newsletter-form">
-                    <Label label={<><span>Name:</span> <span className="required">*</span></>}>
+                    <Label label={<><span>Full name:</span> <span className="required">*</span></>}>
                         <Input
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
+                            value={fullName}
+                            onChange={(e) => setFullName(e.target.value)}
                             required
                             placeholder="Enter your name"
                         />
@@ -96,7 +130,6 @@ const NewsLetter = () => {
                                 setEmail(value);
                                 setEmailValid(validateEmail(value));            // continuous validation while typing
                             }}
-                            // onBlur={(e) => { setEmailValid(validateEmail(e.target.value)); }}
                             required
                             placeholder="Enter your email address"
                         />
@@ -114,8 +147,10 @@ const NewsLetter = () => {
                     </Label>
 
                     {/* button only enabled when there are no errors and email is valid */}
+                    {error && <ErrorMessage message={error} />}
+
                     <Button
-                        type="submit" disabled={!canSubmit || loading || !emailValid} >
+                        type="submit" disabled={!canSubmit || loading || !emailValid ||!isOnline} >
                         Subscribe
                     </Button>
 

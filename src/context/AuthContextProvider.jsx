@@ -49,6 +49,7 @@ function AuthContextProvider({ children }) {
     const login = useCallback((result) => {
 
         const fetchedUser = {
+            userId: result.user.UserID,
             username: result.user.UserName,
             email: result.user.UserEmailAddress,
             isAdmin: result.user.UserIsAdmin,
