@@ -43,25 +43,40 @@ const Admin = () => {
     const [userEmailValid, setUserEmailValid] = useState(true);
     const [userEmailCheckMessage, setUserEmailCheckMessage] = useState('');
 
-
-    const [users, setUsers] = useState(() => {
-        const initial = [
-            {id: 1, username: 'jdoe', firstName: 'John', lastName: 'Doe', email: 'jdoe@test.com', active: true},
-            {id: 2, username: 'asmith', firstName: 'Anna', lastName: 'Smith', email: 'asmith@test.com', active: false},
-            {id: 3, username: 'bjones', firstName: 'Bob', lastName: 'Jones', email: 'bjones@test.com', active: true},
-            {id: 4, username: 'akarsten', firstName: 'Ad', lastName: 'Karsten', email: 'ad@test.com', active: true},
-            {id: 5, username: 'gbisschop', firstName: 'Geert', lastName: 'Bottens', email: 'geert@bottens.nl', active: true},
-        ];
-        originalUsersRef.current = initial; //set original value so we can compare later, used to enable/disable the editUser button
-        return initial;
-    });
-
+    //data state for users
+    const [users, setUsers] = useState([]);
 
     //handles the toggle when user clicks on the checkbox inside the grid
-    const handleToggle = (id) => {
+    const handleToggleAdmin = (id) => {
         setUsers(prev => {
             const updated = prev.map(user =>
-                user.id === id ? { ...user, active: !user.active } : user
+                user.id === id ? { ...user, admin: !user.admin } : user
+            );
+
+            // Check if something actually changed compared to originalUsersRef
+            setUsersChanged(JSON.stringify(updated) !== JSON.stringify(originalUsersRef.current));
+
+            return updated;
+        });
+    };
+
+    const handleToggleActive = (id) => {
+        setUsers(prev => {
+            const updated = prev.map(user =>
+                user.id === id ? { ...user, enabled: !user.enabled } : user
+            );
+
+            // Check if something actually changed compared to originalUsersRef
+            setUsersChanged(JSON.stringify(updated) !== JSON.stringify(originalUsersRef.current));
+
+            return updated;
+        });
+    };
+
+    const handleToggleIsNew = (id) => {
+        setUsers(prev => {
+            const updated = prev.map(user =>
+                user.id === id ? { ...user, isNew: !user.isNew } : user
             );
 
             // Check if something actually changed compared to originalUsersRef
@@ -72,15 +87,27 @@ const Admin = () => {
     };
 
     //build array
-    const tableData = users.map(user => [
-        user.username,
-        user.firstName,
-        user.lastName,
+    //const tableData = users.map(user => [
+    const tableData = (users || []).map(user => [
+        user.userName,
+        user.fullName,
         user.email,
         h('input', {
             type: 'checkbox',
-            checked: user.active,
-            onChange: () => handleToggle(user.id),
+            checked: user.admin,
+            onChange: () => handleToggleAdmin(user.id),
+            className: 'toggle-switch'
+        }),
+        h('input', {
+            type: 'checkbox',
+            checked: user.enabled,
+            onChange: () => handleToggleActive(user.id),
+            className: 'toggle-switch'
+        }),
+        h('input', {
+            type: 'checkbox',
+            checked: user.isNew,
+            onChange: () => handleToggleIsNew(user.id),
             className: 'toggle-switch'
         })
         //the onChange event triggers handleToggle
@@ -118,33 +145,44 @@ const Admin = () => {
         setLoading(true);
 
         try {
-            const result = await mockUpdateUsers(users);
+            const result = await updateUsers(users);  // 🔁 Use the real function
+
             if (result.success) {
                 setPopupMessage('User was updated successfully.');
-                originalUsersRef.current = users;  // reset the comparison baseline
-                setUsersChanged(false);         // explicitly reset
+                originalUsersRef.current = users;
+                setUsersChanged(false);
+            } else {
+                setPopupMessage(result.message || 'Update failed.');
             }
         } catch (error) {
             console.error(error);
             setPopupMessage('There was a problem updating the users. Please try again.');
         } finally {
-            setLoading(false); //make sure to stop the spinner
+            setLoading(false);
         }
     };
 
 
-    const mockUpdateUsers = (updatedUsers) => {
-        console.log('Sending updated users to API:', updatedUsers);
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                // Simulate 90% chance of success
-                if (Math.random() < 0.9) {
-                    resolve({success: true});
-                } else {
-                    reject(new Error('Failed to update users on the server.'));
-                }
-            }, 1000); // Simulate network delay
+    const updateUsers = async (updatedUsers) => {
+        const response = await fetch(`${import.meta.env.VITE_BASE_URL}/user/update_users`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Basic ${btoa(import.meta.env.VITE_API_KEY)}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updatedUsers.map(user => ({
+                UserID: user.id,
+                UserIsAdmin: user.admin,
+                UserEnabled: user.enabled,
+                UserIsNew: user.isNew
+            })))
         });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        return await response.json();
     };
 
 
@@ -216,7 +254,7 @@ const Admin = () => {
                 const result = await response.json();
 
                 if (result.resultCode  === 1) {
-                    // Email is available
+                    // Email is not in database yet
                     setUserEmailValid(true);
                     setUserEmailCheckMessage('');
                 } else {
@@ -248,11 +286,10 @@ const Admin = () => {
     //when logic is written for API, send OTP with the request, using: handleGenerate
     //this OTP is stored in the database, user will get email with login details
 
-    //capture the original value for users on page mount
+
     useEffect(() => {
-        const changed = JSON.stringify(originalUsersRef.current) !== JSON.stringify(users);
-        setUsersChanged(changed);
-        console.log("useEffect: Has user data changed?", changed);
+        const hasChanged = JSON.stringify(users) !== JSON.stringify(originalUsersRef.current);
+        setUsersChanged(hasChanged);
     }, [users]);
 
 
@@ -265,6 +302,43 @@ const Admin = () => {
         }
     }, [isOnline]);
 
+
+    //get the users from API
+    const fetchUsers = async () => {
+        try {
+            const response = await fetch(`${import.meta.env.VITE_BASE_URL}/user/get_all_users`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Basic ${btoa(import.meta.env.VITE_API_KEY)}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+
+            const allUsers = data.map((user) => ({
+                id: user.UserID,
+                userName: user.UserName,
+                fullName: user.FullName,
+                email: user.Email,
+                admin: user.Admin ?? false,
+                enabled: user.Enabled ?? false,
+                isNew: user.IsNew ?? false,
+            }));
+
+            setUsers(allUsers);
+            originalUsersRef.current = allUsers;
+        } catch (error) {
+            console.error('Failed to fetch users:', error);
+        }
+    };
+
+    //load user table on page mount
+    useEffect(() => {
+        fetchUsers();
+    }, []);
+
+
     return (
         <div className="admin-page">
             <div className="admin-layout-wrapper">
@@ -275,7 +349,12 @@ const Admin = () => {
                         <Button onClick={() => setActiveSection('addUser')}>
                             Add User
                         </Button>
-                        <Button onClick={() => setActiveSection('editUser')}>
+                        <Button
+                            onClick={() => {
+                                setActiveSection('editUser');
+                                fetchUsers();
+                            }}
+                        >
                             Edit User
                         </Button>
                         <Button onClick={() => setActiveSection('addProduct')}>
@@ -428,11 +507,12 @@ const Admin = () => {
                                 <CustomGrid
                                     data={tableData}
                                     columns={[
-                                        { id: 'userName', name: 'User name', width: '120px' },
-                                        { id: 'firstName', name: 'First name', width: '130px' },
-                                        { id: 'lastName', name: 'Last name', width: '130px' },
-                                        { id: 'email', name: 'Email', width: '250px' },
-                                        { id: 'active', name: 'Active?', width: '110px' },
+                                        { id: 'userName', name: 'User name', width: '100px' },
+                                        { id: 'fullName', name: 'Full name', width: '120px' },
+                                        { id: 'email', name: 'Email', width: '160px' },
+                                        { id: 'admin', name: 'Admin?', width: '70px' },
+                                        { id: 'active', name: 'Active?', width: '70px' },
+                                        { id: 'isNew', name: 'New?', width: '70px' },
                                     ]}
                                     search={true}
                                     pagination={true}
@@ -443,7 +523,7 @@ const Admin = () => {
                                 {error && <ErrorMessage message={error} />}
                                 {/*button disabled when there are no changes*/}
 
-                                <Button onClick={handleUpdateUsers} disabled={!canSubmitEditUser}>
+                                <Button onClick={handleUpdateUsers} disabled={!canSubmitEditUser || !isOnline}>
                                     Update User
                                 </Button>
 
@@ -548,7 +628,7 @@ const Admin = () => {
                                             </Label>
 
                                             {error && <ErrorMessage message={error} />}
-                                            <Button type="submit" disabled={!canSubmitNewProduct || loading}>
+                                            <Button type="submit" disabled={!canSubmitNewProduct || loading || !isOnline}>
                                                 Create Product
                                             </Button>
 

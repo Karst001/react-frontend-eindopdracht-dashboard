@@ -96,7 +96,6 @@ function SignIn() {
                     return;
                 }
 
-                console.log('handleLogin', result.user);
                 auth.userLogIn(result);                                         // calls context provider and register result
                 setLoading(false);
 
@@ -126,15 +125,11 @@ function SignIn() {
 
         setLoading(true);
 
-        // Replace with real registration logic
-        // await fakeSetPassword(email, newPassword);
-        await handleFirstTimePasswordSubmit(email, newPassword);
+        //await handleFirstTimePasswordSubmit(email, newPassword);
+        await handleFirstTimePasswordSubmit();
 
         auth.userLogIn(email);
-        localStorage.setItem('token', import.meta.env.VITE_API_KEY);
         setLoading(false);
-
-        setShowWelcomePopup(true);                                      /* show 'Welcome' popup and wait for user to continue */
     }
 
 
@@ -177,8 +172,8 @@ function SignIn() {
     }
 
 
-    async function handleFirstTimePasswordSubmit(e) {
-        e.preventDefault();
+    async function handleFirstTimePasswordSubmit() {
+        // e.preventDefault();
         setError('');
         setLoading(true);
 
@@ -186,11 +181,9 @@ function SignIn() {
 
         if (isOnline) {
             try {
-                // Step 1: Hash password
-                const hashedPasswordHex = await hashPasswordToHex(newPassword);
-
-                // Step 2: Send request to set password using email as unique key to lookup records in database, this is always unique
-                const response = await fetch(`${import.meta.env.VITE_BASE_URL}/user/set_first_password`, {
+                const psw = await hashPasswordToHex(confirmPassword)
+                // Send request to set password using email as unique key to lookup records in database, this is always unique
+                const newUserResponse = await fetch(`${import.meta.env.VITE_BASE_URL}/user/set_first_password`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Basic ${encoded}`,
@@ -198,22 +191,25 @@ function SignIn() {
                     },
                     body: JSON.stringify({
                         UserEmailAddress: email,
-                        NewPasswordHash: Array.from(hashedPasswordHex)
+                        UserPasswordHashed: psw
                     })
                 });
 
-                const result = await response.json();
+                const result = await newUserResponse.json();
 
-                if (result.resultCode === 0) {
-                    auth.userLogIn(email);
-                    localStorage.setItem('token', import.meta.env.VITE_API_KEY);
-                    setShowWelcomePopup(true);
-                } else {
-                    setError(result.message || 'Failed to activate account.');
+                console.log('newUserPassword' , result);
+
+                if (!newUserResponse.ok || !result.token) {
+                    setError('Login failed. Please check credentials.');
+                    setLoading(false);
+                    return;
                 }
 
+                auth.userLogIn(result);                                         // calls context provider and register result
+                setLoading(false);
+
+                setShowWelcomePopup(true);                                      /* show 'Welcome' popup and wait for user to continue */
             } catch (err) {
-                console.error(err);
                 setError(`A critical error occurred: "${err.message || err}".`);
             } finally {
                 setLoading(false);
@@ -222,16 +218,6 @@ function SignIn() {
             setError('Internet connection not available.');
         }
     }
-
-    // function fakeSetPassword(email, password) {
-    //     return new Promise(resolve => {
-    //         setTimeout(() => {
-    //             console.log(`Set new password for ${email}: ${password}`);
-    //             resolve(true);
-    //         }, 500);
-    //     });
-    // }
-
 
 
     useEffect(() => {
@@ -415,7 +401,14 @@ function SignIn() {
                     <div className="welcome-content">
                         <h2>Welcome!</h2>
                         <p>You have successfully completed your registration.</p>
-                        <Button onClick={() => navigate('/dashboard')}>
+                        <Button onClick={() => {
+                            setShowWelcomePopup(false);
+                            if (auth?.user?.UserIsAdmin) {
+                                navigate('/admin');
+                            } else {
+                                navigate('/dashboard');
+                            }
+                        }}>
                             Continue to your dashboard
                         </Button>
                     </div>

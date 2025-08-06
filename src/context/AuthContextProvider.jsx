@@ -47,6 +47,7 @@ function AuthContextProvider({ children }) {
 
     // registers login and saves user/token to localStorage
     const login = useCallback((result) => {
+        console.log('useCallback', result);
 
         const fetchedUser = {
             userId: result.user.UserID,
