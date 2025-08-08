@@ -47,17 +47,14 @@ function AuthContextProvider({ children }) {
 
     // registers login and saves user/token to localStorage
     const login = useCallback((result) => {
-        console.log('useCallback', result);
-
         const fetchedUser = {
             userId: result.user.UserID,
             username: result.user.UserName,
             email: result.user.UserEmailAddress,
             isAdmin: result.user.UserIsAdmin,
-            newsletter: result.user.UserHasNewsLetter || false,                 //set a false value of no value set in database
+            newsletter: result.user.UserHasNewsLetter || false,                 //set a false value if no newsletter was found in database for this user
         };
 
-        console.log(fetchedUser);
 
         // Store credentials locally, we need those to test on screen refresh event
         localStorage.setItem('token', result.token);

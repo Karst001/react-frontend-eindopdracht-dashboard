@@ -26,6 +26,7 @@ function SignIn() {
     const [hasTypedPassword, setHasTypedPassword] = useState(false);                /* track to see if user is typing password */
     const [passwordsMatch, setPasswordsMatch] = useState(false);                    /* track to see when new and confirmed passwords match */
     const [showWelcomePopup, setShowWelcomePopup] = useState(false);                /* used to track if modal 'welcome' form is displayed */
+    const tokenRef = useRef('');                                         /* used to track if th url has a token or not */
 
     //navigation / authentication
     const navigate = useNavigate();
@@ -35,7 +36,7 @@ function SignIn() {
     const emailInputRef = useRef(null);
     const passwordInputRef = useRef(null);
     const newPasswordRef = useRef(null);
-    const isNewUser = new URLSearchParams(location.search).get('newUser') === 'true';
+    // const isNewUser = new URLSearchParams(location.search).get('newUser') === 'true';
 
     //call the hook to check password for validity and strength
     //passwordStrength and isPasswordStrong are the returned values
@@ -49,21 +50,115 @@ function SignIn() {
         setError('');
         setLoading(true);
 
-        const result = await checkEmailExists(email, isNewUser);
+        const result = await checkEmailExists(email);
 
-        if (result === 0) {
-            if (isNewUser) {
-                setStep(3); // new user, enforce setting password
-            } else {
-                setStep(2); // regular login for a registered
-            }
-        } else if (result === 1) {
-            // Only show this if no network error already triggered an error message in checkEmailExists
-            setError('Email already used in a customer profile.');
+        if (!result) {
+            setLoading(false);
+            return;                 // prevent destructuring if result is null
+        }
+
+        const { resultCode, isNewUser } = result;
+
+        switch (resultCode) {
+            case -1:
+                setError('Unknown email.');
+                break;
+            case 0:
+                if (isNewUser) {
+                    setStep(3); // new user, enforce setting password
+                } else {
+                    setError('This email address is not registered yet.');
+                }
+                break;
+            case 1:
+                //used in a profile and enable so allowed to go to step 2 for password verification
+                setStep(2); // regular login for a registered user
+                break;
         }
 
         setLoading(false);
     }
+
+
+    async function checkEmailExists(email ) {
+        if (isOnline) {
+            //extract the email and userNew code from the url
+            let isNewUserFromToken = false;
+
+            if (tokenRef.current !== null) {
+                try {
+                    const decoded = atob(tokenRef.current); // Base64 decode
+                    const params = new URLSearchParams(decoded);
+
+                    isNewUserFromToken = params.get('newUser') === 'true';
+                    const encodedEmail = params.get('email');
+                    const emailFromToken = atob(encodedEmail);
+
+                    //check to see if email === emailFromToken, if not abort registration process
+                    if (email !== emailFromToken) {
+                        setError(`The email address you entered is not correct.`);
+                        return null;
+                    } else {
+                        email=emailFromToken
+                    }
+                } catch (err) {
+                    console.error("Invalid token format", err);
+                }
+            }
+
+            try {
+                let route= '';
+
+                //this function is used for existing and new users hence the if statement to filter what api route to take as back-end logic is different for each route
+                //using different flags like 'UserIsNew'
+                if (isNewUserFromToken) {
+                    route = '/user/validate_email_new_user?email=';
+                } else
+                {
+                    route = '/user/validate_email?email=';
+                }
+
+                const response = await fetch(`${import.meta.env.VITE_BASE_URL}${route}${encodeURIComponent(email)}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Basic ${btoa(import.meta.env.VITE_API_KEY)}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.resultCode) {
+                    if (isNewUserFromToken) {
+                        setStep(3); // new user, enforce setting password
+                    } else {
+                        setStep(2); // regular login for a registered
+                    }
+                }
+
+                const data = await response.json();
+
+                //extra security check, if the url string is modified and IsNewUser in the url is set to True, the value in the database may be false
+                //if database = true and isNewUserFromToken = true only then to proceed with new user registration
+                if (data.IsNewUser === isNewUserFromToken) {
+                    return {
+                        resultCode: data.resultCode,
+                        isNewUser: data.IsNewUser
+                    };
+                } else {
+                    return {
+                        resultCode: data.resultCode,
+                        isNewUser: false,
+                    };
+                }
+            } catch (err) {
+                setError(`A critical error occurred: "${err.message || err}"\nPlease contact your website developer.`);
+                setLoading(false);
+                return null;
+            }
+        } else {
+            setError('Internet connection not available.');
+        }
+    }
+
 
     //2nd step to enter password and check against server with API call
     async function handleLogin(e) {
@@ -133,45 +228,6 @@ function SignIn() {
     }
 
 
-    async function checkEmailExists(email, isNewUser) {
-        if (isOnline) {
-            try {
-                let route= '';
-
-                //this function is used for existing and new users hence the if statement to filter what api route to take as back-end logic is different for each route
-                //using different flags like 'UserIsNew'
-                if (isNewUser) {
-                    route = '/user/validate_email_new_user?email=';
-                } else
-                {
-                    route = '/user/validate_email?email=';
-                }
-
-                const response = await fetch(`${import.meta.env.VITE_BASE_URL}${route}${encodeURIComponent(email)}`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Basic ${btoa(import.meta.env.VITE_API_KEY)}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Server returned ${response.status}`);
-                }
-
-                const data = await response.json();
-                return data.resultCode;  //0 = email is for new user and will be prompted to set password, 1 is for existing user and shown error message
-            } catch (err) {
-                setError(`A critical error occurred: "${err.message || err}"\nPlease contact your website developer.`);
-                setLoading(false);
-                return null;
-            }
-        } else {
-            setError('Internet connection not available.');
-        }
-    }
-
-
     async function handleFirstTimePasswordSubmit() {
         // e.preventDefault();
         setError('');
@@ -196,8 +252,6 @@ function SignIn() {
                 });
 
                 const result = await newUserResponse.json();
-
-                console.log('newUserPassword' , result);
 
                 if (!newUserResponse.ok || !result.token) {
                     setError('Login failed. Please check credentials.');
@@ -259,6 +313,12 @@ function SignIn() {
     }, [isOnline]);
 
 
+    //check if the url contains a token, if so, register inside tokenRef so it can be used after a re-render
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        tokenRef.current = urlParams.get('token');
+    }, []);
+
     return (
         <main className="signin-main">
             {loading && <Spinner />}
@@ -267,7 +327,12 @@ function SignIn() {
                     <section className="signin-box">
                         {step === 1 && (
                             <form onSubmit={checkEmail}>
-                                <h1>Login</h1>
+                                {tokenRef.current ? (
+                                    <h1>Complete your registration</h1>
+                                ) : (
+                                    <h1>Login</h1>
+                                )}
+                                {/*<h1>Login</h1>*/}
 
                                 <p>Welcome to our Partner Portal</p>
 
@@ -287,7 +352,7 @@ function SignIn() {
                                         placeholder="Please enter your email address"
                                         ref={emailInputRef}
                                     />
-                                    {hasTypedEmail && !emailValid && <p className="error-text">Invalid email address</p>}
+                                    {hasTypedEmail && !emailValid && <p className="error-text">Invalid email format.</p>}
                                 </Label>
 
                                 {error && <ErrorMessage message={error} />}

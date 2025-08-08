@@ -33,8 +33,7 @@
 
 .image-placeholder {
     flex: 1;                                            /* takes equal space as the description */
-    aspect-ratio: 4 / 3;                                /* maintain a natural image ratio */
-    background: var(--color-light-soft-grey);          /* gray background */
+    aspect-ratio: 3 / 2;                                /* maintain a natural image ratio */
     border-radius: 20px;
     overflow: hidden;                                   /* ensures rounded corners are enforced on inner image */
 }
@@ -44,7 +43,7 @@
     height: auto;                                       /* maintain natural image size */
     object-fit: contain;                                /* scale image to fit without cropping */
     border-radius: 20px;
-    display: block;                                     /* removes default inline spacing below images */
+    display: block;                                     /* removes default inline spacing below imagecrop */
 }
 
 .description {

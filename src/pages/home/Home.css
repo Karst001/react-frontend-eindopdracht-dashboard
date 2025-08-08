@@ -7,7 +7,7 @@
     left: 50%;                                              /* center horizontally */
     transform: translateX(-50%);                            /* true center with fixed position */
     width: 80vw;
-    height: 85vh;
+    height: 80vh;
     z-index: 500;                                           /* behind content but on top of background */
     overflow: hidden;
     background: var(--color-light-soft-grey);               /* fallback background color */

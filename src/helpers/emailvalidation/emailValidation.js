@@ -13,7 +13,6 @@
 // validateEmail("tessmellink@novi,nl") result is false - no comma allowed in string
 
 export function validateEmail(emailAddress) {
-    console.log('testing validate');
     //Step 1: if no @ sign found, return False, the rest don't matter
     if (emailAddress.indexOf("@") === -1) {
         return false;

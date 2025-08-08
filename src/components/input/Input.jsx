@@ -10,6 +10,7 @@ const Input = ({
                    placeholder = '',
                    required = false,
                    className = '',
+                   disabled = false,
                }) => {
     return (
         <input
@@ -20,6 +21,7 @@ const Input = ({
             placeholder={placeholder}
             required={required}
             className={`custom-input ${className}`}
+            disabled={disabled}
         />
     );
 };

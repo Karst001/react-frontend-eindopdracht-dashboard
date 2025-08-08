@@ -8,12 +8,16 @@ import Label from "../../components/label/Label.jsx";
 import Input from '../../components/input/Input.jsx';
 import Textarea from "../../components/textarea/Textarea.jsx";
 import {h} from 'gridjs'; //a helper/handle needed for checkboxes inside custom grid
+import { html } from 'gridjs';
 import CustomGrid from '../../components/datagrid/CustomGrid.jsx';
 import {validateEmail} from "../../helpers/emailvalidation/emailValidation.js";
 // import { generateOTP } from '../../helpers/password/oneTimePassword.js';
 import { getLocalIsoString } from '../../helpers/timeConverter/timeConverter.js';
 import { useInternetStatus  } from '../../hooks/useInternetStatus.js';
 import ErrorMessage from "../../components/errormessage/ErrorMessage.jsx";
+import { resizeAndCropImage } from '../../helpers/images/imageCropResize.js';         /* Credits to Google and StackOverflow */
+import ImageCropper from "../../components/imagecrop/ImageCropper.jsx";
+import {fetchProductsFromApi} from "../../helpers/api/product.js";               /* Credits to Google and StackOverflow */
 
 const Admin = () => {
     const [activeSection, setActiveSection] = useState(null);
@@ -45,6 +49,7 @@ const Admin = () => {
 
     //data state for users
     const [users, setUsers] = useState([]);
+    const fileInputRef = useRef(null);
 
     //handles the toggle when user clicks on the checkbox inside the grid
     const handleToggleAdmin = (id) => {
@@ -88,7 +93,7 @@ const Admin = () => {
 
     //build array
     //const tableData = users.map(user => [
-    const tableData = (users || []).map(user => [
+    const userData = (users || []).map(user => [
         user.userName,
         user.fullName,
         user.email,
@@ -186,20 +191,26 @@ const Admin = () => {
     };
 
 
-    const mockAddedProducts = (addedProducts) => {
-        console.log('Sending new product to API:', addedProducts);
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                // Simulate 90% chance of success
-                if (Math.random() < 0.9) {
-                    resolve({success: true});
-                } else {
-                    reject(new Error('Failed to update users on the server.'));
-                }
-            }, 1000); // Simulate network delay
-        });
-    };
+    //product uploader using multipart/form-data for large files
+    const uploadNewProduct = async (product) => {
+        const formData = new FormData();
+        formData.append("ProductHeaderDescription", product.title);
+        formData.append("ProductDetailDescription", product.description);
+        formData.append("ProductImage", product.image);  // This must be the raw File object
+        formData.append("ProductAlt", product.image.name);
 
+        const response = await fetch(`${import.meta.env.VITE_BASE_URL}/product/product_create`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Basic ${btoa(import.meta.env.VITE_API_KEY)}`,
+                //No need to set 'Content-Type': it will be set automatically to multipart/form-data with a boundary
+            },
+            body: formData
+        });
+
+        if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+        return await response.json();
+    };
 
     //validate the username with records in the database, there can never be a duplicate username
     const CheckUserNameExists = async () => {
@@ -252,15 +263,25 @@ const Admin = () => {
                 });
 
                 const result = await response.json();
+                console.log('New user', result);
 
-                if (result.resultCode  === 1) {
-                    // Email is not in database yet
-                    setUserEmailValid(true);
-                    setUserEmailCheckMessage('');
-                } else {
-                    // Email already exists
-                    setUserEmailValid(false);
-                    setUserEmailCheckMessage('This email is already in use.');
+                switch (result.resultCode) {
+                    case -1:
+                        // Email is not in database yet
+                        setUserEmailValid(true);
+                        setUserEmailCheckMessage('');
+                        break;
+                    case 0:
+                        //ok to proceed
+                        break;
+                    case 1:
+                        // Email already exists
+                        setUserEmailValid(false);
+                        setUserEmailCheckMessage('This email is already in use.');
+                        break;
+                    default:
+                        setError('An unknown error occurred.');
+                        break;
                 }
             } catch (err) {
                 console.error("Email validation failed:", err);
@@ -339,6 +360,171 @@ const Admin = () => {
     }, []);
 
 
+    //handler to reduce file size, no need to store very large imagecrop and would be a performance issue anyway
+    const [cropSrc, setCropSrc] = useState(null);
+    const [showCropper, setShowCropper] = useState(false);
+    const [originalFileName, setOriginalFileName] = useState('');
+
+
+    //Below useEffect will prevent the entire page from scrolling behind when the cropper modal is open, restore once it is closed
+    useEffect(() => {
+        if (showCropper) {
+            document.body.classList.add('no-scroll');
+        } else {
+            document.body.classList.remove('remove-no-scroll');
+        }
+
+        return () => {
+            // Clean up both classes to ensure a clean state
+            document.body.classList.remove('no-scroll');
+            document.body.classList.remove('remove-no-scroll');
+        };
+    }, [showCropper]);
+
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setOriginalFileName(file.name);                         //save the original file name so the cropped file name maintains the same name
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setCropSrc(reader.result); // base64 for Cropper
+            setShowCropper(true);
+        };
+        reader.readAsDataURL(file);
+    };
+
+    // triggered after cropping
+    const handleCroppedImage = async (croppedFile) => {
+        if (!croppedFile) {
+            // User pressed "Cancel"
+            setShowCropper(false);
+            return;
+        }
+
+        console.log("Initial cropped size:", (croppedFile.size / 1024 / 1024).toFixed(1), "MB");
+
+        try {
+            const resized = await resizeAndCropImage(croppedFile, 900, 600);
+            setProductImage(resized);
+            setProductImagePreview(URL.createObjectURL(resized));
+
+            console.log("Final resized size:", (resized.size / 1024 / 1024).toFixed(1), "MB");
+
+        } catch (error) {
+            console.error("Image resizing failed:", error);
+        } finally {
+            fileInputRef.current.value = '';            // clear input for future uploads
+            setShowCropper(false);
+        }
+    };
+
+
+
+    //below is for the products
+    const [productData, setProductData] = useState([]);
+    const [productToEdit, setProductToEdit] = useState(null);
+    const [showEditModal, setShowEditModal] = useState(false);
+
+    const handleUpdateProduct = async () => {
+        setProductToEdit(productData);
+        setShowEditModal(true);
+    };
+
+    //loads products from database only when user wants to edit them
+    useEffect(() => {
+        if (activeSection === 'editProduct') {
+            const loadProducts = async () => {
+                const products = await fetchProductsFromApi();
+                setProductData(products);
+            };
+
+            loadProducts();
+        }
+    }, [activeSection]);
+
+    //capture the Edit button clicks in editProduct section
+    const productDataFormatted = productData.map(product => [
+        product.title,
+        product.description,
+        product.discontinued ? 'Yes' : 'No',
+        product.imageBase64
+            ? h('img', {
+                src: product.imageBase64,
+                alt: 'preview',
+                style: 'max-width: 100px;',
+            })
+            : 'No Image',
+        h(
+            'button',
+            {
+                className: 'btn-primary',
+                'data-product': JSON.stringify(product),
+            },
+            'Edit'
+        )
+    ]);
+
+    useEffect(() => {
+        const handler = (e) => {
+            if (e.target.classList.contains('btn-primary')) {
+                try {
+                    const raw = e.target.dataset.product;
+                    const decoded = decodeURIComponent(raw); // decode data first,
+                    const data = JSON.parse(decoded);               // then parse to new object
+
+                    setProductToEdit(data);                         //pass data to modal form
+                    setShowEditModal(true);                  //show modal form to allow product editing
+                } catch (err) {
+                    console.error("Failed to parse product data:", err);
+                }
+            }
+        };
+
+        document.addEventListener('click', handler);
+        return () => document.removeEventListener('click', handler);
+    }, []);
+
+
+    //call to API to update the product to database
+    const handleSaveProduct = async () => {
+        try {
+            const response = await fetch(`${import.meta.env.VITE_BASE_URL}/product/update`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Basic ${btoa(import.meta.env.VITE_API_KEY)}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    ProductID: productToEdit.id,
+                    ProductHeaderDescription: productToEdit.header,
+                    ProductDetailDescription: productToEdit.detail,
+                    ProductDiscontinued: productToEdit.discontinued,
+                }),
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                setPopupMessage("Product updated successfully.");
+                setShowEditModal(false);
+
+                // Reload grid data
+                const refreshed = await fetchProductsFromApi();
+                setProductData(refreshed);
+            } else {
+                setPopupMessage("Update failed.");
+            }
+        } catch (error) {
+            console.error("Error updating product:", error);
+            setPopupMessage("Something went wrong.");
+        }
+    };
+
+
+
     return (
         <div className="admin-page">
             <div className="admin-layout-wrapper">
@@ -349,6 +535,7 @@ const Admin = () => {
                         <Button onClick={() => setActiveSection('addUser')}>
                             Add User
                         </Button>
+
                         <Button
                             onClick={() => {
                                 setActiveSection('editUser');
@@ -357,8 +544,15 @@ const Admin = () => {
                         >
                             Edit User
                         </Button>
+
+                        <hr className="admin-sidebar" />
+
                         <Button onClick={() => setActiveSection('addProduct')}>
                             Add Product
+                        </Button>
+
+                        <Button onClick={() => setActiveSection('editProduct')}>
+                            Edit Product
                         </Button>
                     </aside>
 
@@ -372,9 +566,10 @@ const Admin = () => {
                                     setLoading(true);
                                     const localTime = getLocalIsoString();
 
+                                    let result;
                                     if (isOnline) {
                                         try {
-                                            const result = await AddNewUser({
+                                            result = await AddNewUser({
                                                 UserName: username,
                                                 UserFirstName: firstName,
                                                 UserLastName: lastName,
@@ -384,8 +579,8 @@ const Admin = () => {
                                             });
 
                                             if (result.success === 1) {
-                                                setPopupMessage('User was added successfully.');
                                                 ResetForm();
+                                                setPopupMessage('User was added successfully.');
                                             } else {
                                                 setPopupMessage(result.message || 'User creation failed.');
                                             }
@@ -397,6 +592,30 @@ const Admin = () => {
                                         }
                                     } else {
                                         setError('Internet connection not available.');
+                                    }
+
+                                    //user was added successfully, now send email invite link to customer
+                                    if (result.success === 1) {
+                                        const emailHandler = await fetch(`${import.meta.env.VITE_BASE_URL}/email/send_automated_email`, {
+                                            method: 'POST',
+                                            headers: {
+                                                'Authorization': `Basic ${btoa(import.meta.env.VITE_API_KEY)}`,
+                                                'Content-Type': 'application/json'
+                                            },
+                                            body: JSON.stringify({
+                                                to: email,
+                                            })
+                                        });
+
+                                        if (emailHandler.ok) {
+                                            setPopupMessage('Email was sent successfully to ' + email);
+
+                                            //'trigger the button behaviour' for Edit USer
+                                            setActiveSection('editUser');
+                                            fetchUsers();
+                                        } else {
+                                            setPopupMessage('There was a problem sending the email. Please try again.');
+                                        }
                                     }
                                 }}>
 
@@ -505,7 +724,7 @@ const Admin = () => {
                                 <h2>Edit users:</h2>
 
                                 <CustomGrid
-                                    data={tableData}
+                                    data={userData}
                                     columns={[
                                         { id: 'userName', name: 'User name', width: '100px' },
                                         { id: 'fullName', name: 'Full name', width: '120px' },
@@ -550,10 +769,10 @@ const Admin = () => {
                                         setLoading(true);
 
                                         try {
-                                            const result = await mockAddedProducts({
-                                                productTitle,
-                                                productDescription,
-                                                productImage,
+                                            const result = await uploadNewProduct({
+                                                title: productTitle,
+                                                description: productDescription,
+                                                image: productImage
                                             });
 
                                             if (result.success) {
@@ -562,7 +781,7 @@ const Admin = () => {
                                             }
                                         } catch (error) {
                                             console.error(error);
-                                            setPopupMessage('There was a problem adding the user. Please try again.');
+                                            setPopupMessage('There was a problem adding the product. Please try again.');
                                         } finally {
                                             setLoading(false);
                                         }
@@ -582,50 +801,57 @@ const Admin = () => {
                                                 <Textarea
                                                     value={productDescription}
                                                     onChange={(e) => setProductDescription(e.target.value)}
-                                                    rows={5}
+                                                    rows={4}
                                                     required
                                                     placeholder="Enter the description for this product"
-                                                    minLength={300}
+                                                    minLength={3}
                                                     maxLength={750}
                                                     showValidation={true}
                                                 />
                                             </Label>
 
                                             <Label label={<><span>Product image:</span> <span className="required">*</span></>}>
-                                                <div
-                                                    className="image-uploader"
-                                                    onDragOver={(e) => e.preventDefault()}
-                                                    onDrop={(e) => {
-                                                        e.preventDefault();
-                                                        const file = e.dataTransfer.files[0];
-                                                        if (file) {
-                                                            setProductImage(file);
-                                                            setProductImagePreview(URL.createObjectURL(file));
-                                                        }
-                                                    }}
-                                                >
-                                                    <p>Drag and drop an image here, or click to select</p>
-                                                    <Input
-                                                        type="file"
-                                                        accept="image/*"
-                                                        onChange={(e) => {
-                                                            const file = e.target.files[0];
+                                                <div className="image-upload-wrapper">
+                                                    <div
+                                                        className="image-uploader"
+                                                        onDragOver={(e) => e.preventDefault()}
+                                                        onDrop={(e) => {
+                                                            e.preventDefault();
+                                                            const file = e.dataTransfer.files[0];
                                                             if (file) {
                                                                 setProductImage(file);
                                                                 setProductImagePreview(URL.createObjectURL(file));
                                                             }
                                                         }}
-                                                        required
-                                                    />
-                                                </div>
+                                                    >
+                                                        <p>Drag and drop an image here, or click to select</p>
 
-                                                {productImagePreview && (
-                                                    <div className="image-preview">
-                                                        <img src={productImagePreview} alt="Product Preview"/>
-                                                        <p>{productImage.name}</p>
+                                                        {/*regular input component instead of reuseable component, it didn;t work well, couldn't resolve it*/}
+                                                        {/*issue was that the image uploader didn;t always load and preview the image*/}
+                                                        <input
+                                                            ref={fileInputRef}
+                                                            type="file"
+                                                            accept="image/*"
+                                                            onChange={handleImageChange}
+                                                            className="custom-input"
+                                                        />
                                                     </div>
-                                                )}
+
+                                                    {productImagePreview && (
+                                                        <div className="image-preview">
+                                                            <img src={productImagePreview} alt="Product Preview"/>
+                                                            <p>{productImage.name}</p>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </Label>
+
+                                            {showCropper && cropSrc && (
+                                                <ImageCropper
+                                                    image={cropSrc}
+                                                    fileName={originalFileName}
+                                                    onComplete={handleCroppedImage} />
+                                            )}
 
                                             {error && <ErrorMessage message={error} />}
                                             <Button type="submit" disabled={!canSubmitNewProduct || loading || !isOnline}>
@@ -645,6 +871,127 @@ const Admin = () => {
                                         </fieldset>
                                     </form>
                                 </div>
+                            </section>
+                        )}
+
+                        {activeSection === 'editProduct' && (
+                            <section className="admin-section">
+                                <h2>Edit product:</h2>
+
+                                <form className="admin-form" onSubmit={async (e) => {
+                                    e.preventDefault();
+
+                                    // setLoading(true);
+                                    // const localTime = getLocalIsoString();
+                                    //
+                                    // let result;
+                                    if (isOnline) {
+                                        // try {
+                                        //     result = await AddNewUser({
+                                        //         UserName: username,
+                                        //         UserFirstName: firstName,
+                                        //         UserLastName: lastName,
+                                        //         UserEmailAddress: email,
+                                        //         UserIsAdmin: isAdmin,
+                                        //         UserCreatedDate: localTime,
+                                        //     });
+                                        //
+                                        //     if (result.success === 1) {
+                                        //         ResetForm();
+                                        //         setPopupMessage('User was added successfully.');
+                                        //     } else {
+                                        //         setPopupMessage(result.message || 'User creation failed.');
+                                        //     }
+                                        // } catch (error) {
+                                        //     console.error(error);
+                                        //     setPopupMessage('There was a problem adding the user. Please try again.');
+                                        // } finally {
+                                        //     setLoading(false);
+                                        // }
+                                    } else {
+                                        setError('Internet connection not available.');
+                                    }
+                                }}>
+                                </form>
+
+                                <CustomGrid
+                                    data={productDataFormatted}
+                                    columns={[
+                                        { id: 'header', name: 'Title', width: '140px' },
+                                        { id: 'detail', name: 'Description', width: '300px' },
+                                        { id: 'discontinued', name: 'Used?', width: '90px' },
+                                        { id: 'image', name: 'Image', width: '130px' },
+                                        { id: 'actions', name: 'Actions', width: '120px' },
+                                    ]}
+                                    search={true}
+                                    pagination={true}
+                                    pageLimit={5}
+                                    sort={false}
+                                />
+
+                                {error && <ErrorMessage message={error} />}
+                                {/*button disabled when there are no changes*/}
+
+                                <PopupMessage
+                                    message={popupMessage}
+                                    //navigate to home page after user clicks OK
+                                    onClose={() => {
+                                        setPopupMessage('');
+                                        ResetForm();
+                                    }}
+                                />
+                                {loading && <Spinner/>}
+
+                                {/*modal form when user clicks on Edit inside the datagrid*/}
+                                {showEditModal && productToEdit && (
+                                    <div className="modal-overlay">
+                                        <div className="modal-content">
+                                            <h3>Edit Product</h3>
+
+                                            <Label>
+                                                Header:
+                                                <input
+                                                    type="text"
+                                                    value={productToEdit.title}
+                                                    onChange={(e) =>
+                                                        setProductToEdit({ ...productToEdit, header: e.target.value })
+                                                    }
+                                                />
+                                            </Label>
+
+                                            <Label>
+                                                Detail:
+                                                <textarea
+                                                    value={productToEdit.description}
+                                                    onChange={(e) =>
+                                                        setProductToEdit({ ...productToEdit, detail: e.target.value })
+                                                    }
+                                                />
+                                            </Label>
+
+                                            <div className="checkbox-group">
+                                                <label className="checkbox-label">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={productToEdit.discontinued}
+                                                        onChange={(e) =>
+                                                            setProductToEdit({
+                                                                ...productToEdit,
+                                                                discontinued: e.target.checked,
+                                                            })
+                                                        }
+                                                    />
+                                                    Discontinued
+                                                </label>
+                                            </div>
+
+                                            <div className="button-group">
+                                                <Button onClick={() => setShowEditModal(false)}>Cancel</Button>
+                                                <Button onClick={handleSaveProduct}>Save</Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </section>
                         )}
                     </main>

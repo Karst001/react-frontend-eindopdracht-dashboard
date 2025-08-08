@@ -31,6 +31,7 @@ form h1 {
     box-shadow: 0 0 10px rgba(0,0,0,0.3);       /* light shadow for depth effect */
     width: 400px;                               /* fixed width for consistency */
     margin: 0 auto;                             /* center horizontally */
+    border-radius: 10px;
 }
 
 

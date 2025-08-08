@@ -1,7 +1,6 @@
 import React from 'react';
-// import './Image.css';
 
-//this is a reusable Image component
+//this is a reusable Image component to display images
 const Image = ({ src, alt, className = ''}) => {
     return (
         <img

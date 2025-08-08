@@ -25,6 +25,7 @@ const NewsLetter = () => {
     const [error, setError] = useState('');
     const isOnline = useInternetStatus();
     const { updateSubscription } = useContext(AuthContext);
+    const auth = useContext(AuthContext);
 
     //make the api call
     const handleSubmit = async (e) => {
@@ -93,6 +94,14 @@ const NewsLetter = () => {
     }, [isOnline]);
 
 
+
+    useEffect(() => {
+        if (auth.user) {
+            setEmail(auth.user.email);          //prefill the email address when user is logged in
+        }
+    }, [auth.user]);
+
+
     //This checks if all required fields are non-empty
     const canSubmit = Boolean(fullName.trim() && email.trim() && agreed);
 
@@ -132,6 +141,7 @@ const NewsLetter = () => {
                             }}
                             required
                             placeholder="Enter your email address"
+                            disabled={auth.user && email === auth.user.email}   // disable entry when user is logged in, email field is prefilled when user is logged in
                         />
                         {!emailValid && <p className="error-text">Invalid email address</p>}
                     </Label>
