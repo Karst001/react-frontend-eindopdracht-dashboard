@@ -18,6 +18,7 @@ import ErrorMessage from "../../components/errormessage/ErrorMessage.jsx";
 import { resizeAndCropImage } from '../../helpers/images/imageCropResize.js';         /* Credits to Google and StackOverflow */
 import ImageCropper from "../../components/imagecrop/ImageCropper.jsx";
 import {fetchProductsFromApi} from "../../helpers/api/product.js";               /* Credits to Google and StackOverflow */
+import ImageUploader from "../../components/imageuploader/ImageUploader.jsx";
 
 const Admin = () => {
     const [activeSection, setActiveSection] = useState(null);
@@ -212,6 +213,31 @@ const Admin = () => {
         return await response.json();
     };
 
+    //product uploader using multipart/form-data for large files
+    const uploadEditedProduct = async (product) => {
+        const formData = new FormData();
+        formData.append("ProductID", String(product.id));
+        formData.append("ProductHeaderDescription", product.title ?? '');
+        formData.append("ProductDetailDescription", product.description ?? '');
+        formData.append("ProductDiscontinued", String(!!product.discontinued));
+
+        // Only include a new image if user selected/cropped one (File)
+        if (product.newFile instanceof File) {
+            formData.append("ProductImage", product.newFile, product.newFile.name || 'upload');
+            formData.append("ProductAlt", product.newFile.name || 'upload');
+        }
+
+        const response = await fetch(`${import.meta.env.VITE_BASE_URL}/product/product_update`, {
+            method: 'POST',
+            headers: { 'Authorization': `Basic ${btoa(import.meta.env.VITE_API_KEY)}` },
+            body: formData
+        });
+
+        if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+        return await response.json();
+    };
+
+
     //validate the username with records in the database, there can never be a duplicate username
     const CheckUserNameExists = async () => {
         if (!username.trim()) return;
@@ -396,48 +422,47 @@ const Admin = () => {
         reader.readAsDataURL(file);
     };
 
+
+    // helper
+    const toFile = (blob, name = 'upload.png') =>
+        new File([blob], name, { type: blob.type || 'image/png' });
+
     // triggered after cropping
     const handleCroppedImage = async (croppedFile) => {
         if (!croppedFile) {
-            // User pressed "Cancel"
             setShowCropper(false);
             return;
         }
 
-        console.log("Initial cropped size:", (croppedFile.size / 1024 / 1024).toFixed(1), "MB");
-
         try {
             const resized = await resizeAndCropImage(croppedFile, 900, 600);
-            setProductImage(resized);
-            setProductImagePreview(URL.createObjectURL(resized));
 
-            console.log("Final resized size:", (resized.size / 1024 / 1024).toFixed(1), "MB");
+            // Ensure we store a File (with a .name) not just a Blob
+            const file =
+                resized instanceof File
+                    ? resized
+                    : toFile(resized, originalFileName || 'upload.png');
 
+            setProductImage(file);                              // <-- File
+            setProductImagePreview(URL.createObjectURL(file));  // preview uses the new File
         } catch (error) {
             console.error("Image resizing failed:", error);
         } finally {
-            fileInputRef.current.value = '';            // clear input for future uploads
+            if (fileInputRef.current) fileInputRef.current.value = '';
             setShowCropper(false);
         }
     };
-
-
 
     //below is for the products
     const [productData, setProductData] = useState([]);
     const [productToEdit, setProductToEdit] = useState(null);
     const [showEditModal, setShowEditModal] = useState(false);
 
-    const handleUpdateProduct = async () => {
-        setProductToEdit(productData);
-        setShowEditModal(true);
-    };
-
     //loads products from database only when user wants to edit them
     useEffect(() => {
         if (activeSection === 'editProduct') {
             const loadProducts = async () => {
-                const products = await fetchProductsFromApi();
+                const products = await fetchProductsFromApi(true);
                 setProductData(products);
             };
 
@@ -445,84 +470,32 @@ const Admin = () => {
         }
     }, [activeSection]);
 
+
     //capture the Edit button clicks in editProduct section
-    const productDataFormatted = productData.map(product => [
+    const allProductData = productData.map(product => [
         product.title,
         product.description,
         product.discontinued ? 'Yes' : 'No',
         product.imageBase64
-            ? h('img', {
-                src: product.imageBase64,
-                alt: 'preview',
-                style: 'max-width: 100px;',
-            })
+            ? h('img', { src: product.imageBase64, alt: 'preview', style: 'max-width: 100px;' })
             : 'No Image',
         h(
             'button',
             {
                 className: 'btn-primary',
-                'data-product': JSON.stringify(product),
+                onClick: () => {
+                    // show existing image by default
+                    setProductImage({ name: 'current-image' });
+                    setProductImagePreview(product.imageBase64 || null);
+
+                    setProductToEdit(product);
+                    setShowEditModal(true);
+                },
+                disabled: !isOnline
             },
             'Edit'
         )
     ]);
-
-    useEffect(() => {
-        const handler = (e) => {
-            if (e.target.classList.contains('btn-primary')) {
-                try {
-                    const raw = e.target.dataset.product;
-                    const decoded = decodeURIComponent(raw); // decode data first,
-                    const data = JSON.parse(decoded);               // then parse to new object
-
-                    setProductToEdit(data);                         //pass data to modal form
-                    setShowEditModal(true);                  //show modal form to allow product editing
-                } catch (err) {
-                    console.error("Failed to parse product data:", err);
-                }
-            }
-        };
-
-        document.addEventListener('click', handler);
-        return () => document.removeEventListener('click', handler);
-    }, []);
-
-
-    //call to API to update the product to database
-    const handleSaveProduct = async () => {
-        try {
-            const response = await fetch(`${import.meta.env.VITE_BASE_URL}/product/update`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Basic ${btoa(import.meta.env.VITE_API_KEY)}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    ProductID: productToEdit.id,
-                    ProductHeaderDescription: productToEdit.header,
-                    ProductDetailDescription: productToEdit.detail,
-                    ProductDiscontinued: productToEdit.discontinued,
-                }),
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                setPopupMessage("Product updated successfully.");
-                setShowEditModal(false);
-
-                // Reload grid data
-                const refreshed = await fetchProductsFromApi();
-                setProductData(refreshed);
-            } else {
-                setPopupMessage("Update failed.");
-            }
-        } catch (error) {
-            console.error("Error updating product:", error);
-            setPopupMessage("Something went wrong.");
-        }
-    };
-
 
 
     return (
@@ -794,6 +767,10 @@ const Admin = () => {
                                                     onChange={(e) => setProductTitle(e.target.value)}
                                                     required
                                                     placeholder="Enter the product title"
+                                                    minLength={10}
+                                                    maxLength={30}
+                                                    showCounter={true}
+                                                    showValidation={true}
                                                 />
                                             </Label>
 
@@ -810,48 +787,14 @@ const Admin = () => {
                                                 />
                                             </Label>
 
-                                            <Label label={<><span>Product image:</span> <span className="required">*</span></>}>
-                                                <div className="image-upload-wrapper">
-                                                    <div
-                                                        className="image-uploader"
-                                                        onDragOver={(e) => e.preventDefault()}
-                                                        onDrop={(e) => {
-                                                            e.preventDefault();
-                                                            const file = e.dataTransfer.files[0];
-                                                            if (file) {
-                                                                setProductImage(file);
-                                                                setProductImagePreview(URL.createObjectURL(file));
-                                                            }
-                                                        }}
-                                                    >
-                                                        <p>Drag and drop an image here, or click to select</p>
-
-                                                        {/*regular input component instead of reuseable component, it didn;t work well, couldn't resolve it*/}
-                                                        {/*issue was that the image uploader didn;t always load and preview the image*/}
-                                                        <input
-                                                            ref={fileInputRef}
-                                                            type="file"
-                                                            accept="image/*"
-                                                            onChange={handleImageChange}
-                                                            className="custom-input"
-                                                        />
-                                                    </div>
-
-                                                    {productImagePreview && (
-                                                        <div className="image-preview">
-                                                            <img src={productImagePreview} alt="Product Preview"/>
-                                                            <p>{productImage.name}</p>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </Label>
-
-                                            {showCropper && cropSrc && (
-                                                <ImageCropper
-                                                    image={cropSrc}
-                                                    fileName={originalFileName}
-                                                    onComplete={handleCroppedImage} />
-                                            )}
+                                            <ImageUploader
+                                                fileInputRef={fileInputRef}
+                                                productImage={productImage}
+                                                productImagePreview={productImagePreview}
+                                                setProductImage={setProductImage}
+                                                setProductImagePreview={setProductImagePreview}
+                                                handleImageChange={handleImageChange}
+                                            />
 
                                             {error && <ErrorMessage message={error} />}
                                             <Button type="submit" disabled={!canSubmitNewProduct || loading || !isOnline}>
@@ -878,48 +821,12 @@ const Admin = () => {
                             <section className="admin-section">
                                 <h2>Edit product:</h2>
 
-                                <form className="admin-form" onSubmit={async (e) => {
-                                    e.preventDefault();
-
-                                    // setLoading(true);
-                                    // const localTime = getLocalIsoString();
-                                    //
-                                    // let result;
-                                    if (isOnline) {
-                                        // try {
-                                        //     result = await AddNewUser({
-                                        //         UserName: username,
-                                        //         UserFirstName: firstName,
-                                        //         UserLastName: lastName,
-                                        //         UserEmailAddress: email,
-                                        //         UserIsAdmin: isAdmin,
-                                        //         UserCreatedDate: localTime,
-                                        //     });
-                                        //
-                                        //     if (result.success === 1) {
-                                        //         ResetForm();
-                                        //         setPopupMessage('User was added successfully.');
-                                        //     } else {
-                                        //         setPopupMessage(result.message || 'User creation failed.');
-                                        //     }
-                                        // } catch (error) {
-                                        //     console.error(error);
-                                        //     setPopupMessage('There was a problem adding the user. Please try again.');
-                                        // } finally {
-                                        //     setLoading(false);
-                                        // }
-                                    } else {
-                                        setError('Internet connection not available.');
-                                    }
-                                }}>
-                                </form>
-
                                 <CustomGrid
-                                    data={productDataFormatted}
+                                    data={allProductData}
                                     columns={[
                                         { id: 'header', name: 'Title', width: '140px' },
                                         { id: 'detail', name: 'Description', width: '300px' },
-                                        { id: 'discontinued', name: 'Used?', width: '90px' },
+                                        { id: 'discontinued', name: "Disco'd?", width: '90px' },
                                         { id: 'image', name: 'Image', width: '130px' },
                                         { id: 'actions', name: 'Actions', width: '120px' },
                                     ]}
@@ -945,54 +852,157 @@ const Admin = () => {
                                 {/*modal form when user clicks on Edit inside the datagrid*/}
                                 {showEditModal && productToEdit && (
                                     <div className="modal-overlay">
-                                        <div className="modal-content">
+                                        <div className="add-user-section">
                                             <h3>Edit Product</h3>
 
-                                            <Label>
-                                                Header:
-                                                <input
-                                                    type="text"
-                                                    value={productToEdit.title}
-                                                    onChange={(e) =>
-                                                        setProductToEdit({ ...productToEdit, header: e.target.value })
-                                                    }
-                                                />
-                                            </Label>
+                                            <form
+                                                className="admin-form modal-form"
+                                                onSubmit={async (e) => {
+                                                    e.preventDefault();
+                                                    setLoading(true);
+                                                    if (isOnline) {
+                                                    try {
+                                                        const result = await uploadEditedProduct({
+                                                            id: productToEdit.id,
+                                                            title: productToEdit.title,
+                                                            description: productToEdit.description,
+                                                            discontinued: productToEdit.discontinued,
+                                                            newFile: productImage || null, // use the cropped File if present
+                                                        });
 
-                                            <Label>
-                                                Detail:
-                                                <textarea
-                                                    value={productToEdit.description}
-                                                    onChange={(e) =>
-                                                        setProductToEdit({ ...productToEdit, detail: e.target.value })
-                                                    }
-                                                />
-                                            </Label>
+                                                        if (result?.success) {
+                                                            setPopupMessage("Product updated successfully.");
+                                                            setShowEditModal(false);
 
-                                            <div className="checkbox-group">
-                                                <label className="checkbox-label">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={productToEdit.discontinued}
-                                                        onChange={(e) =>
-                                                            setProductToEdit({
-                                                                ...productToEdit,
-                                                                discontinued: e.target.checked,
-                                                            })
+                                                            const refreshed = await fetchProductsFromApi(true);
+                                                            setProductData(refreshed);
+                                                        } else {
+                                                            setPopupMessage(result?.message || "Update failed.");
                                                         }
-                                                    />
-                                                    Discontinued
-                                                </label>
-                                            </div>
+                                                    } catch (err) {
+                                                        console.error(err);
+                                                        setPopupMessage("Something went wrong.");
+                                                    } finally {
+                                                        setLoading(false);
+                                                    }
+                                                    } else {
+                                                        setError('Internet connection not available.');
+                                                    }
+                                                }}
+                                            >
+                                                <div className="modal-body">
+                                                    <fieldset className="admin-form">
+                                                        <Label>
+                                                            Header:
+                                                            <Input
+                                                                type="text"
+                                                                value={productToEdit.title}
+                                                                onChange={(e) =>
+                                                                    setProductToEdit({
+                                                                        ...productToEdit,
+                                                                        title: e.target.value,
+                                                                    })
+                                                                }
+                                                                minLength={10}
+                                                                maxLength={30}
+                                                                showValidation={true}
+                                                                required
+                                                            />
+                                                        </Label>
 
-                                            <div className="button-group">
-                                                <Button onClick={() => setShowEditModal(false)}>Cancel</Button>
-                                                <Button onClick={handleSaveProduct}>Save</Button>
-                                            </div>
+                                                        <Label
+                                                            label={
+                                                                <>
+                                                                    <span>Description:</span>{" "}
+                                                                    <span className="required">*</span>
+                                                                </>
+                                                            }
+                                                        >
+                                                            <Textarea
+                                                                value={productToEdit.description}
+                                                                onChange={(e) =>
+                                                                    setProductToEdit({
+                                                                        ...productToEdit,
+                                                                        description: e.target.value,
+                                                                    })
+                                                                }
+                                                                rows={5}
+                                                                required
+                                                                placeholder="Enter the description for this product"
+                                                                minLength={30}
+                                                                maxLength={750}
+                                                                showValidation={true}
+                                                            />
+                                                        </Label>
+
+                                                        <div className="checkbox-group">
+                                                            <label className="checkbox-label">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={productToEdit.discontinued}
+                                                                    onChange={(e) =>
+                                                                        setProductToEdit({
+                                                                            ...productToEdit,
+                                                                            discontinued: e.target.checked,
+                                                                        })
+                                                                    }
+                                                                />
+                                                                Discontinued
+                                                            </label>
+                                                        </div>
+
+                                                        <ImageUploader
+                                                            fileInputRef={fileInputRef}
+                                                            productImage={productImage}
+                                                            productImagePreview={
+                                                                productImagePreview || productToEdit.imageBase64 || null
+                                                            }
+                                                            setProductImage={setProductImage}
+                                                            setProductImagePreview={setProductImagePreview}
+                                                            handleImageChange={handleImageChange}
+                                                        />
+
+                                                        <PopupMessage
+                                                            message={popupMessage}
+                                                            onClose={() => {
+                                                                setPopupMessage("");
+                                                            }}
+                                                        />
+                                                        {loading && <Spinner />}
+                                                    </fieldset>
+                                                </div>
+
+                                                {error && <ErrorMessage message={error} />}
+                                                {/*button disabled when there are no changes*/}
+
+                                                <div className="modal-footer">
+                                                    <Button
+                                                        type="button"
+                                                        onClick={() => setShowEditModal(false)}
+                                                    >
+                                                        Cancel
+                                                    </Button>
+                                                    <Button
+                                                        type="submit"
+                                                        disabled={loading || !isOnline}
+                                                    >
+                                                        Save
+                                                    </Button>
+                                                </div>
+                                            </form>
                                         </div>
                                     </div>
                                 )}
                             </section>
+                        )}
+
+                        {/* this cropper is used for Adding and Editing products */}
+                        {showCropper && cropSrc && (
+                            <ImageCropper
+                                image={cropSrc}
+                                fileName={originalFileName}
+                                onComplete={handleCroppedImage}
+                            />
                         )}
                     </main>
                 </div>

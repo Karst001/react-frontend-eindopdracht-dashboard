@@ -7,3 +7,31 @@
     font-family: inherit;
     color: var(--color-dark-grey);
 }
+
+
+
+.input-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+.char-counter {
+    font-size: 0.85rem;
+    color: var(--color-medium-grey);
+    margin-top: 4px;
+    text-align: left;
+}
+
+.char-counter-error {
+    color: var(--color-red);
+}
+
+.input-error {
+    border-color: var(--color-red);
+}
+
+.input-error-message {
+    font-size: 0.8rem;
+    color: var(--color-red);
+    margin-top: 2px;
+}

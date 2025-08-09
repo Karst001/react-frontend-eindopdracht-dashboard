@@ -188,6 +188,7 @@ function Profile() {
         }
     }, [newPassword, confirmPassword]);
 
+
     useEffect(() => {
         if (isOnline) {
             setError('');
@@ -306,7 +307,7 @@ function Profile() {
 
                                 <Button
                                     type="button"
-                                    disabled={loading}
+                                    disabled={loading || !isOnline}
                                     onClick={() => {
                                         handleSubscriptionUpdate(false);           // now call the API to unsubscribe
                                     }}

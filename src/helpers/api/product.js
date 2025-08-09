@@ -1,8 +1,16 @@
 //called by Home.jsx and Admin.jsx
 
-export const fetchProductsFromApi = async () => {
+export const fetchProductsFromApi = async (showDiscontinued = false) => {
     try {
-        const response = await fetch(`${import.meta.env.VITE_BASE_URL}/product/get_all`, {
+        let Url = '';
+
+        if (showDiscontinued) {
+            Url = `${import.meta.env.VITE_BASE_URL}/product/get_all`
+        } else
+        {
+            Url = `${import.meta.env.VITE_BASE_URL}/product/get_all_active_products`
+        }
+        const response = await fetch(Url, {
             method: 'GET',
             headers: {
                 'Authorization': `Basic ${btoa(import.meta.env.VITE_API_KEY)}`,
