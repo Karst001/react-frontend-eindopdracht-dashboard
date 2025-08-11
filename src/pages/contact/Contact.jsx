@@ -61,6 +61,14 @@ const ContactUs = () => {
         if (isOnline) {
             setLoading(true);
             const localTime = getLocalIsoString();
+            const bodyContent = JSON.stringify({
+                AreaOfInquiry: area,
+                RequestFromCountry: country,
+                CompanyName: companyName,
+                RequestersName: yourName,
+                RequestersEmail: email,
+                Message: message,
+                RequestSendDate: localTime});
 
             try {
                 const encoded = btoa(import.meta.env.VITE_API_KEY);
@@ -71,15 +79,7 @@ const ContactUs = () => {
                         'Content-Type': 'application/json',
                         'Authorization': `Basic ${encoded}`,
                     },
-                    body: JSON.stringify({
-                        AreaOfInquiry: area,
-                        RequestFromCountry: country,
-                        CompanyName: companyName,
-                        RequestersName: yourName,
-                        RequestersEmail: email,
-                        Message: message,
-                        RequestSendDate: localTime,
-                    }),
+                    body: bodyContent,
                 });
 
                 const result = await response.json();
@@ -87,6 +87,7 @@ const ContactUs = () => {
                 if (response.ok && result.success === 1) {
                     setPopupMessage('Your request was submitted and you will be contacted by our department within 48 hours.');
 
+                    console.log('ContactUs: ', bodyContent)
                     // Reset form
                     setArea('');
                     setCountry('');

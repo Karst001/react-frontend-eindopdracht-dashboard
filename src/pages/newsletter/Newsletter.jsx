@@ -44,23 +44,27 @@ const NewsLetter = () => {
             try {
                 const encoded = btoa(import.meta.env.VITE_API_KEY);
 
+                const bodyContent = JSON.stringify({
+                    email,
+                    fullName,
+                    Subscribed: true,
+                    CurrentDate: localTime
+                });
+
                 const response = await fetch(`${import.meta.env.VITE_BASE_URL}/newsletter/newsletter_create`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Basic ${encoded}`,
                     },
-                    body: JSON.stringify({
-                        email,
-                        fullName,
-                        Subscribed: true,
-                        CurrentDate: localTime
-                    }),
+                    body: bodyContent,
                 });
 
                 const result = await response.json();
 
                 if (result.success === 1) {
+                    console.log('Newsletter: ', bodyContent);
+
                     updateSubscription(true); // update context, this triggers a re-render everywhere
                     setFullName('');
                     setEmail('');
