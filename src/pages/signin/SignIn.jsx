@@ -327,12 +327,18 @@ function SignIn() {
                     <section className="signin-box">
                         {step === 1 && (
                             <form onSubmit={checkEmail}>
-                                {tokenRef.current ? (
-                                    <h1>Complete your registration</h1>
-                                ) : (
-                                    <h1>Login</h1>
-                                )}
-                                {/*<h1>Login</h1>*/}
+                                <div className="signin-header">
+                                    {tokenRef.current ? (
+                                        <h1>Complete your registration</h1>
+                                    ) : (
+                                        <h1>Login</h1>
+                                    )}
+                                    <img
+                                        src="/src/assets/logo.png"
+                                        alt="Logo"
+                                        className="signin-logo"
+                                    />
+                                </div>
 
                                 <p>Welcome to our Partner Portal</p>
 
@@ -347,6 +353,11 @@ function SignIn() {
                                             setEmail(value);
                                             setEmailValid(validateEmail(value));                                        // validation while typing
                                             if (!hasTypedEmail) setHasTypedEmail(true);                           // user is typing email
+                                            setError((prev) =>                                      // if the error is other then 'internet connection error, clear the error' while retyping
+                                                prev?.startsWith('Unknown email') || prev?.startsWith('This email address is not registered yet.')
+                                                    ? ''
+                                                    : prev
+                                            );
                                         }}
                                         required
                                         placeholder="Please enter your email address"
@@ -375,12 +386,18 @@ function SignIn() {
                                     ◀ Back
                                 </Button>
 
-                                <h1>Login</h1>
+                                {/*<h1>Login</h1>*/}
 
-                                <p>Welcome to our Partner Portal</p>
-                                <p>Login to continue</p>
+                                <div className="signin-header">
+                                    <h1>Login</h1>
+                                    <img
+                                        src="/src/assets/logo.png"
+                                        alt="Logo"
+                                        className="signin-logo"
+                                    />
+                                </div>
 
-                                <Label label="Enter your password:">
+                                <Label label="Enter your password to continue:">
                                     <input
                                         type="password"
                                         value={password}

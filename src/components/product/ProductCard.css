@@ -25,11 +25,28 @@
     transform: translateX(0);
 }
 
+.description {
+    flex: 1;                                            /* same width as image container */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 10px;
+    height: 450px;                                      /* match height of image placeholder */
+    text-align: center;
+}
+
 .description h3 {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
     font-weight: bold;
     color: var(--color-background-blue);                /* blue color */
 }
+
+.description p {
+    text-align: left;
+    margin-left: 35px;
+    margin-right: 35px;
+}
+
 
 .image-placeholder {
     flex: 1;                                            /* takes equal space as the description */
@@ -46,15 +63,7 @@
     display: block;                                     /* removes default inline spacing below imagecrop */
 }
 
-.description {
-    flex: 1;                                            /* same width as image container */
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 10px;
-    height: 400px;                                      /* match height of image placeholder */
-    text-align: center;
-}
+
 
 .button-row {
     display: flex;
@@ -83,7 +92,7 @@
         align-items: center;
         padding: 10px;
         gap: 10px;
-        width: 95%;                                 /* leaves space on each side */
+        width: calc(100% - 20px);                   /* shrink slightly */
         margin: 0 auto 30px;                        /* center + space below each card */
         box-sizing: border-box;
     }

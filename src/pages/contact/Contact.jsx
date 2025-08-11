@@ -180,7 +180,7 @@ const ContactUs = () => {
                             rows={3}
                             required
                             placeholder="Please describe how we can assist you"
-                            minLength={20}
+                            minLength={30}
                             maxLength={500}
                             showValidation={true}
                         />

@@ -89,6 +89,22 @@ input {
 }
 /* end */
 
+
+/* Container for the heading and logo */
+.signin-header {
+    display: flex;
+    justify-content: space-between; /* push items apart */
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.signin-logo {
+    height: 40px;   /* adjust size */
+    width: auto;
+    object-fit: contain;
+}
+
+
 /* Mobile: 768px and below */
 @media (max-width: 768px) {
     .signin-box {

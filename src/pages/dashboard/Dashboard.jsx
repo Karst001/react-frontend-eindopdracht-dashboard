@@ -18,6 +18,7 @@ import {
 
 import Clock from "../../components/clock/Clock.jsx";
 import CustomGrid from "../../components/datagrid/CustomGrid.jsx";
+import { useInternetStatus  } from '../../hooks/useInternetStatus.js';
 
 const Dashboard = () => {
     const [machine, setMachine] = useState('');
@@ -34,6 +35,10 @@ const Dashboard = () => {
     //used to track if screen is mobile or not, if mobile then the pie charts are smaller size
     const isMobile = window.innerWidth <= 768;
     const [hamburgerOpen, setHamburgerOpen] = useState(false);
+
+
+    //track if internet is online or not, if it changes trigger the fetch routine to update dashboard
+    const isOnline = useInternetStatus();
 
     //set colors for donuts via a state, load initial blank color value into state
     const [donutColors, setDonutColors] = useState({
@@ -56,27 +61,6 @@ const Dashboard = () => {
         });
         //usage further in jsx: donutColors.Jobs instead of inline css
     }, []);
-
-
-
-    // Define donut data and colors
-    const donutData = [
-        {label: 'Jobs', value: 22, color: donutColors.Jobs},
-        {label: 'Sleeves', value: 48, color: donutColors.Sleeves},
-        {label: 'Plates', value: 99, color: donutColors.Plates},
-    ];
-
-    // Calculate total based on highest value, this is done for proportional rendering instead of showing 3 donuts with 100% fill, kinda meaningless
-    const donutMax = Math.max(...donutData.map(item => item.value));
-
-    //forecast section
-    const forecastData = [
-        {name: 'Juli 21', Jobs: 34, Sleeves: 60, Plates: 90},
-        {name: 'Juli 22', Jobs: 68, Sleeves: 85, Plates: 130},
-        {name: 'Juli 23', Jobs: 48, Sleeves: 72, Plates: 110},
-        {name: 'Juli 24', Jobs: 50, Sleeves: 50, Plates: 50},
-        {name: 'Juli 25', Jobs: 60, Sleeves: 120, Plates: 120}
-    ];
 
     //custom tooltip
     const CustomTooltip = ({active, payload, label}) => {
@@ -105,36 +89,6 @@ const Dashboard = () => {
             </div>
         );
     };
-
-    //data for Mounting Summary Ytd
-    const mountingSummaryYtd = [
-        {label: 'Jobs', value: 325, color: donutColors.Jobs},
-        {label: 'Sleeves', value: 752, color: donutColors.Sleeves},
-        {label: 'Plates', value: 1840, color: donutColors.Plates},
-    ];
-
-    //same for Mtd
-    const mountingSummaryMtd = [
-        {label: 'Jobs', value: 68, color: donutColors.Jobs},
-        {label: 'Sleeves', value: 268, color: donutColors.Sleeves},
-        {label: 'Plates', value: 512, color: donutColors.Plates},
-    ];
-
-    //calculate max values so donuts are rendered proportionally, the MTD values are always less than YTD
-    //so the YTD Plates set the stage for proportion
-    const allValues = [
-        ...mountingSummaryMtd.map(d => d.value),
-        ...mountingSummaryYtd.map(d => d.value)
-    ];
-    const mountingSummaryMax = Math.max(...allValues);
-
-
-    //data for tomorrow and day after
-    const combinedForecastData = [
-        {name: 'Juli 19', Jobs: 322, Sleeves: 840, Plates: 1150},
-        {name: 'Juli 20', Jobs: 299, Sleeves: 750, Plates: 1550}
-    ];
-
 
     //data set for popup graph
     const mountData2023 = [
@@ -167,12 +121,10 @@ const Dashboard = () => {
         {name: 'Dec 2024', Jobs: 0, Sleeves: 0, Plates: 0}
     ];
 
-
     const closePopup = () => {
         setIsModalOpen(false);
         setSelectedMonth(null);
     };
-
 
     //datasource for the drilldown details
     const drilldownData = {
@@ -226,6 +178,109 @@ const Dashboard = () => {
         window.addEventListener('resize', updatePageLimit);
         return () => window.removeEventListener('resize', updatePageLimit);
     }, [isModalOpen]);
+
+    //Today's Schedule
+    const [dashboardData, setDashboardData] = useState(null);
+    const today = dashboardData?.TodaysSchedule?.[0]; // first (and only) object in TodaysSchedule
+    const donutData = today
+        ? [
+            { label: "Jobs", value: today.Jobs, color: donutColors.Jobs },
+            { label: "Sleeves", value: today.Sleeves, color: donutColors.Sleeves },
+            { label: "Plates", value: today.Plates, color: donutColors.Plates }
+        ]
+        : [];
+
+    // Calculate total based on highest value, this is done for proportional rendering instead of showing 3 donuts with 100% fill, kinda meaningless
+    const donutMax = Math.max(...donutData.map(item => item.value));
+
+
+    //data for tomorrow and day after
+    const nextTwoDays = dashboardData?.NextTwoDays?.[0]; // first (and only) object in TodaysSchedule
+    const combinedForecastData = nextTwoDays ?
+        dashboardData.NextTwoDays.map(day => ({
+            name: day.ForDate,
+            Jobs: day.Jobs,
+            Sleeves: day.Sleeves,
+            Plates: day.Plates
+        })) : [];
+
+    //forecast section
+    const nextFiveDays = dashboardData?.NextFiveDays?.[0]; // first (and only) object in TodaysSchedule
+    const forecastData = nextFiveDays ?
+        dashboardData.NextFiveDays.map(day => ({
+            name: day.ForDate,
+            Jobs: day.Jobs,
+            Sleeves: day.Sleeves,
+            Plates: day.Plates
+        })) : [];
+
+    //summary Mtd
+    const summaryMtd = dashboardData?.MountingSummary?.MTD?.[0];
+    const mountingSummaryMtd = summaryMtd
+        ? [
+            { label: "Jobs", value: summaryMtd.Jobs, color: donutColors.Jobs },
+            { label: "Sleeves", value: summaryMtd.Sleeves, color: donutColors.Sleeves },
+            { label: "Plates", value: summaryMtd.Plates, color: donutColors.Plates }
+        ]
+        : [];
+
+    // summary YTD
+    const summaryYtd = dashboardData?.MountingSummary?.YTD?.[0];
+    const mountingSummaryYtd = summaryYtd
+        ? [
+            { label: "Jobs", value: summaryYtd.Jobs, color: donutColors.Jobs },
+            { label: "Sleeves", value: summaryYtd.Sleeves, color: donutColors.Sleeves },
+            { label: "Plates", value: summaryYtd.Plates, color: donutColors.Plates }
+        ]
+        : [];
+
+    //calculate max values so donuts are rendered proportionally, the MTD values are always less than YTD
+    //so the YTD Plates set the stage for proportion
+    const allValues = [
+        ...mountingSummaryMtd.map(d => d.value),
+        ...mountingSummaryYtd.map(d => d.value)
+    ];
+    const mountingSummaryMax = Math.max(...allValues, 0);
+
+    useEffect(() => {
+        if (!isOnline || (showJobPanel || showAvgTimeBetweenJobsPanel || showAvgTimeBetweenSleevesPanel)) {
+            // Don't refresh data on dashboard if any panel is open or when internet is interrupted
+            return;
+        }
+
+        let intervalId;
+
+        async function fetchDashboard() {
+            try {
+                const res = await fetch("http://localhost:58890/api/dashboard/get_dashboard_update", {
+                    method: "GET",
+                    headers: {
+                        "Accept": "application/json",
+                        'Authorization': `Basic ${btoa(import.meta.env.VITE_API_KEY)}`,
+                    }
+                });
+
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+                setDashboardData(data);
+                // setError(null);
+            } catch (err) {
+                console.error("Error fetching dashboard counts:", err);
+                // setError(err.message);
+            }
+        }
+
+        // Fetch immediately on mount
+        fetchDashboard();
+
+        // Then fetch every 5 seconds
+        intervalId = setInterval(fetchDashboard, 5000);
+
+        // Cleanup when leaving Home page
+        return () => clearInterval(intervalId);
+
+    }, [isOnline, showJobPanel, showAvgTimeBetweenJobsPanel, showAvgTimeBetweenSleevesPanel]);
+
 
     return (
         // wrapped inside a class because there is a Home button on mobile page
@@ -336,7 +391,6 @@ const Dashboard = () => {
                             <Button onClick={() => setShowAvgTimeBetweenSleevesPanel(true)}>
                                 Time between Sleeves
                             </Button>
-
                         </div>
 
                         <Clock className="dashboard-clock" />

@@ -12,8 +12,13 @@ import './ErrorMessage.css';
 function ErrorMessage({ message }) {
     if (!message) return null;
 
+    //error messages don't as it may not be user friendly UI, for internet connection
+    //failure this is an exception
+    const isOfflineError =
+        message.toLowerCase().includes('internet connection');
+
     return (
-        <p className="error-text">
+        <p className={`error-text ${isOfflineError ? 'blink' : ''}`}>
             {message.split('\n').map((line, i) => (
                 <React.Fragment key={i}>
                     {line}

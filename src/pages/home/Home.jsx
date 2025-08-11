@@ -3,6 +3,7 @@ import './Home.css';
 import ProductCard from "../../components/product/ProductCard";
 import Button from "../../components/button/Button.jsx";
 import { fetchProductsFromApi } from '../../helpers/api/product';
+import homePageVideo from "../../assets/web-video.mp4";
 
 const Home = () => {
     const [products, setProducts] = useState([]);
@@ -13,8 +14,6 @@ const Home = () => {
             const products = await fetchProductsFromApi();
             setProducts(products);
         };
-
-        loadProducts();
 
         //the content should scroll over the video
         const handleScroll = () => {
@@ -39,8 +38,8 @@ const Home = () => {
         };
 
         window.addEventListener("scroll", handleScroll);
+        loadProducts();
         return () => window.removeEventListener("scroll", handleScroll);
-
     }, []);
 
 
@@ -54,6 +53,7 @@ const Home = () => {
 
         return () => clearTimeout(timer);
     }, []);
+
 
     useEffect(() => {
         const overlays = document.querySelectorAll('.video-overlay-text-right');
@@ -80,19 +80,37 @@ const Home = () => {
 
 
     return (
-        // <div className="video-wrapper">
         <div>
+            {/*video from web server*/}
+            {/*<section className="video-placeholder">*/}
+            {/*    <video*/}
+            {/*        src="https://www.w3schools.com/html/mov_bbb.mp4"*/}
+            {/*        width="100%"*/}
+            {/*        height="100%"*/}
+            {/*        autoPlay*/}
+            {/*        muted*/}
+            {/*        loop*/}
+            {/*        playsInline*/}
+            {/*        style={{ objectFit: "cover" }}*/}
+            {/*    />*/}
+            {/*</section>*/}
+
+            {/*video embedded in site*/}
+            {/*convert MPEG first to MP4: as browsers do not support MPEG format*/}
+            {/*CloudConvert – reliable, supports .mpg → .mp4.*/}
+            {/*Choose MP4 (H.264) as the output format.*/}
             <section className="video-placeholder">
                 <video
-                    src="https://www.w3schools.com/html/mov_bbb.mp4"
                     width="100%"
-                    height="100%"
+                    height="110%"
                     autoPlay
                     muted
                     loop
                     playsInline
                     style={{ objectFit: "cover" }}
-                />
+                >
+                    <source src={homePageVideo} type="video/mp4" />
+                </video>
             </section>
 
             <div className="video-overlay">

@@ -20,6 +20,7 @@ import ImageCropper from "../../components/imagecrop/ImageCropper.jsx";
 import {fetchProductsFromApi} from "../../helpers/api/product.js";               /* Credits to Google and StackOverflow */
 import ImageUploader from "../../components/imageuploader/ImageUploader.jsx";
 
+
 const Admin = () => {
     const [activeSection, setActiveSection] = useState(null);
     const [username, setUserName] = useState('');
@@ -585,7 +586,7 @@ const Admin = () => {
 
                                             //'trigger the button behaviour' for Edit USer
                                             setActiveSection('editUser');
-                                            fetchUsers();
+                                            await fetchUsers(); //reload the user table
                                         } else {
                                             setPopupMessage('There was a problem sending the email. Please try again.');
                                         }
@@ -601,6 +602,9 @@ const Admin = () => {
                                                 onBlur={CheckUserNameExists}
                                                 required
                                                 placeholder="Enter the user name for this account"
+                                                minLength={6}
+                                                maxLength={10}
+                                                showValidation={true}
                                             />
                                             {!usernameValid && <p className="error-text">{usernameCheckMessage}</p>}
                                         </Label>
@@ -611,6 +615,9 @@ const Admin = () => {
                                                 onChange={(e) => setFirstName(e.target.value)}
                                                 required
                                                 placeholder="Enter the first name for this user"
+                                                minLength={2}
+                                                maxLength={30}
+                                                showValidation={true}
                                             />
                                         </Label>
 
@@ -620,6 +627,9 @@ const Admin = () => {
                                                 onChange={(e) => setLastName(e.target.value)}
                                                 required
                                                 placeholder="Enter the last name for this user"
+                                                minLength={5}
+                                                maxLength={50}
+                                                showValidation={true}
                                             />
                                         </Label>
 
@@ -656,6 +666,9 @@ const Admin = () => {
                                                 }}
                                                 required
                                                 placeholder="Enter the customer ID for this account (6 digits long)"
+                                                minLength={6}
+                                                maxLength={6}
+                                                showValidation={true}
                                             />
                                             {!customerIDValid && <p className="error-text">Customer ID must be at least 6 digits, text is not allowed</p>}
                                         </Label>
@@ -781,8 +794,8 @@ const Admin = () => {
                                                     rows={4}
                                                     required
                                                     placeholder="Enter the description for this product"
-                                                    minLength={3}
-                                                    maxLength={750}
+                                                    minLength={25}
+                                                    maxLength={650}
                                                     showValidation={true}
                                                 />
                                             </Label>
@@ -826,7 +839,7 @@ const Admin = () => {
                                     columns={[
                                         { id: 'header', name: 'Title', width: '140px' },
                                         { id: 'detail', name: 'Description', width: '300px' },
-                                        { id: 'discontinued', name: "Disco'd?", width: '90px' },
+                                        { id: 'discontinued', name: "Hide?", width: '90px' },
                                         { id: 'image', name: 'Image', width: '130px' },
                                         { id: 'actions', name: 'Actions', width: '120px' },
                                     ]}
@@ -929,8 +942,8 @@ const Admin = () => {
                                                                 rows={5}
                                                                 required
                                                                 placeholder="Enter the description for this product"
-                                                                minLength={30}
-                                                                maxLength={750}
+                                                                minLength={25}
+                                                                maxLength={650}
                                                                 showValidation={true}
                                                             />
                                                         </Label>
@@ -947,7 +960,7 @@ const Admin = () => {
                                                                         })
                                                                     }
                                                                 />
-                                                                Discontinued
+                                                                Hide on Home page?
                                                             </label>
                                                         </div>
 
