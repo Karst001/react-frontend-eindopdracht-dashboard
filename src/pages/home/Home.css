@@ -7,7 +7,7 @@
     left: 50%;                                              /* center horizontally */
     transform: translateX(-50%);                            /* true center with fixed position */
     width: 80vw;
-    height: 85vh;
+    height: 80vh;
     z-index: 500;                                           /* behind content but on top of background */
     overflow: hidden;
     background: var(--color-light-soft-grey);               /* fallback background color */
@@ -151,19 +151,6 @@
 .video-overlay-text-bottom.visible {
     transform: translate(-50%, 0%);
     opacity: 1;
-}
-
-/* button over video content, a call to action */
-.overlay-btn {
-    margin-top: 20px;
-    padding: 12px 24px;
-    font-size: 1rem;
-    color: var(--color-white);
-    background-color: var(--color-background-blue);
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
 }
 
 

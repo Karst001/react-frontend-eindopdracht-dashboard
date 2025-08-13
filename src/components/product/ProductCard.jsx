@@ -1,7 +1,5 @@
 import React from "react";
 import './ProductCard.css';
-import famm30 from '../../assets/FAMM3.0.png';
-import samm20 from '../../assets/SAMM2.0.png';
 import Button from "../../components/button/Button.jsx";
 import Image from "../../components/image/Image.jsx";
 
@@ -16,13 +14,15 @@ const ProductCard = ({product, direction, animateOnScroll = true}) => {
     return (
         // apply dynamic classes for animation and layout direction
         // 'from-left' means image on left, text on right; otherwise reversed
-        // <div className={`product slide-in ${direction}`}>
         <article className={`product ${animationClass} ${direction}`}>
             {isMobile ? (
                 <>
                     {/* Always image first on mobile, then text, then buttons */}
                     <div className="image-placeholder">
-                        <Image src={direction === 'from-left' ? famm30 : samm20} alt={product.title}/>
+                        <Image
+                            src={product.imageBase64 || (direction === 'from-left')}
+                            alt={product.alt || product.title}
+                        />
                     </div>
 
                     <div className="description">
@@ -30,8 +30,8 @@ const ProductCard = ({product, direction, animateOnScroll = true}) => {
                         <p>{product.description}</p>
 
                         <div className="button-row">
-                            <Button>More...</Button>
-                            <Button onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}>
+                            {/*<Button className="btn-primary">More...</Button>*/}
+                            <Button className="btn-primary" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}>
                                 ↑ Back to Top
                             </Button>
                         </div>
@@ -43,7 +43,10 @@ const ProductCard = ({product, direction, animateOnScroll = true}) => {
                     {direction === "from-left" ? (
                         <>
                             <div className="image-placeholder">
-                                <Image src={famm30} alt="Fully Automated Mounter"/>
+                                <Image
+                                    src={product.imageBase64}
+                                    alt={product.alt || product.title}
+                                />
                             </div>
 
                             {/* product details on the right */}
@@ -53,12 +56,11 @@ const ProductCard = ({product, direction, animateOnScroll = true}) => {
 
                                 {/* buttons under the description */}
                                 <div className="button-row">
-                                    <Button>
-                                        More...
-                                    </Button>
+                                    {/*<Button>*/}
+                                    {/*    More...*/}
+                                    {/*</Button>*/}
 
                                     <Button
-
                                         onClick={() => {
                                             window.scrollTo({top: 0, behavior: 'smooth'});    // smooth scroll to the top of the page
                                         }}
@@ -76,9 +78,9 @@ const ProductCard = ({product, direction, animateOnScroll = true}) => {
                                 <p>{product.description}</p>
 
                                 <div className="button-row">
-                                    <Button>
-                                        More...
-                                    </Button>
+                                    {/*<Button>*/}
+                                    {/*    More...*/}
+                                    {/*</Button>*/}
 
                                     <Button
                                         onClick={() => {
@@ -91,7 +93,10 @@ const ProductCard = ({product, direction, animateOnScroll = true}) => {
                             </div>
 
                             <div className="image-placeholder">
-                                <Image src={samm20} alt="Fully Automated Mounter"/>
+                                <Image
+                                    src={product.imageBase64}
+                                    alt={product.alt || product.title}
+                                />
                             </div>
                         </>
                     )}

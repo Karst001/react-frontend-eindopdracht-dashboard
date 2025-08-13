@@ -32,23 +32,6 @@
 }
 
 
-/* sidebar & general buttons */
-.admin-button {
-    background-color: var(--color-background-blue);
-    color: var(--color-white);
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1rem;
-    padding: 0.5rem 1rem;
-}
-
-
-.admin-sidebar button:hover,
-.admin-button:hover {
-    background-color: var(--color-background-dark-blue);       /* on hover: darken the button */
-}
-
 
 .admin-form .admin-button {
     width: fit-content;                             /* when button appears in a form, size to content */
@@ -100,13 +83,27 @@
 
 
 /* image uploader */
+.image-upload-wrapper {
+    display: flex;
+    align-items: flex-start;
+}
+
 .image-uploader {
+    flex: 0 0 30%;
     border: 2px dashed var(--color-light-soft-grey);
-    padding: 1rem;
+    padding: 3rem;
     text-align: center;
     border-radius: 6px;
     cursor: pointer;
-    position: relative;                             /* applied to position file input inside */
+    position: relative;
+    box-sizing: border-box;
+    min-height: 200px;
+}
+
+.image-preview {
+    flex: 0 0 80%;
+    max-width: 100%;
+    text-align: center;
 }
 
 
@@ -121,10 +118,7 @@
     cursor: pointer;
 }
 
-
-/* Preview section for uploaded image */
 .image-preview {
-    margin-top: 1rem;
     text-align: center;
 }
 
@@ -133,9 +127,13 @@
     max-height: 200px;
     border-radius: 6px;
     display: block;
-    margin: 0 auto;
+    margin: 0 auto 0.5rem;
 }
 
+.add-product-section label:has(.image-upload-wrapper) {
+    margin-bottom: -10px;                                   /* override the default 1rem margin-bottom in label Component only when image uploader has image */
+}
+/* end */
 
 /* product & add user section */
 .add-product-section button,
@@ -176,6 +174,149 @@
 }
 
 
+/* css for image cropper */
+.cropper-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.cropper-container {
+    width: 95vw;
+    height: 90vh;
+    max-width: 1100px;
+    max-height: 80vh;
+    position: relative;
+    background: #000;
+}
+
+.cropper-wrapper {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    border: 3px dashed lime; /* For testing */
+}
+
+.cropper-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.98);
+    padding: 16px 24px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: fit-content;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 10000;
+}
+
+.button-group {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.button-group button {
+    padding: 6px 14px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    width: 70px;
+}
+
+.no-scroll {
+    overflow: hidden;                                   /* disable both x and y scroll bar */
+}
+
+.remove-no-scroll {
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Forces internal cropper canvas to fill full parent size */
+.cropper-container .cropper-container,
+.cropper-container .cropper-wrap-box,
+.cropper-container .cropper-canvas,
+.cropper-container .cropper-drag-box {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* make the crop box corners larger */
+.cropper-point {
+    width: 10px !important;
+    height: 10px !important;
+    background-color: white !important;
+    border: 1px solid #333 !important;
+}
+
+/* make the cropper points more visible */
+.cropper-point.point-se,
+.cropper-point.point-sw,
+.cropper-point.point-nw,
+.cropper-point.point-ne {
+    cursor: nwse-resize !important;
+}
+/* end */
+
+/* text wrapper for productData grid */
+.custom-cell {
+    white-space: normal !important; /* allow wrapping */
+    word-break: break-word;         /* beak long words */
+    max-width: 300px;
+}
+/* end */
+
+
+/* modal form for editing products */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-overlay .add-user-section {
+        background: white;
+        padding: 2rem;
+        border-radius: 10px;
+}
+
+.modal-overlay .add-user-section .admin-form label textarea {
+    margin-top: 10px;
+    width: 100%;
+    padding: 0.5rem;
+    box-sizing: border-box;
+    resize: vertical;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px; /* space between buttons */
+    margin-top: 1rem; /* optional: space above footer */
+}
+
+.modal-footer button {
+    min-width: 90px;
+}
+/* end */
+
+
 
 /* Mobile: 768px and below */
 @media (max-width: 768px) {
@@ -206,5 +347,25 @@
 
     .admin-content {
         padding-left: 0;
+    }
+
+    /* css for image uploader on mobile */
+    .image-upload-wrapper {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem; /* spacing between uploader and preview */
+    }
+
+    .image-uploader,
+    .image-preview {
+        width: 100%;
+    }
+
+    .image-uploader {
+        padding: 2rem 1rem;
+    }
+
+    .image-preview img {
+        max-height: 250px; /* slightly taller preview for mobile */
     }
 }

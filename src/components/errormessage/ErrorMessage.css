@@ -1,0 +1,16 @@
+.error-text {
+    font-size: 1rem;
+    white-space: pre-wrap;
+    color: red;
+    margin-left: 5px;
+}
+
+/* Blink animation */
+@keyframes blink {
+    0%, 60%, 100% { opacity: 1; }
+    10%, 90% { opacity: 0; }
+}
+
+.error-text.blink {
+    animation: blink 1s infinite;
+}

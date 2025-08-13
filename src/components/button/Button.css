@@ -1,6 +1,6 @@
 /*global primary button style*/
 .btn-primary {
-    border-radius: 8px;
+    border-radius: var(--global-button-primary-radius);
     border: none;
     padding: 0.6em 1.2em;
     font-size: 1em;
@@ -29,7 +29,7 @@
     padding: 10px 16px;
     font-size: 1.1rem;
     font-weight: bold;
-    border-radius: 6px;
+    border-radius: var(--global-button-primary-radius);
     cursor: pointer;
     z-index: 1001;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);

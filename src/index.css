@@ -44,6 +44,8 @@
   --color-sleeves: #00C49F;   /* sleeves */
   --color-plates: #FFBB28;    /* plates */
   --color-unused: #D1C3C0;
+
+  --global-button-primary-radius: 25px;
 }
 
 
@@ -83,7 +85,6 @@ select {
   font-family: inherit;
   font-size: 0.9rem;
 }
-
 
 
 /* ========== LIGHT THEME OVERRIDES ========== */
