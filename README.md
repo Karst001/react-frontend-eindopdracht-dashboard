@@ -23,6 +23,7 @@
 22. [Nieuw product aanmaken](#Nieuw-product-aanmaken)
 23. [Bestaand product wijzigen](#Bestaand-product-wijzigen)
 24. [Weergave foutmeldingen](#Foutmeldingen)
+25. [Automatisch uitloggen na 5 minuten](#Automatisch-uitloggen)
 
 ## Voorwoord.
 Ik was al een heel eind met de eindopdracht en aangezien ik nog niet echt gewend ben aan Git Hub had ik dus geen PR en merges gemaakt...
@@ -290,3 +291,17 @@ Zodra internet weer wordt aangezet, gaat de melding weg en komt 'Save' weer teru
 Deze functionaliteit is op alle pagina's ingebouwd.
 
 <img src="src/assets/InternetNotAvailable.PNG" width=1200px/>
+
+## Automatisch uitloggen:
+De website heeft een functionaliteit waarbij na een tijdsbestek van meer dan 5 minuten een ingelogde gebruiker automatisch wordt uitgelogd als de gebruiker niet actief is op de website.
+Met niet actief wordt verstaan, geen actie op toetsenbord, muis klik of muisbewegingen.
+
+In ../context/AuthContextProvider.jsx zijn de tijden alsvolgt  in stellen
+- const auto_logout_time = 10 * 60 * 1000;       // Auto logout after 5 minutes of inactivity
+- const warning_before_signout = 10 * 1000;     // Show warning 10s before logout
+
+Om dit snel te testen wijzig const auto_logout_time = 10 * 60 * 1000 naar const auto_logout_time = 1 * 30 * 1000 en binnen 30 seconden inactief te zijn logt de website uit.
+
+De gebruiker krijgt dan onderstaande melding te zien:
+
+<img src="src/assets/InactiveUser.PNG" width=1200px/>
