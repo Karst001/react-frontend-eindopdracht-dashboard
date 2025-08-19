@@ -7,17 +7,16 @@ import Button from "../../components/button/Button.jsx";
 import Label from "../../components/label/Label.jsx";
 import Input from '../../components/input/Input.jsx';
 import Textarea from "../../components/textarea/Textarea.jsx";
-import {h} from 'gridjs'; //a helper/handle needed for checkboxes inside custom grid
-import { html } from 'gridjs';
+import {h} from 'gridjs'; //a helper/handle needed for checkboxes inside custom grid and capture button click inside grid like the Editbutton
 import CustomGrid from '../../components/datagrid/CustomGrid.jsx';
 import {validateEmail} from "../../helpers/emailvalidation/emailValidation.js";
-// import { generateOTP } from '../../helpers/password/oneTimePassword.js';
+// import { generateOTP } from '../../helpers/password/oneTimePassword.js';                 //future development
 import { getLocalIsoString } from '../../helpers/timeConverter/timeConverter.js';
 import { useInternetStatus  } from '../../hooks/useInternetStatus.js';
 import ErrorMessage from "../../components/errormessage/ErrorMessage.jsx";
-import { resizeAndCropImage } from '../../helpers/images/imageCropResize.js';         /* Credits to Google and StackOverflow */
-import ImageCropper from "../../components/imagecrop/ImageCropper.jsx";
-import {fetchProductsFromApi} from "../../helpers/api/product.js";               /* Credits to Google and StackOverflow */
+import { resizeAndCropImage } from '../../helpers/images/imageCropResize.js';               // Credits to Google and StackOverflow
+import ImageCropper from "../../components/imagecrop/ImageCropper.jsx";                     // Credits to Google and StackOverflow
+import {fetchProductsFromApi} from "../../helpers/product_fetch/product.js";                // Credits to Google and StackOverflow
 import ImageUploader from "../../components/imageuploader/ImageUploader.jsx";
 
 
@@ -134,14 +133,15 @@ const Admin = () => {
     };
 
 
-    const AddNewUser = async (userData) => {
+    const AddNewUser = async (userData, signal) => {
         const response = await fetch(`${import.meta.env.VITE_BASE_URL}/user/create`, {
             method: 'POST',
             headers: {
-                'Authorization': `Basic ${btoa(import.meta.env.VITE_API_KEY)}`,
-                'Content-Type': 'application/json'
+                'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+                'Content-Type': 'application/json',
             },
-            body: JSON.stringify(userData)
+            body: JSON.stringify(userData),
+            signal,
         });
 
         return await response.json();
@@ -150,9 +150,10 @@ const Admin = () => {
 
     const handleUpdateUsers = async () => {
         setLoading(true);
+        const controller = new AbortController();
 
         try {
-            const result = await updateUsers(users);  // 🔁 Use the real function
+            const result = await updateUsers(users, controller.signal);
 
             if (result.success) {
                 setPopupMessage('User was updated successfully.');
@@ -162,19 +163,21 @@ const Admin = () => {
                 setPopupMessage(result.message || 'Update failed.');
             }
         } catch (error) {
-            console.error(error);
-            setPopupMessage('There was a problem updating the users. Please try again.');
+            if (error.name !== 'AbortError') {
+                console.error(error);
+                setPopupMessage('There was a problem updating the users. Please try again.');
+            }
         } finally {
             setLoading(false);
         }
     };
 
 
-    const updateUsers = async (updatedUsers) => {
+    const updateUsers = async (updatedUsers, signal) => {
         const response = await fetch(`${import.meta.env.VITE_BASE_URL}/user/update_users`, {
             method: 'POST',
             headers: {
-                'Authorization': `Basic ${btoa(import.meta.env.VITE_API_KEY)}`,
+                'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(updatedUsers.map(user => ({
@@ -182,7 +185,8 @@ const Admin = () => {
                 UserIsAdmin: user.admin,
                 UserEnabled: user.enabled,
                 UserIsNew: user.isNew
-            })))
+            }))),
+            signal
         });
 
         if (!response.ok) {
@@ -204,8 +208,8 @@ const Admin = () => {
         const response = await fetch(`${import.meta.env.VITE_BASE_URL}/product/product_create`, {
             method: 'POST',
             headers: {
-                'Authorization': `Basic ${btoa(import.meta.env.VITE_API_KEY)}`,
-                //No need to set 'Content-Type': it will be set automatically to multipart/form-data with a boundary
+                'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+                //No need to set 'Content-Type': it will be set automatically to multipart/form-data
             },
             body: formData
         });
@@ -213,6 +217,7 @@ const Admin = () => {
         if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
         return await response.json();
     };
+
 
     //product uploader using multipart/form-data for large files
     const uploadEditedProduct = async (product) => {
@@ -230,7 +235,10 @@ const Admin = () => {
 
         const response = await fetch(`${import.meta.env.VITE_BASE_URL}/product/product_update`, {
             method: 'POST',
-            headers: { 'Authorization': `Basic ${btoa(import.meta.env.VITE_API_KEY)}` },
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+                // DO NOT set Content-Type here; let the browser set multipart boundary
+            },
             body: formData
         });
 
@@ -248,7 +256,6 @@ const Admin = () => {
                 const response = await fetch(`${import.meta.env.VITE_BASE_URL}/user/validate_username?username=${encodeURIComponent(username)}`, {
                     method: 'GET',
                     headers: {
-                        'Authorization': `Basic ${btoa(import.meta.env.VITE_API_KEY)}`,
                         'Content-Type': 'application/json'
                     }
                 });
@@ -284,7 +291,6 @@ const Admin = () => {
                 const response = await fetch(`${import.meta.env.VITE_BASE_URL}/user/validate_email_new_user?email=${encodeURIComponent(email)}`, {
                     method: 'GET',
                     headers: {
-                        'Authorization': `Basic ${btoa(import.meta.env.VITE_API_KEY)}`,
                         'Content-Type': 'application/json'
                     }
                 });
@@ -325,14 +331,14 @@ const Admin = () => {
     const canSubmitEditUser = Boolean(usersChanged);
     const canSubmitNewProduct = Boolean(productTitle.trim() !== '' && productDescription.trim() !== '' && productImage !== null);
 
-    //used for onetime password (OTP)
+    //used for onetime password (OTP) in future development
     // const [otp, setOtp] = useState('');
     // const handleGenerate = () => {
     //     const newOtp = generateOTP(10, { digits: true, upperCase: true, lowerCase: true });                  // generate a random OTP
     //     setOtp(newOtp);
     // };
     //when logic is written for API, send OTP with the request, using: handleGenerate
-    //this OTP is stored in the database, user will get email with login details
+    //this OTP is stored in the database, user will get email or SMS or apps like Duo 2FA, beyond the scope of this project and for future development
 
 
     useEffect(() => {
@@ -357,7 +363,7 @@ const Admin = () => {
             const response = await fetch(`${import.meta.env.VITE_BASE_URL}/user/get_all_users`, {
                 method: 'GET',
                 headers: {
-                    'Authorization': `Basic ${btoa(import.meta.env.VITE_API_KEY)}`,
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
                     'Content-Type': 'application/json'
                 }
             });
@@ -459,16 +465,31 @@ const Admin = () => {
     const [productToEdit, setProductToEdit] = useState(null);
     const [showEditModal, setShowEditModal] = useState(false);
 
+
     //loads products from database only when user wants to edit them
     useEffect(() => {
-        if (activeSection === 'editProduct') {
-            const loadProducts = async () => {
-                const products = await fetchProductsFromApi(true);
-                setProductData(products);
-            };
+        if (activeSection !== 'editProduct') return;
 
-            loadProducts();
-        }
+        const controller = new AbortController();
+        setLoading(true); // show spinner while loading
+
+        (async () => {
+            try {
+                const products = await fetchProductsFromApi(true, controller.signal); // pass signal
+                setProductData(products);
+            } catch (e) {
+                if (e.name !== 'AbortError') {
+                    setError('Failed to load products.');
+                    console.error(e);
+                }
+            } finally {
+                setLoading(false); // hide spinner
+            }
+        })();
+
+        return () => {
+            controller.abort(); // cancel pending request
+        };
     }, [activeSection]);
 
 
@@ -516,7 +537,7 @@ const Admin = () => {
                                 fetchUsers();
                             }}
                         >
-                            Edit User
+                            Edit Users
                         </Button>
 
                         <hr className="admin-sidebar" />
@@ -526,7 +547,7 @@ const Admin = () => {
                         </Button>
 
                         <Button onClick={() => setActiveSection('editProduct')}>
-                            Edit Product
+                            Edit Products
                         </Button>
                     </aside>
 
@@ -543,14 +564,19 @@ const Admin = () => {
                                     let result;
                                     if (isOnline) {
                                         try {
-                                            result = await AddNewUser({
-                                                UserName: username,
-                                                UserFirstName: firstName,
-                                                UserLastName: lastName,
-                                                UserEmailAddress: email,
-                                                UserIsAdmin: isAdmin,
-                                                UserCreatedDate: localTime,
-                                            });
+                                            const controller = new AbortController();
+
+                                            result = await AddNewUser(
+                                                {
+                                                    UserName: username,
+                                                    UserFirstName: firstName,
+                                                    UserLastName: lastName,
+                                                    UserEmailAddress: email,
+                                                    UserIsAdmin: isAdmin,
+                                                    UserCreatedDate: localTime,
+                                                },
+                                                controller.signal
+                                            );
 
                                             if (result.success === 1) {
                                                 ResetForm();
@@ -559,8 +585,10 @@ const Admin = () => {
                                                 setPopupMessage(result.message || 'User creation failed.');
                                             }
                                         } catch (error) {
-                                            console.error(error);
-                                            setPopupMessage('There was a problem adding the user. Please try again.');
+                                            if (error.name !== 'AbortError') {
+                                                console.error(error);
+                                                setPopupMessage('There was a problem adding the user. Please try again.');
+                                            }
                                         } finally {
                                             setLoading(false);
                                         }
@@ -570,14 +598,15 @@ const Admin = () => {
 
                                     //user was added successfully, now send email invite link to customer
                                     if (result.success === 1) {
-                                        const emailHandler = await fetch(`${import.meta.env.VITE_BASE_URL}/email/send_automated_email`, {
+                                        const emailHandler = await fetch(`${import.meta.env.VITE_BASE_URL}/email/send_automated_email_user_invite`, {
                                             method: 'POST',
                                             headers: {
-                                                'Authorization': `Basic ${btoa(import.meta.env.VITE_API_KEY)}`,
+                                                'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
                                                 'Content-Type': 'application/json'
                                             },
                                             body: JSON.stringify({
                                                 to: email,
+                                                emailType: 1,           //type = 2: send Invitation link template via API to usee
                                             })
                                         });
 
@@ -698,7 +727,6 @@ const Admin = () => {
                                                 ResetForm();
                                             }}
                                         />
-                                        {loading && <Spinner/>}
                                     </fieldset>
                                 </form>
                             </section>
@@ -708,22 +736,27 @@ const Admin = () => {
                         {activeSection === 'editUser' && (
                             <section className="admin-section">
                                 <h2>Edit users:</h2>
+                                <>
+                                    <CustomGrid
+                                        data={userData}
+                                        columns={[
+                                            { id: 'userName', name: 'User name', width: '100px' },
+                                            { id: 'fullName', name: 'Full name', width: '120px' },
+                                            { id: 'email', name: 'Email', width: '160px' },
+                                            { id: 'admin', name: 'Admin?', width: '70px' },
+                                            { id: 'active', name: 'Active?', width: '70px' },
+                                            { id: 'isNew', name: 'New?', width: '70px' },
+                                        ]}
+                                        search={true}
+                                        pagination={true}
+                                        pageLimit={6}
+                                        sort={false}
+                                    />
 
-                                <CustomGrid
-                                    data={userData}
-                                    columns={[
-                                        { id: 'userName', name: 'User name', width: '100px' },
-                                        { id: 'fullName', name: 'Full name', width: '120px' },
-                                        { id: 'email', name: 'Email', width: '160px' },
-                                        { id: 'admin', name: 'Admin?', width: '70px' },
-                                        { id: 'active', name: 'Active?', width: '70px' },
-                                        { id: 'isNew', name: 'New?', width: '70px' },
-                                    ]}
-                                    search={true}
-                                    pagination={true}
-                                    pageLimit={6}
-                                    sort={false}
-                                />
+                                    {userData.length === 0 && (
+                                        <p>No users found.</p>
+                                    )}
+                                </>
 
                                 {error && <ErrorMessage message={error} />}
                                 {/*button disabled when there are no changes*/}
@@ -740,8 +773,7 @@ const Admin = () => {
                                         ResetForm();
                                     }}
                                 />
-                                {loading && <Spinner/>}
-                            </section>
+                             </section>
                         )}
 
 
@@ -823,7 +855,6 @@ const Admin = () => {
                                                 }}
                                             />
 
-                                            {loading && <Spinner/>}
                                         </fieldset>
                                     </form>
                                 </div>
@@ -832,22 +863,27 @@ const Admin = () => {
 
                         {activeSection === 'editProduct' && (
                             <section className="admin-section">
-                                <h2>Edit product:</h2>
+                                <h2>Edit products:</h2>
+                                <>
+                                    <CustomGrid
+                                        data={allProductData}
+                                        columns={[
+                                            { id: 'header', name: 'Title', width: '140px' },
+                                            { id: 'detail', name: 'Description', width: '300px' },
+                                            { id: 'discontinued', name: "Hide?", width: '90px' },
+                                            { id: 'image', name: 'Image', width: '130px' },
+                                            { id: 'actions', name: 'Actions', width: '120px' },
+                                        ]}
+                                        search={true}
+                                        pagination={true}
+                                        pageLimit={5}
+                                        sort={false}
+                                    />
 
-                                <CustomGrid
-                                    data={allProductData}
-                                    columns={[
-                                        { id: 'header', name: 'Title', width: '140px' },
-                                        { id: 'detail', name: 'Description', width: '300px' },
-                                        { id: 'discontinued', name: "Hide?", width: '90px' },
-                                        { id: 'image', name: 'Image', width: '130px' },
-                                        { id: 'actions', name: 'Actions', width: '120px' },
-                                    ]}
-                                    search={true}
-                                    pagination={true}
-                                    pageLimit={5}
-                                    sort={false}
-                                />
+                                    {productData.length === 0 && (
+                                        <p>No products found.</p>
+                                    )}
+                                </>
 
                                 {error && <ErrorMessage message={error} />}
                                 {/*button disabled when there are no changes*/}
@@ -860,7 +896,6 @@ const Admin = () => {
                                         ResetForm();
                                     }}
                                 />
-                                {loading && <Spinner/>}
 
                                 {/*modal form when user clicks on Edit inside the datagrid*/}
                                 {showEditModal && productToEdit && (
@@ -884,10 +919,12 @@ const Admin = () => {
                                                         });
 
                                                         if (result?.success) {
-                                                            setPopupMessage("Product updated successfully.");
-                                                            setShowEditModal(false);
-
                                                             const refreshed = await fetchProductsFromApi(true);
+
+                                                            setShowEditModal(false);
+                                                            setPopupMessage("Product updated successfully.");
+
+                                                            //refresh datagrid
                                                             setProductData(refreshed);
                                                         } else {
                                                             setPopupMessage(result?.message || "Update failed.");
@@ -981,7 +1018,6 @@ const Admin = () => {
                                                                 setPopupMessage("");
                                                             }}
                                                         />
-                                                        {loading && <Spinner />}
                                                     </fieldset>
                                                 </div>
 
@@ -1019,6 +1055,8 @@ const Admin = () => {
                         )}
                     </main>
                 </div>
+
+                {loading && <Spinner/>}
             </div>
         </div>
     )

@@ -61,14 +61,6 @@ main {
   margin: 0 auto;                                                     /* center horizontally */
 }
 
-/* media queries */
-@media (max-width: 768px) {
-  .footer {
-    font-size: 0.70rem;
-    height: 45px;                                                     /* change footer height so the <span> show up correct on mobile */
-  }
-}
-
 /* global styles for password warnings */
 .password-rules {
   margin-top: 10px;
@@ -86,5 +78,17 @@ main {
 .invalid {
   color: red;
 }
+
+.required {
+  font-size: 1.4rem;
+}
 /* end */
+
+/* media queries */
+@media (max-width: 768px) {
+  .footer {
+    font-size: 0.70rem;
+    height: 45px;                                                     /* change footer height so the <span> show up correct on mobile */
+  }
+}
 

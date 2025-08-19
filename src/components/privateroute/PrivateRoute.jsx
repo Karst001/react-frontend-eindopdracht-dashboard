@@ -7,7 +7,7 @@ function PrivateRoute({ children }) {
 
     if (!userIsAuthenticated) {
         // Redirect to sign-in page in case the user is not authenticated
-        //you can test this for example by entering http://localhost:5173/profile, it will redirect to the signin page so manually tampering with the url is blocked
+        //you can test this for example by entering http://localhost:5173/profile, it will redirect to the sign in page so manually tampering with the url is blocked
         return <Navigate to="/signin" replace />;
     }
 

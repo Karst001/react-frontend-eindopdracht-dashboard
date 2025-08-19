@@ -344,6 +344,11 @@
 
 /* mobile response */
 @media screen and (max-width: 768px) {
+    .dashboard {
+        width: 95%;                             /* limits the width for better readability */
+        padding: 1rem 1rem;
+    }
+
     /* hide clock on mobile, takes up too much space */
     .dashboard-clock {
         display: none !important;
@@ -484,3 +489,4 @@
     }
     /* end */
 }
+

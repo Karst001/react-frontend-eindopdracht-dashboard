@@ -2,7 +2,8 @@
 import { useEffect, useState } from 'react';
 
 // this is a hook that checks to see if the app is online or not, meaning do we have internet connection or not?
-//this helps creating a clear error message when internet connection has failed
+// this helps to create a clear error message when internet connection has failed, I personally dislike it very much when a site shows all kinds of warnings
+//Showing a message that internet is lost before you even realize it is a user-friendly approach
 
 
 // Checks internet connectivity by pinging a reliable resource like Google
@@ -23,7 +24,8 @@ async function verifyInternetAccess(timeoutMs = 2000) {
         });
 
         clearTimeout(timeout);                          // reset the timeout for next try
-        // Even if we can't read the response due to `no-cors`, fetch success is enough
+
+        // Even if we can't read the response due to `no-cors`, fetch success is enough to test internet is available or not
         return true;
     } catch {
         return false;
@@ -31,8 +33,8 @@ async function verifyInternetAccess(timeoutMs = 2000) {
 }
 
 
-// hook to check if internet access is actually available, checks every 4 seconds
-export function useInternetStatus(pollInterval = 4000) {
+// hook to check if internet access is actually available
+export function useInternetStatus(pollInterval = 5000) { // check every 5seconds
     const [isOnline, setIsOnline] = useState(false);
 
     useEffect(() => {
@@ -45,7 +47,7 @@ export function useInternetStatus(pollInterval = 4000) {
 
         updateStatus(); // check immediately
 
-        const interval = setInterval(updateStatus, pollInterval);                       // check every 4seconds
+        const interval = setInterval(updateStatus, pollInterval);
 
         window.addEventListener('online', updateStatus);
         window.addEventListener('offline', updateStatus);

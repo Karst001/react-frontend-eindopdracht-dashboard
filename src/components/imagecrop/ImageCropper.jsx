@@ -4,6 +4,7 @@ import React, { useRef, useEffect } from 'react';
 import { Cropper } from 'react-cropper';
 import 'cropperjs/dist/cropper.css';
 import Button from "../../components/button/Button.jsx";
+import './ImageCropper.css';
 
 const ImageCropper = ({ image, fileName, onComplete }) => {
     const cropperRef = useRef(null);
@@ -46,8 +47,8 @@ const ImageCropper = ({ image, fileName, onComplete }) => {
             <div className="cropper-container">
                 <Cropper
                     src={image}
-                    style={{ height: '100%', width: '100%' }}
-                    aspectRatio={4.5 / 3} // Adjust as needed
+                    className="cropper-wrapper"
+                    aspectRatio={4.5 / 3}
                     guides={true}
                     viewMode={2}
                     autoCropArea={1}
@@ -57,7 +58,7 @@ const ImageCropper = ({ image, fileName, onComplete }) => {
                 />
                 <div className="cropper-controls">
                     <div className="button-group">
-                        <Button type="button" onClick={handleDone}>Crop</Button>
+                        <Button type="button" onClick={handleDone}>Apply</Button>
                         <Button type="button" onClick={() => onComplete(null)}>Cancel</Button>
                     </div>
                 </div>

@@ -8,10 +8,13 @@ const useAutoLogout = (logoutFn, timeout = timeout) => {
     const navigate = useNavigate();
 
     const resetTimer = () => {
-        if (timer.current) clearTimeout(timer.current);
+        if (timer.current) {
+            clearTimeout(timer.current);
+        }
+
         timer.current = setTimeout(() => {
-            logoutFn();           // Your logout function (clears auth, etc.)
-            navigate('/signout');   // Redirect to login page
+            logoutFn();             // logout function (clears auth, stops JWT refresh process)
+            console.log('[useAutoLogout.js] - setTimeout called to action');
         }, timeout);
     };
 
@@ -29,7 +32,9 @@ const useAutoLogout = (logoutFn, timeout = timeout) => {
             events.forEach((event) => {
                 window.removeEventListener(event, resetTimer); //return the active event(s)
             });
-            if (timer.current) clearTimeout(timer.current);
+            if (timer.current) {
+                clearTimeout(timer.current);
+            }
         };
     }, [logoutFn, timeout, navigate]);
 };

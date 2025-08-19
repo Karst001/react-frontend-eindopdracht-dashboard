@@ -115,6 +115,10 @@ input {
         justify-content: flex-start;                /* align items to the top */
         padding-top: 25%;                           /* space from top */
     }
+
+    .h1 {
+        font-size: 1.5rem;                       /* smaller heading for mobile */
+    }
 }
 
 

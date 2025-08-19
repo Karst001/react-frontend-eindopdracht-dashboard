@@ -37,6 +37,7 @@
     box-sizing: border-box;
     width: 100%;
     resize: vertical;                                        /* allow vertical resizing only */
+    font-size: 0.9rem;
 }
 
 
@@ -68,7 +69,7 @@
     }
 
     .contact-page h1 {
-        font-size: 1.75rem;   /* smaller heading for mobile */
+        font-size: 1.5rem;   /* smaller heading for mobile */
     }
 
     .contact-page-page h4 {

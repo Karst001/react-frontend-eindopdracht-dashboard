@@ -157,6 +157,12 @@
 
 /* Mobile: 768px and below */
 @media (max-width: 768px) {
+    /*added for mobile*/
+    .profile-page {
+        width: 90%;                             /* limits the width for better readability */
+        padding: 3rem 1rem;
+    }
+    /*end*/
     .video-placeholder {
         width: 95vw;                                        /* narrower width on small screens */
         height: 50%;

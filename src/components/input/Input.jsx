@@ -1,25 +1,25 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState, forwardRef } from 'react';
 import './Input.css';
 
 //onBlur is used to trigger an action to validate email for example
-const Input = ({
-                   type = 'text',
-                   value,
-                   onChange,
-                   onBlur,
-                   placeholder = '',
-                   required = false,
-                   className = '',
-                   disabled = false,
-                   maxLength,
-                   minLength,
-                   showCounter = false,
-                   showValidation = false,
-               }) => {
-
-    const isTooShort = minLength && value.length < minLength;
-    const isTooLong = maxLength && value.length > maxLength;
-    const showError = showValidation && (isTooShort || isTooLong);
+const Input = forwardRef(({
+                              type = 'text',
+                              value,
+                              onChange,
+                              onBlur,
+                              placeholder = '',
+                              required = false,
+                              className = '',
+                              disabled = false,
+                              maxLength,
+                              minLength,
+                              showCounter = false,
+                              showValidation = false,
+                              autoComplete,
+                          }, ref) => {
+    const isTooShort = minLength && (value ?? '').length < minLength;
+    const isTooLong  = maxLength && (value ?? '').length > maxLength;
+    const showError  = showValidation && (isTooShort || isTooLong);
     const [touched, setTouched] = useState(false);
 
     useEffect(() => {
@@ -29,15 +29,16 @@ const Input = ({
     return (
         <div className="input-wrapper">
             <input
+                ref={ref}                                               // forward to native input control
                 type={type}
-                value={value}
+                value={value ?? ''}
                 onChange={(e) => {
                     if (!touched) setTouched(true);
-                    onChange(e);
+                    onChange?.(e);
                 }}
                 onBlur={(e) => {
                     setTouched(true);
-                    if (onBlur) onBlur(e);
+                    onBlur?.(e);
                 }}
                 placeholder={placeholder}
                 required={required}
@@ -45,18 +46,16 @@ const Input = ({
                 disabled={disabled}
                 maxLength={maxLength}
                 minLength={minLength}
+                autoComplete={autoComplete}
             />
 
-            {/* Character counter */}
             {showCounter && typeof value === 'string' && maxLength && (
                 <div className={`char-counter ${showError ? 'char-counter-error' : ''}`}>
                     {value.length} / {maxLength}
                 </div>
             )}
 
-            {/* Validation message */}
-            {showValidation && touched && isTooShort && showError && (
-
+            {showValidation && touched && showError && (
                 <div className="input-error-message">
                     {isTooShort && `Minimum ${minLength} characters required.`}
                     {isTooLong && `Maximum ${maxLength} characters allowed.`}
@@ -64,6 +63,7 @@ const Input = ({
             )}
         </div>
     );
-};
+});
 
 export default Input;
+

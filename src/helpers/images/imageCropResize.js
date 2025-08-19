@@ -1,4 +1,4 @@
-//Credits to Google and StackOverflow
+//Credits to Google and StackOverflow for sample projects on working with images
 
 export const resizeAndCropImage = (file, width = 1200, height = 800) => {
     return new Promise((resolve, reject) => {
@@ -52,7 +52,7 @@ export const resizeAndCropImage = (file, width = 1200, height = 800) => {
                 } else {
                     reject(new Error("Canvas blob creation failed"));
                 }
-            }, 'image/jpeg', 1);  // 100% quality
+            }, 'image/jpeg', 0.5);  // 50% quality
         };
 
         img.onerror = reject;
