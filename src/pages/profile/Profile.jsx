@@ -3,7 +3,7 @@ import './Profile.css';
 import {AuthContext} from '../../context/AuthContext';
 import Spinner from '../../components/loader/Spinner.jsx';
 import PopupMessage from '../../components/popupmessage/PopupMessage';
-import {NavLink, useNavigate} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import Button from "../../components/button/Button.jsx";
 import Label from "../../components/label/Label.jsx";
 import Input from "../../components/input/Input.jsx";
@@ -27,33 +27,38 @@ function Profile() {
     const [passwordsMatch, setPasswordsMatch] = useState(false);                    /* track to see when new and confirmed passwords match */
     const navigate = useNavigate();
     const isOnline = useInternetStatus();
+    const [showCurrentPassword, SetShowCurrentPassword] = useState(false);
 
 
-    // Update subscription only
+    //make the call to the backend for updating the Newsletter Subscription details
     const handleSubscriptionUpdate = async (newSubscribedValue) => {
         setErrorMsgPassword('');
         setLoading(true);
 
         if (isOnline) {
             const localTime = getLocalIsoString();
+            const controller = new AbortController();
 
             try {
-                const result = await updateProfile({
-                    email: user.email,
-                    newSubscribedValue,
-                    currentDate: localTime
-                });
+                const result = await updateProfile(
+                    {
+                        email: user.email,
+                        subscribed: newSubscribedValue,
+                        currentDate: localTime,
+                    },
+                    controller.signal
+                );
 
                 if (result.success) {
-                    // since the user unsubscribed, now re-enable to navbar menu NewsLetter in case the user changes their mind
-                    updateSubscription(newSubscribedValue); // update context, this triggers a re-render everywhere
-
+                    updateSubscription(newSubscribedValue); // update context
                     setPopupMessage('Your subscription setting has been updated.');
                 } else {
                     setErrorMsgNewsLetter('Failed to update subscription.');
                 }
             } catch (err) {
-                setErrorMsgNewsLetter('Server error. Please try again. ' + (err.message || err.toString()));
+                if (err.name !== 'AbortError') {
+                    setErrorMsgNewsLetter( 'Server error. Please try again. ' + (err.message || err.toString()));
+                }
             } finally {
                 setLoading(false);
             }
@@ -62,32 +67,30 @@ function Profile() {
         }
     };
 
-    //make the call to the backend
-    const updateProfile = async ({email, subscribed, currentDate }) => {
-        const encoded = btoa(import.meta.env.VITE_API_KEY);
 
+
+    //make the call to the backend for updating the Profile details
+    const updateProfile = async ({ email, subscribed, currentDate }, signal) => {
         console.log('Sending request to API:', {
             email,
             subscribed,
             currentDate,
-            url: `${import.meta.env.VITE_BASE_URL}/user/newsletter_update`
+            url: `${import.meta.env.VITE_BASE_URL}/newsletter/newsletter_update`
         });
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_BASE_URL}/newsletter/newsletter_update`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Basic ${encoded}`,
-                },
-                body: JSON.stringify({
-                    email,
-                    subscribed,
-                    currentDate,
-                }),
-            });
-
-            // console.log('Raw response:', response);
+            const response = await fetch(
+                `${import.meta.env.VITE_BASE_URL}/newsletter/newsletter_update`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+                    },
+                    body: JSON.stringify({ email, subscribed, currentDate }),
+                    signal,
+                }
+            );
 
             if (!response.ok) {
                 throw new Error('Network response was not ok: ' + response.status);
@@ -103,7 +106,7 @@ function Profile() {
     };
 
 
-    // Update password only
+    // Update password
     const handlePasswordUpdate = async (e) => {
         e.preventDefault();
         setErrorMsgPassword('');
@@ -111,17 +114,22 @@ function Profile() {
 
         // check if New Password is not equal to the Current Password
         if (currentPassword === newPassword) {
-            setErrorMsgPassword('The new password cannot be the same as the current password')
+            setErrorMsgPassword('The new password cannot be the same as the current password');
             setLoading(false);
             return;
         }
 
+        const controller = new AbortController();
+
         try {
-            const result = await updatePassword({
-                userId: user.userId,
-                currentPassword,
-                newPassword
-            });
+            const result = await updatePassword(
+                {
+                    userId: user.userId,
+                    currentPassword,
+                    newPassword,
+                },
+                controller.signal
+            );
 
             if (result.resultCode === 0) {
                 setPopupMessage('Your password was updated successfully.');
@@ -131,40 +139,57 @@ function Profile() {
                 setCurrentPassword('');
                 setConfirmPassword('');
                 setHasTypedPassword(false);
+
+                //confirm to user that password was changed
+                const emailHandler = await fetch(`${import.meta.env.VITE_BASE_URL}/email/send_automated_email_on_password_change`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        to: user.email,
+                        emailType: 4,           //type = 2: password changed template via API to user
+                    })
+                });
+
+                if (emailHandler.ok) {
+                    setPopupMessage('An email was sent to you to confirm the password was changed');
+                } else {
+                    setPopupMessage('There was a problem sending the email. Please try again.');
+                }
             } else if (result.resultCode === 2) {
+                // the current password only resides in the backend, I did not want to retrieve that password value to verify it in the frontend first before the 'Update Password' button was enabled, that is not safe practice
+                //instead the current password and new password are send to API and the backend does the check, if current password did not match, this error shows up
                 setErrorMsgPassword(result.message || 'Incorrect current password.');
             } else {
                 setErrorMsgPassword(result.message || 'Failed to update password.');
             }
         } catch (err) {
-            setErrorMsgPassword('Server error. Please try again. ' + (err.message || err.toString()));
+            if (err.name !== 'AbortError') {
+                setErrorMsgPassword('Server error. Please try again. ' + (err.message || err.toString()));
+            }
         } finally {
             setLoading(false);
         }
     };
 
+
     // API call to update password
-    const updatePassword = async ({ userId, currentPassword, newPassword }) => {
-        const encoded = btoa(import.meta.env.VITE_API_KEY);
-
-        console.log('Sending to API:', {
-            userId: user.userId,
-            currentPassword,
-            newPassword,
-        });
-
+    const updatePassword = async ({ userId, currentPassword, newPassword }, signal) => {
         try {
             const response = await fetch(`${import.meta.env.VITE_BASE_URL}/user/password_update`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Basic ${encoded}`,
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
                 },
                 body: JSON.stringify({
                     UserID: userId,
                     CurrentPasswordHash: await hashPasswordToHex(currentPassword),
                     NewPasswordHash: await hashPasswordToHex(newPassword),
                 }),
+                signal,
             });
 
             if (!response.ok) {
@@ -172,12 +197,13 @@ function Profile() {
             }
 
             return await response.json();
-
         } catch (err) {
             console.error('Password update failed:', err);
             throw err;
         }
     };
+
+
 
     //this will check if the new password and confirmed password match or not
     useEffect(() => {
@@ -214,6 +240,8 @@ function Profile() {
                     <Label label={<><span>Current password:</span> <span className="required">*</span></>}>
                         <Input
                             type="password"
+                            name="currentPassword"
+                            autoComplete="current-password"
                             value={currentPassword}
                             onChange={(e) => setCurrentPassword(e.target.value)}
                             required
@@ -221,13 +249,26 @@ function Profile() {
                         />
                     </Label>
 
+                    {/* Warning under current password */}
+                    {showCurrentPassword && (!currentPassword) && (
+                        <p className="error-text">Please enter current password</p>
+                    )}
+
                     <Label label={<><span>New password:</span> <span className="required">*</span></>}>
                         <Input
                             type="password"
+                            name="newPassword"
+                            autoComplete="new-password"
                             value={newPassword}
                             onChange={(e) => {
                                 setNewPassword(e.target.value);
                                 setHasTypedPassword(true);
+                                // check if user typed in New password without entering current password
+                                if (e.target.value.length > 0 && (!currentPassword)) {
+                                    SetShowCurrentPassword(true);
+                                } else {
+                                    SetShowCurrentPassword(false);
+                                }
                             }}
                             onBlur={() => {
                                 setErrorMsgPassword('');
@@ -240,12 +281,20 @@ function Profile() {
                     <Label label={<><span>Confirm new password:</span> <span className="required">*</span></>}>
                         <Input
                             type="password"
+                            name="confirmNewPassword"
+                            autoComplete="new-password"
                             value={confirmPassword}
                             onChange={(e) => {
                                 const value = e.target.value;
                                 setConfirmPassword(value);
                                 setPasswordsMatch(newPassword === value); // check if password match while typing, when they match the warning goes away and button enabled right away
                                 setHasTypedPassword(true);
+                                // check if user typed in Confirm new password without entering current password
+                                if (e.target.value.length > 0 && (!currentPassword)) {
+                                    SetShowCurrentPassword(true);
+                                } else {
+                                    SetShowCurrentPassword(false);
+                                }
                             }}
                             onBlur={() => {
                                 setPasswordsMatch(newPassword === confirmPassword); // fallback to make sure it is checked

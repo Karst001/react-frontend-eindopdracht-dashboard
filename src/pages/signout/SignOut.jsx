@@ -3,8 +3,6 @@ import './SignOut.css';
 import {AuthContext} from "../../context/AuthContext";
 
 function SignedOut() {
-    // const navigate = useNavigate();
-
     const auth = useContext(AuthContext);
 
     //trigger userLogout on mounting page, only then toggle the state so user is logged out again

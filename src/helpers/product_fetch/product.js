@@ -1,21 +1,17 @@
 //called by Home.jsx and Admin.jsx
-
-export const fetchProductsFromApi = async (showDiscontinued = false) => {
+export const fetchProductsFromApi = async (showDiscontinued = false, signal) => {
     try {
-        let Url = '';
+        const Url = showDiscontinued
+            ? `${import.meta.env.VITE_BASE_URL}/product/get_all`
+            : `${import.meta.env.VITE_BASE_URL}/product/get_all_active_products`;
 
-        if (showDiscontinued) {
-            Url = `${import.meta.env.VITE_BASE_URL}/product/get_all`
-        } else
-        {
-            Url = `${import.meta.env.VITE_BASE_URL}/product/get_all_active_products`
-        }
         const response = await fetch(Url, {
             method: 'GET',
             headers: {
-                'Authorization': `Basic ${btoa(import.meta.env.VITE_API_KEY)}`,
+                'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
                 'Content-Type': 'application/json'
-            }
+            },
+            ...(signal ? { signal } : {})
         });
 
         if (!response.ok) throw new Error(`HTTP error ${response.status}`);
@@ -28,7 +24,9 @@ export const fetchProductsFromApi = async (showDiscontinued = false) => {
                 title: product.ProductHeaderDescription,
                 description: product.ProductDetailDescription,
                 discontinued: product.ProductDiscontinued,
-                imageBase64: product.ProductImage ? `data:image/jpeg;base64,${product.ProductImage}` : null,
+                imageBase64: product.ProductImage
+                    ? `data:image/jpeg;base64,${product.ProductImage}`
+                    : null,
                 alt: product.ProductAlt
             }));
         } else {
@@ -36,6 +34,9 @@ export const fetchProductsFromApi = async (showDiscontinued = false) => {
             return [];
         }
     } catch (err) {
+        if (err.name === 'AbortError') {              // request was cancelled
+            return [];
+        }
         console.error("Failed to load products:", err);
         return [];
     }

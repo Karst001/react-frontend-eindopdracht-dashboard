@@ -12,10 +12,8 @@ const Textarea = ({
                       className = '',
                       showValidation = true, // toggle validation display
                   }) => {
-    const [touched, setTouched] = useState(false);
-
     const isTooShort = value.length < minLength;
-    // const isTooLong = value.length > maxLength;
+    const [touched, setTouched] = useState(false);
 
     useEffect(() => {
         if (!value) setTouched(false);

@@ -5,6 +5,7 @@ import {AuthContext} from '../../context/AuthContext';
 import Spinner from "../../components/loader/Spinner.jsx";
 import Button from "../../components/button/Button.jsx";
 import Label from "../../components/label/Label.jsx";
+import Input from "../../components/input/Input.jsx";
 import {validateEmail} from "../../helpers/emailvalidation/emailValidation.js";
 import { usePasswordStrength } from '../../hooks/usePasswordStrength';                                  //use a hook to check password strength
 import {hashPasswordToHex} from "../../helpers/password/passwordEncryption.js";                      //helper to encrypt the password
@@ -36,7 +37,6 @@ function SignIn() {
     const emailInputRef = useRef(null);
     const passwordInputRef = useRef(null);
     const newPasswordRef = useRef(null);
-    // const isNewUser = new URLSearchParams(location.search).get('newUser') === 'true';
 
     //call the hook to check password for validity and strength
     //passwordStrength and isPasswordStrong are the returned values
@@ -74,14 +74,22 @@ function SignIn() {
                 //used in a profile and enable so allowed to go to step 2 for password verification
                 setStep(2); // regular login for a registered user
                 break;
+
+            case 2:
+                //used in a profile and not enabled, access denied
+                setError('Access denied, please contact Administrator to enable your account.');
+                break;
         }
 
         setLoading(false);
     }
 
 
-    async function checkEmailExists(email ) {
+    //check if the email exists in the database
+    async function checkEmailExists(email) {
         if (isOnline) {
+            const controller = new AbortController();
+
             //extract the email and userNew code from the url
             let isNewUserFromToken = false;
 
@@ -99,7 +107,7 @@ function SignIn() {
                         setError(`The email address you entered is not correct.`);
                         return null;
                     } else {
-                        email=emailFromToken
+                        email = emailFromToken;
                     }
                 } catch (err) {
                     console.error("Invalid token format", err);
@@ -107,25 +115,26 @@ function SignIn() {
             }
 
             try {
-                let route= '';
+                let route = '';
 
-                //this function is used for existing and new users hence the if statement to filter what api route to take as back-end logic is different for each route
-                //using different flags like 'UserIsNew'
+                // choose route based on new/existing user
                 if (isNewUserFromToken) {
                     route = '/user/validate_email_new_user?email=';
-                } else
-                {
+                } else {
                     route = '/user/validate_email?email=';
                 }
 
-                const response = await fetch(`${import.meta.env.VITE_BASE_URL}${route}${encodeURIComponent(email)}`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Basic ${btoa(import.meta.env.VITE_API_KEY)}`,
-                        'Content-Type': 'application/json'
+                //validate the email with the backend
+                const response = await fetch(
+                    `${import.meta.env.VITE_BASE_URL}${route}${encodeURIComponent(email)}`,
+                    {
+                        method: 'GET',
+                        headers: { 'Content-Type': 'application/json' },
+                        signal: controller.signal,
                     }
-                });
+                );
 
+                //decide what to do with the retun value
                 if (response.resultCode) {
                     if (isNewUserFromToken) {
                         setStep(3); // new user, enforce setting password
@@ -136,12 +145,11 @@ function SignIn() {
 
                 const data = await response.json();
 
-                //extra security check, if the url string is modified and IsNewUser in the url is set to True, the value in the database may be false
-                //if database = true and isNewUserFromToken = true only then to proceed with new user registration
+                //extra security check
                 if (data.IsNewUser === isNewUserFromToken) {
                     return {
                         resultCode: data.resultCode,
-                        isNewUser: data.IsNewUser
+                        isNewUser: data.IsNewUser,
                     };
                 } else {
                     return {
@@ -150,8 +158,12 @@ function SignIn() {
                     };
                 }
             } catch (err) {
-                setError(`A critical error occurred: "${err.message || err}"\nPlease contact your website developer.`);
-                setLoading(false);
+                if (err.name !== 'AbortError') {
+                    setError(
+                        `A critical error occurred: "${err.message || err}"\nPlease contact your website developer.`
+                    );
+                    setLoading(false);
+                }
                 return null;
             }
         } else {
@@ -160,48 +172,53 @@ function SignIn() {
     }
 
 
+
     //2nd step to enter password and check against server with API call
     async function handleLogin(e) {
         e.preventDefault();
         setError('');
         setLoading(true);
 
-        const rawCredentials = import.meta.env.VITE_API_KEY;
-        const encoded = btoa(rawCredentials);                   // convert to base64
-
         if (isOnline) {
+            const controller = new AbortController();
+
+            //connect to backend and verify submitted credentials, the password is hashed, never send a string password
             try {
                 const response = await fetch(`${import.meta.env.VITE_BASE_URL}/user/login`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Basic ${encoded}`
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         email,
-                        passwordHash: await hashPasswordToHex(password)
-                    })
+                        passwordHash: await hashPasswordToHex(password),
+                    }),
+                    signal: controller.signal,
                 });
 
                 const result = await response.json();
 
                 if (!response.ok || !result.token) {
+                    setPassword(''); //password was wrong, reset the value
                     setError('Login failed. Please check credentials.');
                     setLoading(false);
                     return;
                 }
 
-                auth.userLogIn(result);                                         // calls context provider and register result
+                //login was granted by the backend, register the login on the client side
+                auth.userLogIn(result);
                 setLoading(false);
 
+                //is Admin? navigate to admin page, else dashboard
                 if (result.user.UserIsAdmin) {
-                    navigate('/admin');                                         // admin user has access to Admin functions + dashboard
+                    navigate('/admin');
                 } else {
-                    navigate('/dashboard');                                     // any other registered user only has access to dashboard
+                    navigate('/dashboard');
                 }
-
             } catch (err) {
-                setError(`A critical error occurred: "${err.message || err}"\nPlease contact your website developer.`);
+                if (err.name !== 'AbortError') {
+                    setError(
+                        `A critical error occurred: "${err.message || err}"\nPlease contact your website developer.`
+                    );
+                }
                 setLoading(false);
             }
         } else {
@@ -211,45 +228,44 @@ function SignIn() {
 
 
     //when admin sends a link, it will be like : https://your-app.com/signin?newUser=true
-    //for this project that is fine, in product better to send a secure token from the server, inside that token is the value 'newUser=true' and the 'email address' it is intended for
+    //for this project that is fine, in production better to send a secure token from the server, inside that token is the value 'newUser=true' and the 'email address' it is intended for
     //this page can extract and recognize
-    //for now to test this logic, url to http://localhost:5173/signin?newUser=true this works because it is a valid route
     async function handleNewPasswordSubmit(e) {
         e.preventDefault();
         setError('');
-
         setLoading(true);
 
-        //await handleFirstTimePasswordSubmit(email, newPassword);
         await handleFirstTimePasswordSubmit();
 
-        auth.userLogIn(email);
         setLoading(false);
     }
 
 
+    //verify the passwords with the backend
     async function handleFirstTimePasswordSubmit() {
         // e.preventDefault();
         setError('');
         setLoading(true);
 
-        const encoded = btoa(import.meta.env.VITE_API_KEY);
-
         if (isOnline) {
+            const controller = new AbortController();
+
             try {
-                const psw = await hashPasswordToHex(confirmPassword)
-                // Send request to set password using email as unique key to lookup records in database, this is always unique
-                const newUserResponse = await fetch(`${import.meta.env.VITE_BASE_URL}/user/set_first_password`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Basic ${encoded}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        UserEmailAddress: email,
-                        UserPasswordHashed: psw
-                    })
-                });
+                const psw = await hashPasswordToHex(confirmPassword);
+
+                // Send request to set password using email as unique key
+                const newUserResponse = await fetch(
+                    `${import.meta.env.VITE_BASE_URL}/user/set_first_password`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            UserEmailAddress: email,
+                            UserPasswordHashed: psw,
+                        }),
+                        signal: controller.signal,
+                    }
+                );
 
                 const result = await newUserResponse.json();
 
@@ -259,12 +275,14 @@ function SignIn() {
                     return;
                 }
 
-                auth.userLogIn(result);                                         // calls context provider and register result
+                auth.userLogIn(result); // calls context provider and register result
                 setLoading(false);
 
-                setShowWelcomePopup(true);                                      /* show 'Welcome' popup and wait for user to continue */
+                setShowWelcomePopup(true); /* show 'Welcome' popup and wait for user to continue */
             } catch (err) {
-                setError(`A critical error occurred: "${err.message || err}".`);
+                if (err.name !== 'AbortError') {
+                    setError(`A critical error occurred: "${err.message || err}".`);
+                }
             } finally {
                 setLoading(false);
             }
@@ -303,6 +321,7 @@ function SignIn() {
     }, [newPassword, confirmPassword]);
 
 
+    //warn user if internet connection is lost
     useEffect(() => {
         if (isOnline) {
             setError('');
@@ -318,6 +337,7 @@ function SignIn() {
         const urlParams = new URLSearchParams(window.location.search);
         tokenRef.current = urlParams.get('token');
     }, []);
+
 
     return (
         <main className="signin-main">
@@ -344,9 +364,11 @@ function SignIn() {
 
                                 {/*Validate email on blur, when user leaves the field*/}
                                 {/*onBlur is fired when the email text field loses focus, then the validateEmail is called*/}
-                                <Label label="Enter your e-mail:">
-                                    <input
+                                <Label label={<><span>Enter your e-mail:</span> <span className="required">*</span></>}>
+                                    <Input
                                         type="email"
+                                        name="email"
+                                        autoComplete="email"
                                         value={email}
                                         onChange={(e) => {
                                             const value = e.target.value;
@@ -397,9 +419,11 @@ function SignIn() {
                                     />
                                 </div>
 
-                                <Label label="Enter your password to continue:">
-                                    <input
+                                <Label label={<><span>Enter your password to continue:</span> <span className="required">*</span></>}>
+                                    <Input
                                         type="password"
+                                        name="password"
+                                        autoComplete="password"
                                         value={password}
                                         onChange={(e) => {
                                             setPassword(e.target.value);
@@ -424,9 +448,11 @@ function SignIn() {
                                 <h1>Set New Password</h1>
                                 <p>Welcome! Please create your password to continue.</p>
 
-                                <Label label="New password:">
-                                    <input
+                                <Label label={<><span>New password:</span> <span className="required">*</span></>}>
+                                    <Input
                                         type="password"
+                                        name="new-password"
+                                        autoComplete="new-password"
                                         value={newPassword}
                                         onChange={(e) => {
                                             setNewPassword(e.target.value);
@@ -438,8 +464,8 @@ function SignIn() {
                                     />
                                 </Label>
 
-                                <Label label="Confirm password:">
-                                    <input
+                                <Label label={<><span>Confirm password:</span> <span className="required">*</span></>}>
+                                    <Input
                                         type="password"
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}

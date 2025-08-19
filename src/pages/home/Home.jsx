@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react";
 import './Home.css';
 import ProductCard from "../../components/product/ProductCard";
 import Button from "../../components/button/Button.jsx";
-import { fetchProductsFromApi } from '../../helpers/api/product';
+import { fetchProductsFromApi } from '../../helpers/product_fetch/product';
 import homePageVideo from "../../assets/web-video.mp4";
 
 const Home = () => {
@@ -10,39 +10,41 @@ const Home = () => {
 
     //call to API to get all the products
     useEffect(() => {
+        const controller = new AbortController();
+
         const loadProducts = async () => {
-            const products = await fetchProductsFromApi();
+            const products = await fetchProductsFromApi(false, controller.signal);     // pass signal from controller to fetchProductsFromApi
             setProducts(products);
         };
 
-        //the content should scroll over the video
         const handleScroll = () => {
             const videoElement = document.querySelector('.video-placeholder');
             const scrollY = window.scrollY;
 
-            //adjust threshold as needed, like when content starts overlapping by scrolling
-            if (scrollY > 85) {
-                videoElement.classList.add('hidden');
-            } else {
-                videoElement.classList.remove('hidden');
+            if (videoElement) {
+                if (scrollY > 85) videoElement.classList.add('hidden');
+                else videoElement.classList.remove('hidden');
             }
 
-            //slide-in logic, as user scrolls down the elements should have an animated slide-in effect
-            const elements = document.querySelectorAll('.slide-in');
-            elements.forEach((element) => {
-                const rectangle = element.getBoundingClientRect();
-                if (rectangle.top < window.innerHeight && rectangle.bottom >= 0) {
-                    element.classList.add('visible');
+            document.querySelectorAll('.slide-in').forEach((el) => {
+                const rect = el.getBoundingClientRect();
+                if (rect.top < window.innerHeight && rect.bottom >= 0) {
+                    el.classList.add('visible');
                 }
             });
         };
 
-        window.addEventListener("scroll", handleScroll);
+        window.addEventListener('scroll', handleScroll, { passive: true });
         loadProducts();
-        return () => window.removeEventListener("scroll", handleScroll);
+
+        return () => {
+            controller.abort();                                             // cancel fetch on unmount
+            window.removeEventListener('scroll', handleScroll);
+        };
     }, []);
 
 
+    //start the overlay of text effect from-the-left on page mount
     useEffect(() => {
         const overlays = document.querySelectorAll('.video-overlay-text-left');
         overlays.forEach(el => el.classList.remove('visible'));
@@ -55,6 +57,7 @@ const Home = () => {
     }, []);
 
 
+    //start the overlay of text effect from-the-right on page mount
     useEffect(() => {
         const overlays = document.querySelectorAll('.video-overlay-text-right');
         overlays.forEach(el => el.classList.remove('visible'));
@@ -67,6 +70,7 @@ const Home = () => {
     }, []);
 
 
+    //start the overlay of showing a button 'Products' effect from-the-bottom on page mount
     useEffect(() => {
         const overlays = document.querySelectorAll('.video-overlay-text-bottom');
         overlays.forEach(el => el.classList.remove('visible'));
@@ -80,7 +84,8 @@ const Home = () => {
 
 
     return (
-        <div>
+        // <div>
+        <div className="home-page">
             {/*video from web server*/}
             {/*<section className="video-placeholder">*/}
             {/*    <video*/}

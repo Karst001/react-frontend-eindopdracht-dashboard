@@ -154,6 +154,7 @@
     padding: 0.5rem;
     box-sizing: border-box;
     resize: vertical;
+    font-size: 0.9rem;
 }
 
 
@@ -328,7 +329,7 @@
     }
 
     .admin-page h1 {
-        font-size: 1.75rem;   /* smaller heading for mobile */
+        font-size: 1.5rem;   /* smaller heading for mobile */
     }
 
     .admin-sidebar {
@@ -337,12 +338,17 @@
         flex-wrap: wrap;           /* allow wrapping if buttons don't fit */
         justify-content: center;   /* center horizontally */
         gap: 0.5rem;               /* reduce spacing between buttons */
-        margin-bottom: 1rem;
+        margin-bottom: 0.5rem;
     }
 
     .admin-sidebar button {
-        flex: 1;                   /* make buttons share space evenly */
-        min-width: 100px;          /* prevent being too small */
+        /*flex: 1;                   !* make buttons share space evenly *!*/
+        min-width: 100px  ;          /* prevent being too small */
+        font-size: 0.75rem;
+    }
+
+    .admin-sidebar hr {
+        display: none;
     }
 
     .admin-content {

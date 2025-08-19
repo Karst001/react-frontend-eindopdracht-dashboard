@@ -63,7 +63,11 @@
     }
 
     .newsletter-page h1 {
-        font-size: 1.75rem;                     /* smaller heading for mobile */
+        font-size: 1.5rem;                   /* smaller heading for mobile */
+    }
+
+    .newsletter-page h2 {
+        font-size: 1.25rem;                   /* smaller heading for mobile */
     }
 
     .newsletter-page h4 {

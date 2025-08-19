@@ -5,3 +5,12 @@
     margin-top: var(--nav-height);
 }
 
+@media (max-width: 768px) {
+    .notfound-page {
+        padding: 30px;
+        text-align: center;
+        font-size: 0.75rem;
+        margin-top: var(--nav-height);
+    }
+}
+

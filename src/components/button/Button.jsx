@@ -6,7 +6,7 @@ const Button = ({ children, onClick, type = "button", className = "", disabled  
     return (
         <button
             type={type}                             // specifies the button type like button, submit or reset
-            className={`btn-primary ${className}`}  // takes 'btn-primary' as default unless overwritten by prop className
+            className={`btn-primary ${className}`}  // takes 'btn-primary' as default unless revised by prop className
             onClick={onClick}
             disabled={disabled}
         >

@@ -3,11 +3,14 @@ import './AuthContextProvider.css';
 import Spinner from "../components/loader/Spinner.jsx";
 import { AuthContext } from "./AuthContext";
 import { useNavigate } from 'react-router-dom';
+import { startTokenAutoRefresh } from "../helpers/token/autoRefresh.js";                //used for starting and stopping token refresh
 
-const auto_logout_time = 15 * 60 * 1000;                                        // Auto logout after 5 minutes of inactivity
-const warning_before_signout = 10 * 1000;                                        // Show warning 10s before logout
+const auto_logout_time = 15 * 60 * 1000;                                        // Auto logout after 15 minutes of inactivity
+const warning_before_sign_out = 10 * 1000;                                        // Show warning 10s before logout
 
 function AuthContextProvider({ children }) {
+    const stopAutoRefreshRef = useRef(null);
+
     // Initial authentication state
     const [authState, setAuthState] = useState({
         isAuth: false,
@@ -24,8 +27,14 @@ function AuthContextProvider({ children }) {
 
     // Clears user data and redirects to login (used for both manual & auto logout )
     const logout = useCallback((auto = false) => {
-        localStorage.removeItem('token');
+        localStorage.removeItem('access_token');
         localStorage.removeItem('user');
+
+        if (import.meta.env.VITE_SHOW_JWT_CONSOLE_LOGS === 'true') {
+            console.log('stopAutoRefreshRef = stopped');
+        }
+
+        stopAutoRefreshRef.current = null;                                          // stop the token refresh process
 
         setAuthState({
             isAuth: false,
@@ -37,7 +46,10 @@ function AuthContextProvider({ children }) {
         clearTimeout(warningTimerRef.current);
         setShowWarning(false);
 
-        console.log(auto ? 'User logged out due to inactivity' : 'User logged out manually');
+        if (import.meta.env.VITE_SHOW_JWT_CONSOLE_LOGS === 'true') {
+            console.log(auto ? 'User logged out due to inactivity' : 'User logged out manually');
+        }
+
         navigate('/signin');
     }, [navigate]);
 
@@ -54,8 +66,8 @@ function AuthContextProvider({ children }) {
         };
 
 
-        // Store credentials locally, we need those to test on screen refresh event
-        localStorage.setItem('token', result.token);
+        // Store credentials locally, we need those to test onscreen refresh event
+        localStorage.setItem('access_token', result.token);
         localStorage.setItem('user', JSON.stringify(fetchedUser));
 
         // Update context state
@@ -65,21 +77,66 @@ function AuthContextProvider({ children }) {
             status: 'done',
         });
 
-        console.log('User is logged in as:', fetchedUser.username);
+        // start auto refresh, in the API the JWT token is only valid for 2 minutes, here we check every 35 seconds
+        stopAutoRefreshRef.current?.();                                         // clear just in case
+        stopAutoRefreshRef.current = startTokenAutoRefresh({
+            baseUrl: import.meta.env.VITE_BASE_URL,
+            // userName: fetchedUser.username,
+            // email: fetchedUser.email,
+            // intervalMs: 90000,                                                  // check every 90ec
+            thresholdSeconds: 25,                                               // refresh if less than 25s left in current token
+            onRefreshed: () => {
+                if (import.meta.env.VITE_SHOW_JWT_CONSOLE_LOGS === 'true') {
+                    console.log('[AuthContextProvide.jsx] - token refreshed')
+                }
+            },
+            onError: (error) => console.warn('refresh failed', error),
+        });
+
+        if (import.meta.env.VITE_SHOW_JWT_CONSOLE_LOGS === 'true') {
+            console.log('[AuthContextProvide.jsx] - User is logged in as:', fetchedUser.username);
+        }
     }, []);
 
 
     // Checks localStorage to restore session if available, this is done on page mount / refresh
     useEffect(() => {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('access_token');
         const user = localStorage.getItem('user');
 
+        if (import.meta.env.VITE_SHOW_JWT_CONSOLE_LOGS === 'true') {
+            console.log('[AuthContextProvide.jsx] - useEffect refresh');
+        }
+
         if (token && user) {
+            const localUser = JSON.parse(user);
             setAuthState({
                 isAuth: true,
-                user: JSON.parse(user),
+                user: localUser,
                 status: 'done',
             });
+
+            // start auto refresh token for restored or new session
+            stopAutoRefreshRef.current?.();
+            stopAutoRefreshRef.current = startTokenAutoRefresh({
+                baseUrl: import.meta.env.VITE_BASE_URL,
+                // intervalMs: 90000,
+                thresholdSeconds: 25,
+                // runImmediately: true,
+                onRefreshed: () => {
+                    if (import.meta.env.VITE_SHOW_JWT_CONSOLE_LOGS === 'true') {
+                        console.log('[AuthContextProvide.jsx -> startTokenAutoRefresh] - Refreshed page');
+                    }
+                },
+                onError: (error) => {
+                    console.warn('[AuthContextProvide.jsx -> startTokenAutoRefresh - refresh failed', error);
+                    // my API rejects expired tokens (401) for renew, if that case happens logout
+                    if (String(error?.message || '').includes('401')) {
+                        logout(true); // force sign out to avoid a broken session
+                    }
+                },
+            });
+
         } else {
             setAuthState({
                 isAuth: false,
@@ -87,6 +144,12 @@ function AuthContextProvider({ children }) {
                 status: 'done',
             });
         }
+
+        // just for peace of mind, stop auto-refresh if the provider ever unmounts for whatever reason
+        return () => {
+            stopAutoRefreshRef.current?.();
+            stopAutoRefreshRef.current = null;
+        };
     }, []);
 
 
@@ -106,7 +169,7 @@ function AuthContextProvider({ children }) {
                     setShowWarning(true);
                     warningShownRef.current = true;                     // mark it as shown
                 }
-            }, auto_logout_time - warning_before_signout);
+            }, auto_logout_time - warning_before_sign_out);
 
 
             // Set timer for actual logout

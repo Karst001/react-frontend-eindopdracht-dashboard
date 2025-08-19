@@ -117,7 +117,7 @@ const AnimatedNavigation = () => {
                                     <ul className="dropdown-menu">
                                         <li>
                                             <NavLink to="/signin" onClick={handleNavClick} state={{ jump: true }} className={({ isActive }) => getLinkClass('/signin', isActive)}>
-                                                Sign in
+                                                Sign In
                                             </NavLink>
                                         </li>
                                     </ul>
@@ -175,7 +175,7 @@ const AnimatedNavigation = () => {
                                         state={{ jump: true }}
                                         className={({ isActive }) => getLinkClass('/signout', isActive)}
                                     >
-                                        Sign out
+                                        Sign Out
                                     </NavLink>
                                 </li>
                             </ul>

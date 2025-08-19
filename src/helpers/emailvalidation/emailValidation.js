@@ -35,6 +35,12 @@ export function validateEmail(emailAddress) {
         return false;
     }
 
+    //step 4, final check if for any special characters except for @, for example if user enter a / inside the email address it fails
+    const validCharsRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+$/;
+    if (!validCharsRegex.test(emailAddress)) {
+        return false;
+    }
+
     //no errors found, return true
     return true;
 }

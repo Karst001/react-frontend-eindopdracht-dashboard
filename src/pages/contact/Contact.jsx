@@ -19,7 +19,7 @@ const ContactUs = () => {
     const [companyName, setCompanyName] = useState('');
     const [yourName, setYourName] = useState('');
     const [email, setEmail] = useState('');
-    const [department, setDepartment] = useState('');
+    // const [department, setDepartment] = useState('');
     const [message, setMessage] = useState('');
     const [popupMessage, setPopupMessage] = useState('');
     const [loading, setLoading] = useState(false);
@@ -27,7 +27,7 @@ const ContactUs = () => {
     const [emailValid, setEmailValid] = useState(true);
     const isOnline = useInternetStatus();
     const [error, setError] = useState('');
-
+    const [showDropdownWarning, setShowDropdownWarning] = useState(false);
 
     //load the list of countries on page mount
     useEffect(() => {
@@ -58,59 +58,88 @@ const ContactUs = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (isOnline) {
-            setLoading(true);
-            const localTime = getLocalIsoString();
-            const bodyContent = JSON.stringify({
-                AreaOfInquiry: area,
-                RequestFromCountry: country,
-                CompanyName: companyName,
-                RequestersName: yourName,
-                RequestersEmail: email,
-                Message: message,
-                RequestSendDate: localTime});
+        if (!isOnline) {
+            setError('Internet connection not available.');
+            setLoading(false);
+            return;
+        }
 
-            try {
-                const encoded = btoa(import.meta.env.VITE_API_KEY);
+        setLoading(true);
+        const controller = new AbortController();
+        const localTime = getLocalIsoString();
 
-                const response = await fetch(`${import.meta.env.VITE_BASE_URL}/contact/contactus_create`, {
+        const bodyContent = JSON.stringify({
+            AreaOfInquiry: area,
+            RequestFromCountry: country,
+            CompanyName: companyName,
+            RequestersName: yourName,
+            RequestersEmail: email,
+            Message: message,
+            RequestSendDate: localTime,
+        });
+
+        try {
+            const response = await fetch(
+                `${import.meta.env.VITE_BASE_URL}/contact/contactus_create`,
+                {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Basic ${encoded}`,
                     },
                     body: bodyContent,
+                    signal: controller.signal,
+                }
+            );
+
+            const result = await response.json();
+
+            if (response.ok && result.success === 1) {
+                setPopupMessage( 'Your request was submitted and you will be contacted by our department within 48 hours.');
+
+                const emailHandler = await fetch(`${import.meta.env.VITE_BASE_URL}/email/send_automated_email_contact_submission`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        to: email,
+                        emailType: 3,           //type = 3: send Contact Us template via API to user
+                        areaOfInquiry: area,
+                        requestFromCountry: country,
+                        companyName: companyName,
+                        inquiryMessage: message,
+                    })
                 });
 
-                const result = await response.json();
-
-                if (response.ok && result.success === 1) {
-                    setPopupMessage('Your request was submitted and you will be contacted by our department within 48 hours.');
-
-                    console.log('ContactUs: ', bodyContent)
-                    // Reset form
-                    setArea('');
-                    setCountry('');
-                    setCompanyName('');
-                    setYourName('');
-                    setEmail('');
-                    setDepartment('');
-                    setMessage('');
+                if (emailHandler.ok) {
+                    setPopupMessage('An email was sent with a confirmation of your request to ' + email);
                 } else {
-                    setPopupMessage(result.message || 'There was a problem submitting your request. Please try again later.');
+                    setPopupMessage('There was a problem sending the email. Please try again.');
                 }
 
-            } catch (error) {
+                console.log('ContactUs: ', bodyContent);
+                // Reset form
+                setArea('');
+                setCountry('');
+                setCompanyName('');
+                setYourName('');
+                setEmail('');
+                setMessage('');
+            } else {
+                setPopupMessage(result.message || 'There was a problem submitting your request. Please try again later.');
+            }
+        } catch (error) {
+            if (error.name !== 'AbortError') {
                 console.error('Error submitting contact form:', error);
                 setPopupMessage('There was a problem submitting your request. Please try again later.');
-            } finally {
-                setLoading(false);
             }
-        } else {
-            setError('Internet connection not available.');
+        } finally {
             setLoading(false);
         }
     };
+
+
 
 
     //This checks if all required fields are non-empty
@@ -140,20 +169,49 @@ const ContactUs = () => {
                         </select>
                     </Label>
 
+                    {/* Warning under dropdowns */}
+                    {showDropdownWarning && (!area || !country) && (
+                        <p className="error-text">Please select both Area and Country before entering other values</p>
+                    )}
+
                     <Label label={<><span>Company name:</span> <span className="required">*</span></>}>
                         <Input
                             value={companyName}
-                            onChange={(e) => setCompanyName(e.target.value)}
+                            onChange={(e) => {
+                                setCompanyName(e.target.value);
+
+                                // check if user typed in company name without selecting dropdowns
+                                if (e.target.value.length > 0 && (!area || !country)) {
+                                    setShowDropdownWarning(true);
+                                } else {
+                                    setShowDropdownWarning(false);
+                                }
+                            }}
                             placeholder="Enter company name"
+                            minLength={10}
+                            maxLength={50}
+                            showValidation={true}
                         />
                     </Label>
 
                     <Label label={<><span>Your name:</span> <span className="required">*</span></>}>
                         <Input
                             value={yourName}
-                            onChange={(e) => setYourName(e.target.value)}
+                            onChange={(e) =>{
+                                setYourName(e.target.value);
+
+                                // check if user typed in 'Your name' without selecting dropdowns
+                                if (e.target.value.length > 0 && (!area || !country)) {
+                                    setShowDropdownWarning(true);
+                                } else {
+                                    setShowDropdownWarning(false);
+                                }
+                            }}
                             required
                             placeholder="Enter your name"
+                            minLength={5}
+                            maxLength={50}
+                            showValidation={true}
                         />
                     </Label>
 
@@ -167,9 +225,19 @@ const ContactUs = () => {
                                 const value = e.target.value;
                                 setEmail(value);
                                 setEmailValid(validateEmail(value));        // continuous validation while typing
+
+                                // check if user typed in Email without selecting dropdowns
+                                if (e.target.value.length > 0 && (!area || !country)) {
+                                    setShowDropdownWarning(true);
+                                } else {
+                                    setShowDropdownWarning(false);
+                                }
                             }}
                             required
                             placeholder="Enter your email address"
+                            minLength={8}
+                            maxLength={75}
+                            showValidation={true}
                         />
                         {!emailValid && <p className="error-text">Invalid email address</p>}
                     </Label>
@@ -177,7 +245,16 @@ const ContactUs = () => {
                     <Label label={<><span>Message:</span> <span className="required">*</span></>}>
                         <Textarea
                             value={message}
-                            onChange={(e) => setMessage(e.target.value)}
+                            onChange={(e) => {
+                                setMessage(e.target.value);
+
+                                // check if user typed in Message without selecting dropdowns
+                                if (e.target.value.length > 0 && (!area || !country)) {
+                                setShowDropdownWarning(true);
+                                } else {
+                                    setShowDropdownWarning(false);
+                                }
+                            }}
                             rows={3}
                             required
                             placeholder="Please describe how we can assist you"
@@ -190,7 +267,7 @@ const ContactUs = () => {
                     {error && <ErrorMessage message={error} />}
 
                     <Button
-                        type="submit" disabled={!canSubmit || loading || !emailValid || !isOnline}>
+                        type="submit" disabled={!canSubmit || loading || !emailValid || !isOnline || !setShowDropdownWarning}>
                         Send Message
                     </Button>
 

@@ -26,8 +26,9 @@ const NewsLetter = () => {
     const isOnline = useInternetStatus();
     const { updateSubscription } = useContext(AuthContext);
     const auth = useContext(AuthContext);
+    const [success, setSuccess] = useState(false);
 
-    //make the api call
+    //make the product_fetch call
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -39,45 +40,73 @@ const NewsLetter = () => {
         setLoading(true);
         const localTime = getLocalIsoString();
 
-
         if (isOnline) {
-            try {
-                const encoded = btoa(import.meta.env.VITE_API_KEY);
+            const controller = new AbortController();
+            setSuccess(false);        //reset value
 
+            try {
                 const bodyContent = JSON.stringify({
                     email,
                     fullName,
                     Subscribed: true,
-                    CurrentDate: localTime
+                    CurrentDate: localTime,
                 });
 
-                const response = await fetch(`${import.meta.env.VITE_BASE_URL}/newsletter/newsletter_create`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Basic ${encoded}`,
-                    },
-                    body: bodyContent,
-                });
+                const response = await fetch(
+                    `${import.meta.env.VITE_BASE_URL}/newsletter/newsletter_create`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: bodyContent,
+                        signal: controller.signal,
+                    }
+                );
 
                 const result = await response.json();
 
                 if (result.success === 1) {
                     console.log('Newsletter: ', bodyContent);
 
-                    updateSubscription(true); // update context, this triggers a re-render everywhere
+                    //send email to customer as confirmation
+                    const emailHandler = await fetch(`${import.meta.env.VITE_BASE_URL}/email/send_automated_email_newsletter_subscription`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            to: email,
+                            emailType: 2,                   //type = 2: send NewsLetter subscription template via API to user
+                        })
+                    });
+
+                    if (emailHandler.ok) {
+                        setPopupMessage('Email was sent successfully to ' + email);
+                    } else {
+                        setPopupMessage('There was a problem sending the email. Please try again.');
+                    }
+
+                    //cleanup
+                    updateSubscription(true);           // update context, this triggers a re-render everywhere
                     setFullName('');
                     setEmail('');
                     setAgreed(false);
-                    setPopupMessage('Thank you for subscribing to our newsletter.');
+                    setSuccess(false);
+                    setPopupMessage( 'Thank you for subscribing to our newsletter.');
                 } else if (result.success === -1) {
+                    setSuccess(true);
                     setPopupMessage('This email address is already subscribed.');
                 } else {
                     setPopupMessage('Subscription failed. Please try again later.');
                 }
             } catch (error) {
-                console.error(error);
-                setPopupMessage('There was a problem subscribing. Please try again later.');
+                if (error.name !== 'AbortError') {
+                    console.error(error);
+                    setPopupMessage(
+                        'There was a problem subscribing. Please try again later.'
+                    );
+                }
             } finally {
                 setLoading(false);
             }
@@ -86,6 +115,7 @@ const NewsLetter = () => {
             setLoading(false);
         }
     };
+
 
 
     useEffect(() => {
@@ -101,7 +131,7 @@ const NewsLetter = () => {
 
     useEffect(() => {
         if (auth.user) {
-            setEmail(auth.user.email);          //prefill the email address when user is logged in
+            setEmail(auth.user.email || ''); // fallback to empty string not null, prefill the email address when user is logged in
         }
     }, [auth.user]);
 
@@ -129,6 +159,9 @@ const NewsLetter = () => {
                             onChange={(e) => setFullName(e.target.value)}
                             required
                             placeholder="Enter your name"
+                            minLength={5}
+                            maxLength={50}
+                            showValidation={true}
                         />
                     </Label>
 
@@ -170,10 +203,13 @@ const NewsLetter = () => {
 
                     <PopupMessage
                         message={popupMessage}
-                        //navigate to home page after user clicks OK
+
+                        // navigate to home page after user clicks OK only if email is not a duplicate subscription
                         onClose={() => {
                             setPopupMessage('');
-                            navigate('/');
+                            if (!success) {
+                                navigate('/');
+                            }
                         }}
                     />
                     {loading && <Spinner/>}

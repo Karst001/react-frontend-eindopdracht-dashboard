@@ -19,6 +19,8 @@ import {
 import Clock from "../../components/clock/Clock.jsx";
 import CustomGrid from "../../components/datagrid/CustomGrid.jsx";
 import { useInternetStatus  } from '../../hooks/useInternetStatus.js';
+import Spinner from "../../components/loader/Spinner.jsx";
+import ErrorMessage from "../../components/errormessage/ErrorMessage.jsx";
 
 const Dashboard = () => {
     const [machine, setMachine] = useState('');
@@ -31,7 +33,9 @@ const Dashboard = () => {
     const [selectedMonth, setSelectedMonth] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [pageLimit, setPageLimit] = useState(12); //to track the page limit in the CustomGrid
-
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [jobListData, setJobListData] = useState([]);
     //used to track if screen is mobile or not, if mobile then the pie charts are smaller size
     const isMobile = window.innerWidth <= 768;
     const [hamburgerOpen, setHamburgerOpen] = useState(false);
@@ -90,80 +94,52 @@ const Dashboard = () => {
         );
     };
 
-    //data set for popup graph
-    const mountData2023 = [
-        {name: 'Jan 2023', Jobs: 350, Sleeves: 801, Plates: 1540},
-        {name: 'Feb 2023', Jobs: 299, Sleeves: 601, Plates: 2540},
-        {name: 'Mar 2023', Jobs: 210, Sleeves: 501, Plates: 1940},
-        {name: 'Apr 2023', Jobs: 205, Sleeves: 901, Plates: 1240},
-        {name: 'May 2023', Jobs: 260, Sleeves: 201, Plates: 1340},
-        {name: 'Jun 2023', Jobs: 290, Sleeves: 401, Plates: 1840},
-        {name: 'Jul 2023', Jobs: 399, Sleeves: 601, Plates: 1240},
-        {name: 'Aug 2023', Jobs: 400, Sleeves: 1000, Plates: 270},
-        {name: 'Sept 2023', Jobs: 450, Sleeves: 1200, Plates: 2400},
-        {name: 'Oct 2023', Jobs: 460, Sleeves: 1100, Plates: 2200},
-        {name: 'Nov 2023', Jobs: 560, Sleeves: 900, Plates: 1800},
-        {name: 'Dec 2023', Jobs: 700, Sleeves: 800, Plates: 1200}
-    ];
-
-    const mountData2024 = [
-        {name: 'Jan 2024', Jobs: 450, Sleeves: 801, Plates: 1540},
-        {name: 'Feb 2024', Jobs: 299, Sleeves: 601, Plates: 2540},
-        {name: 'Mar 2024', Jobs: 310, Sleeves: 501, Plates: 1940},
-        {name: 'Apr 2024', Jobs: 305, Sleeves: 901, Plates: 1240},
-        {name: 'May 2024', Jobs: 360, Sleeves: 201, Plates: 1340},
-        {name: 'Jun 2024', Jobs: 390, Sleeves: 401, Plates: 1840},
-        {name: 'Jul 2024', Jobs: 299, Sleeves: 601, Plates: 1240},
-        {name: 'Aug 2024', Jobs: 30, Sleeves: 90, Plates: 270},
-        {name: 'Sept 2024', Jobs: 0, Sleeves: 0, Plates: 0},
-        {name: 'Oct 2024', Jobs: 0, Sleeves: 0, Plates: 0},
-        {name: 'Nov 2024', Jobs: 0, Sleeves: 0, Plates: 0},
-        {name: 'Dec 2024', Jobs: 0, Sleeves: 0, Plates: 0}
-    ];
-
     const closePopup = () => {
         setIsModalOpen(false);
         setSelectedMonth(null);
     };
 
-    //datasource for the drilldown details
-    const drilldownData = {
-        'Jan 2024': [
-            {make: "Toyota", model: "Corolla", price: 20000},
-            {make: "Mazda", model: "3", price: 18000},
-            {make: "Toyota", model: "Corolla", price: 20000},
-            {make: "Mazda", model: "6", price: 18000},
-            {make: "Toyota", model: "Corolla", price: 20000},
-            {make: "Mazda", model: "CX3", price: 18000},
-            {make: "Toyota", model: "Corolla", price: 20000},
-            {make: "Mazda", model: "CX30", price: 18000},
-            {make: "Toyota", model: "Corolla", price: 20000},
-            {make: "Mazda", model: "CX5", price: 18000},
-            {make: "Toyota", model: "Corolla", price: 20000},
-            {make: "Mazda", model: "CX3M", price: 18000},
-            {make: "Toyota", model: "Corolla", price: 20000},
-            {make: "Mazda", model: "3", price: 18000},
-            {make: "Toyota", model: "Corolla", price: 20000},
-            {make: "Mazda", model: "3", price: 18000},
-            {make: "Toyota", model: "Corolla", price: 20000},
-            {make: "Mazda", model: "3", price: 18000},
-            {make: "Toyota", model: "Corolla", price: 20000},
-            {make: "Mazda", model: "3", price: 18000},
-            {make: "Toyota", model: "Corolla", price: 20000},
-            {make: "Mazda", model: "3", price: 18000},
-            {make: "Toyota", model: "Corolla", price: 20000},
-            {make: "Mazda", model: "3", price: 18000}
-        ],
-        'Feb 2024': [
-            {make: "Ford", model: "Focus", price: 22000}
-        ],
-        'DEFAULT': [
-            {make: 'No data', model: '—', price: 0}
-        ]
-    };
 
-    //filter based on selectedMonth, not found? shows Default value
-    const tableData = drilldownData[selectedMonth] || drilldownData['DEFAULT'];
+    //get the job details when user selects a month in a graph
+    useEffect(() => {
+        if (!selectedMonth) { setJobListData([]); return; }
+
+        const controller = new AbortController();
+        setLoading(true);
+        setError(null);
+
+        (async () => {
+            try {
+                const res = await fetch(
+                    `${import.meta.env.VITE_BASE_URL}/jobs/get_jobs_by_year_month?SelectedMonthYear=${encodeURIComponent(selectedMonth)}`,
+                    {
+                        method: "GET",
+                        headers: {
+                            Accept: "application/json",
+                            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+                        },
+                        signal: controller.signal,
+                    }
+                );
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const json = await res.json();
+
+                const data = Array.isArray(json) ? json : [];
+                setJobListData(data);
+            } catch (e) {
+                if (e.name === "AbortError") return;                                    // request was cancelled; ignore
+                console.error(e);
+                setError(e.message || "Unable to get data from server.");
+                setJobListData([]);                                             //set an empty array so the grid won't complain
+            } finally {
+                setLoading(false);
+            }
+        })();
+
+        // cancel in-flight fetch when selectedMonth changes or component unmounts
+        return () => controller.abort();
+    }, [selectedMonth]);
+
 
     // the requirement is that on desktop the page limit for CustomGrid is 12
     //on mobile it is 6 so the user is not required to scroll up/down
@@ -195,7 +171,7 @@ const Dashboard = () => {
 
 
     //data for tomorrow and day after
-    const nextTwoDays = dashboardData?.NextTwoDays?.[0]; // first (and only) object in TodaysSchedule
+    const nextTwoDays = dashboardData?.NextTwoDays?.[0]; // first (and only) object in NextTwoDays
     const combinedForecastData = nextTwoDays ?
         dashboardData.NextTwoDays.map(day => ({
             name: day.ForDate,
@@ -205,7 +181,7 @@ const Dashboard = () => {
         })) : [];
 
     //forecast section
-    const nextFiveDays = dashboardData?.NextFiveDays?.[0]; // first (and only) object in TodaysSchedule
+    const nextFiveDays = dashboardData?.NextFiveDays?.[0]; // first (and only) object in NextFiveDays
     const forecastData = nextFiveDays ?
         dashboardData.NextFiveDays.map(day => ({
             name: day.ForDate,
@@ -242,6 +218,33 @@ const Dashboard = () => {
     ];
     const mountingSummaryMax = Math.max(...allValues, 0);
 
+
+    //Jobs overview helper to convert the data from API to expected data for graph
+    const makeChartDataForYear = (rows = [], year) =>
+        (Array.isArray(rows) ? rows : [])
+            .filter(data => data.SelectedYear === year)
+            .sort((a, b) => a.MonthNr - b.MonthNr)
+            .map(data => ({
+                name: `${data.MonthName} ${data.SelectedYear}`,
+                Jobs: data.Jobs ?? 0,
+                Sleeves: data.Sleeves ?? 0,
+                Plates: data.Plates ?? data.TotalPlates ?? 0,
+                AvgTimeBetweenJobs: data.AvgTimeBetweenJobs ?? 0,
+                AvgTimeBetweenSleeves: data.AvgTimeBetweenSleeves ?? 0,
+            }));
+
+    const currentYear = new Date().getFullYear();
+    // pull the right array from the payload
+    const jobRows = dashboardData?.JobSummary ?? [];
+    const mountDataLastYear    = makeChartDataForYear(jobRows, currentYear - 1);
+    const mountDataCurrentYear = makeChartDataForYear(jobRows, currentYear);
+
+
+
+
+
+    //to display the functionality of the dashboard, for now the dashboard fetches new data from SQL every 5 seconds
+    //in a real live scenario the website could use a trigger from SQL database via the API to tell the website 'there is new data' or a webhook, this is beyond the scope of this project
     useEffect(() => {
         if (!isOnline || (showJobPanel || showAvgTimeBetweenJobsPanel || showAvgTimeBetweenSleevesPanel)) {
             // Don't refresh data on dashboard if any panel is open or when internet is interrupted
@@ -249,37 +252,46 @@ const Dashboard = () => {
         }
 
         let intervalId;
+        let controller = new AbortController();
 
         async function fetchDashboard() {
+            controller.abort();                     // Cancel any previous request before starting a new one
+            controller = new AbortController();
+
             try {
-                const res = await fetch("http://localhost:58890/api/dashboard/get_dashboard_update", {
-                    method: "GET",
-                    headers: {
-                        "Accept": "application/json",
-                        'Authorization': `Basic ${btoa(import.meta.env.VITE_API_KEY)}`,
+                const res = await fetch(
+                    `${import.meta.env.VITE_BASE_URL}/dashboard/get_dashboard_update`,
+                    {
+                        method: "GET",
+                        headers: {
+                            Accept: "application/json",
+                            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+                        },
+                        signal: controller.signal, // pass controller signal
                     }
-                });
+                );
 
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const data = await res.json();
                 setDashboardData(data);
-                // setError(null);
             } catch (err) {
-                console.error("Error fetching dashboard counts:", err);
-                // setError(err.message);
+                if (err.name !== "AbortError") {
+                    console.error("Error fetching dashboard counts:", err);
+                }
             }
         }
 
-        // Fetch immediately on mount
-        fetchDashboard();
+        fetchDashboard();                                               // Fetch immediately on mount
 
-        // Then fetch every 5 seconds
-        intervalId = setInterval(fetchDashboard, 5000);
+        intervalId = setInterval(fetchDashboard, 5000);         // Then fetch every 5 seconds for demonstration purposes
 
-        // Cleanup when leaving Home page
-        return () => clearInterval(intervalId);
 
+        return () => {                                            // Cleanup when leaving Home page
+            clearInterval(intervalId);
+            controller.abort();                                         // cancel any in-progress request
+        };
     }, [isOnline, showJobPanel, showAvgTimeBetweenJobsPanel, showAvgTimeBetweenSleevesPanel]);
+
 
 
     return (
@@ -645,7 +657,7 @@ const Dashboard = () => {
                         <h2>Total number of Jobs, Sleeves, Plates:</h2>
                         <div className="responsiveContainerHeight400Padding60">
                             <ResponsiveContainer>
-                                <BarChart data={mountData2024}
+                                <BarChart data={mountDataCurrentYear}
                                           isAnimationActive={false}
                                           onClick={(data) => {
 
@@ -657,7 +669,10 @@ const Dashboard = () => {
                                               }
                                           }}
                                 >
-                                    <XAxis dataKey="name"/>
+                                    <XAxis
+                                        dataKey="name"
+                                        style={{ fontSize: '12px' }} //CSS doesn't work on this item
+                                    />
                                     <YAxis/>
                                     <Tooltip content={<CustomTooltip/>}/>
                                     <Legend
@@ -681,7 +696,7 @@ const Dashboard = () => {
 
                         <div className="responsiveContainerHeight400Padding60">
                             <ResponsiveContainer>
-                                <BarChart data={mountData2023}
+                                <BarChart data={mountDataLastYear}
                                           onClick={(data) => {
                                               if (data && data.activeLabel) {
                                                   setSelectedMonth(data.activeLabel);
@@ -690,7 +705,10 @@ const Dashboard = () => {
                                               }
                                           }}
                                 >
-                                    <XAxis dataKey="name"/>
+                                    <XAxis
+                                        dataKey="name"
+                                        style={{ fontSize: '12px' }} //CSS doesn't work on this item
+                                    />
                                     <YAxis/>
                                     <Tooltip content={<CustomTooltip/>}/>
                                     <Legend
@@ -727,22 +745,34 @@ const Dashboard = () => {
                                     <h3>Sales details for {selectedMonth}</h3>
                                     <hr/>
 
-                                    <CustomGrid
-                                        data={tableData}
-                                        columns={[
-                                            {id: 'make', name: 'Make', width: '120px'},
-                                            {id: 'model', name: 'Model', width: '130px'},
-                                            {id: 'price', name: 'Price', width: '130px'},
-                                        ]}
-                                        search={true}
-                                        pagination={true}
-                                        pageLimit={pageLimit} //dynamic page limit based on screen size
-                                        sort={true}
-                                    />
+                                    {selectedMonth && !loading && (
+                                        jobListData.length ? (
+                                            <CustomGrid
+                                                data={jobListData}
+                                                columns={[
+                                                    { id: 'JobID',                name: 'JobID',          width: '120px' },
+                                                    { id: 'JobName',              name: 'JobName',        width: '130px' },
+                                                    { id: 'JobNumber',            name: 'JobNumber',      width: '130px' },
+                                                    { id: 'TotalSleevesMounted',  name: 'Total Sleeves',    width: '130px' },
+                                                    { id: 'JobCompletionMinutes', name: 'Completion in Minutes',     width: '130px',
+                                                        formatter: c => (typeof c === 'number' ? c.toFixed(2) : '0.00') },
+                                                ]}
+                                                search
+                                                sort
+                                                pagination
+                                                pageLimit={pageLimit}
+                                            />
+                                        ) : (
+                                            <div className="p-4 text-sm opacity-70">No data for {selectedMonth}.</div>
+                                        )
+                                    )}
+
+                                    {error && <ErrorMessage message={error} />}
                                 </div>
                             </div>
                         )}
                     </div>
+                    {loading && <Spinner/>}
                 </div>
             )}
 
@@ -754,8 +784,11 @@ const Dashboard = () => {
                         <h2>Avg. Time between Jobs in minutes:</h2>
                         <div className="responsiveContainerHeight400Padding60">
                             <ResponsiveContainer>
-                                <BarChart data={mountData2024}>
-                                    <XAxis dataKey="name"/>
+                                <BarChart data={mountDataCurrentYear}>
+                                    <XAxis
+                                        dataKey="name"
+                                        style={{ fontSize: '12px' }} //CSS doesn't work on this item
+                                    />
                                     <YAxis/>
                                     <Tooltip content={<CustomTooltip/>}/>
                                     <Legend
@@ -767,15 +800,18 @@ const Dashboard = () => {
                                             </ul>
                                         )}
                                     />
-                                    <Bar dataKey="Jobs" fill={donutColors.Jobs}/>
+                                    <Bar dataKey="AvgTimeBetweenJobs" fill={donutColors.Jobs}/>
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
 
                         <div className="responsiveContainerHeight400Padding60">
                             <ResponsiveContainer>
-                                <BarChart data={mountData2023}>
-                                    <XAxis dataKey="name"/>
+                                <BarChart data={mountDataLastYear}>
+                                    <XAxis
+                                        dataKey="name"
+                                        style={{ fontSize: '12px' }} //CSS doesn't work on this item
+                                    />
                                     <YAxis/>
                                     <Tooltip content={<CustomTooltip/>}/>
                                     <Legend
@@ -787,7 +823,7 @@ const Dashboard = () => {
                                             </ul>
                                         )}
                                     />
-                                    <Bar dataKey="Jobs" fill={donutColors.Jobs}/>
+                                    <Bar dataKey="AvgTimeBetweenJobs" fill={donutColors.Jobs}/>
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
@@ -803,8 +839,11 @@ const Dashboard = () => {
                         <h2>Avg. Time between Sleeves in minutes:</h2>
                         <div className="responsiveContainerHeight400Padding60">
                             <ResponsiveContainer>
-                                <BarChart data={mountData2024}>
-                                    <XAxis dataKey="name"/>
+                                <BarChart data={mountDataCurrentYear}>
+                                    <XAxis
+                                        dataKey="name"
+                                        style={{ fontSize: '12px' }} //CSS doesn't work on this item
+                                    />
                                     <YAxis/>
                                     <Tooltip content={<CustomTooltip/>}/>
                                     <Legend
@@ -816,15 +855,18 @@ const Dashboard = () => {
                                             </ul>
                                         )}
                                     />
-                                    <Bar dataKey="Sleeves" fill={donutColors.Sleeves}/>
+                                    <Bar dataKey="AvgTimeBetweenSleeves" fill={donutColors.Sleeves}/>
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
 
                         <div className="responsiveContainerHeight400Padding60">
                             <ResponsiveContainer>
-                                <BarChart data={mountData2023}>
-                                    <XAxis dataKey="name"/>
+                                <BarChart data={mountDataLastYear}>
+                                    <XAxis
+                                        dataKey="name"
+                                        style={{ fontSize: '12px' }} //CSS doesn't work on this item
+                                    />
                                     <YAxis/>
                                     <Tooltip content={<CustomTooltip/>}/>
                                     <Legend
@@ -836,7 +878,7 @@ const Dashboard = () => {
                                             </ul>
                                         )}
                                     />
-                                    <Bar dataKey="Sleeves" fill={donutColors.Sleeves}/>
+                                    <Bar dataKey="AvgTimeBetweenSleeves" fill={donutColors.Sleeves}/>
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
