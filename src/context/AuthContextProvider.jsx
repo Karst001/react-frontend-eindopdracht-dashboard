@@ -7,6 +7,7 @@ import { startTokenAutoRefresh } from "../helpers/token/autoRefresh.js";        
 
 const auto_logout_time = 15 * 60 * 1000;                                        // Auto logout after 15 minutes of inactivity
 const warning_before_sign_out = 10 * 1000;                                        // Show warning 10s before logout
+const showJwtLogs = import.meta.env.VITE_SHOW_JWT_CONSOLE_LOGS === 'true'
 
 function AuthContextProvider({ children }) {
     const stopAutoRefreshRef = useRef(null);
@@ -30,7 +31,7 @@ function AuthContextProvider({ children }) {
         localStorage.removeItem('access_token');
         localStorage.removeItem('user');
 
-        if (import.meta.env.VITE_SHOW_JWT_CONSOLE_LOGS === 'true') {
+        if (showJwtLogs) {
             console.log('stopAutoRefreshRef = stopped');
         }
 
@@ -46,7 +47,7 @@ function AuthContextProvider({ children }) {
         clearTimeout(warningTimerRef.current);
         setShowWarning(false);
 
-        if (import.meta.env.VITE_SHOW_JWT_CONSOLE_LOGS === 'true') {
+        if (showJwtLogs) {
             console.log(auto ? 'User logged out due to inactivity' : 'User logged out manually');
         }
 
@@ -93,7 +94,7 @@ function AuthContextProvider({ children }) {
             onError: (error) => console.warn('refresh failed', error),
         });
 
-        if (import.meta.env.VITE_SHOW_JWT_CONSOLE_LOGS === 'true') {
+        if (showJwtLogs) {
             console.log('[AuthContextProvide.jsx] - User is logged in as:', fetchedUser.username);
         }
     }, []);
@@ -104,7 +105,7 @@ function AuthContextProvider({ children }) {
         const token = localStorage.getItem('access_token');
         const user = localStorage.getItem('user');
 
-        if (import.meta.env.VITE_SHOW_JWT_CONSOLE_LOGS === 'true') {
+        if (showJwtLogs) {
             console.log('[AuthContextProvide.jsx] - useEffect refresh');
         }
 
@@ -124,7 +125,7 @@ function AuthContextProvider({ children }) {
                 thresholdSeconds: 25,
                 // runImmediately: true,
                 onRefreshed: () => {
-                    if (import.meta.env.VITE_SHOW_JWT_CONSOLE_LOGS === 'true') {
+                    if (showJwtLogs) {
                         console.log('[AuthContextProvide.jsx -> startTokenAutoRefresh] - Refreshed page');
                     }
                 },

@@ -233,114 +233,6 @@
 }
 /* end */
 
-/* modal popup for displaying graphs*/
-.modal-overlay-graph-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: var(--transparent-dark-overlay); /* dark transparent overlay */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;          /*background becomes the layer behind the popup screen*/
-}
-
-.modal-graph-container-content {
-    position: fixed;
-    background-color: var(--color-white);
-    padding: 40px;
-    text-align: start;
-    border-radius: 12px;
-    width: 94%;
-    height: 90%;
-}
-
-.modal-graph-container-content h2 {
-    margin-top: 50px;       /* extra space between Close button and H2 */
-}
-
-
-
-/* the component ResponsiveContainer at default uses inline css like */
-/* <ResponsiveContainer width="100%", height=300px; >*/
-/* as inline css is not efficient I wrapped it in div likes below */
-/* not the prettiest but cleaner */
-.responsiveContainerHeight300 {
-    width: 100%;
-    height: 300px;
-}
-
-.responsiveContainerHeight400 {
-    width: 100%;
-    height: 400px;
-}
-
-.responsiveContainerHeight400Padding60 {
-    width: 100%;
-    height: 400px;
-    padding-bottom: 60px;
-}
-
-/* drill down 'page' overlay */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: var(--transparent-dark-overlay);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1100;
-}
-
-.modal-content {
-    background-color: var(--color-white);
-    padding: 2rem;
-    border-radius: 10px;
-    width: 90%;
-    max-width: 1500px;          /* max vh of the modal */
-    max-height: 90vh;           /* max vh of the modal */
-    overflow-y: auto;
-    position: relative;
-}
-
-
-/* custom styling for the AgGrid */
-/* Base cell styling */
-.custom-ag-grid .ag-cell,
-.custom-ag-grid .ag-header-cell {
-    border: 1px solid var(--color-light-soft-grey);
-    padding: 2px 10px;
-    font-size: 1.1em;
-    font-family: inherit;
-}
-
-
-/* Header styling */
-.custom-ag-grid .ag-header-cell-label {
-    font-size: 1.2rem;
-    font-weight: bold;
-    justify-content: center;         /* center text horizontally */
-    width: 100%;
-}
-
-.custom-ag-grid .ag-header-cell {
-    height: 30px !important;          /* this sets the header row height */
-    display: flex;
-}
-
-/* Checkbox styling */
-.custom-ag-grid .ag-checkbox-input-wrapper input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-}
-/* end */
-
-
 
 /* mobile response */
 @media screen and (max-width: 768px) {
@@ -488,5 +380,39 @@
         color: var(--color-background-blue);
     }
     /* end */
+
+    /* css for styling the links to look like my old buttons again to facilitate dynamic routing */
+    .sidebar-link-as-button {
+        display: inline-block;
+        text-align: center;
+        text-decoration: none;
+        width: 100%;
+        padding: 8px 0;
+        margin: 5px 0;
+
+        background: var(--color-background-blue);
+        color: var(--color-white);
+        border-radius: var(--global-button-primary-radius);
+        font-weight: 700;
+    }
+
+    .sidebar-link-as-button:hover {
+        filter: brightness(1.05);
+    }
+
+    .route-page {
+        background: var(--color-white);
+        border-radius: 8px;
+        padding: 1rem;
+        border: 1px solid var(--color-background-blue);
+        height: 100%;
+        overflow: auto;
+    }
+    /* end */
+
+    .modal-overlay-graph-container {
+        margin-top: 20px;
+        min-height: calc(100vh - 40px);
+    }
 }
 

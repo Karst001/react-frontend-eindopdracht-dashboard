@@ -13,6 +13,7 @@ import ErrorMessage from "../../components/errormessage/ErrorMessage.jsx";
 import {AuthContext} from "../../context/AuthContext.jsx";
 import { getLocalIsoString } from '../../helpers/timeConverter/timeConverter.js';
 
+const showLogs = import.meta.env.VITE_SHOW_CONSOLE_LOGS === 'true'
 
 const NewsLetter = () => {
     const [fullName, setFullName] = useState('');
@@ -67,7 +68,9 @@ const NewsLetter = () => {
                 const result = await response.json();
 
                 if (result.success === 1) {
-                    console.log('Newsletter: ', bodyContent);
+                    if (showLogs) {
+                        console.log('Newsletter: ', bodyContent);
+                    }
 
                     //send email to customer as confirmation
                     const emailHandler = await fetch(`${import.meta.env.VITE_BASE_URL}/email/send_automated_email_newsletter_subscription`, {
@@ -102,7 +105,10 @@ const NewsLetter = () => {
                 }
             } catch (error) {
                 if (error.name !== 'AbortError') {
-                    console.error(error);
+                    if (showLogs) {
+                        console.error(error);
+                    }
+
                     setPopupMessage(
                         'There was a problem subscribing. Please try again later.'
                     );

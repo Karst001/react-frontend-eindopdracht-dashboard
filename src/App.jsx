@@ -11,18 +11,29 @@ import Navigation from "./components/navigation/Navigation.jsx";
 import PrivateRoute from "./components/privateroute/PrivateRoute.jsx";
 import Profile from "./pages/profile/Profile.jsx";
 import SignOut from "./pages/signout/SignOut.jsx";
-import Dashboard from "./pages/dashboard/Dashboard.jsx";
+
 import Admin from "./pages/admin/Admin.jsx";
+import Dashboard from "./pages/dashboard/Dashboard.jsx";
+import JobsSleevesPlates from "./pages/dashboardgraphs/JobsSleevesPlates.jsx";
+import TimeBetweenJobs from "./pages/dashboardgraphs/TimeBetweenJobs.jsx";
+import TimeBetweenSleeves from "./pages/dashboardgraphs/TimeBetweenSleeves.jsx";
 
 
 function App() {
     //track the location as in what page is the active page
     const location = useLocation();
 
+    const hideFooter =
+        location.pathname.startsWith("/dashboard");
+
+    const hideNavigation =
+        location.pathname.startsWith("/dashboard/jobs-") ||
+        location.pathname.startsWith("/dashboard/time-between-");
+
     return (
         <>
             {/* <Navigation />  sits outside the <Routes> to ensure a nav bar shows up at the top*/}
-            <Navigation/>
+            {!hideNavigation && <Navigation />}
             <main>
                 <Routes>
                     <Route path="/" element={<Home/>}/>
@@ -37,12 +48,47 @@ function App() {
                         }
                     />
 
-                    {/*wrap the <Dashboard/> component inside the <PrivateRoute/> component to protect it from tampering like browser Back button or manual entry un the URL*/}
                     <Route
                         path="/dashboard"
                         element={
                             <PrivateRoute>
-                                <Dashboard/>
+                                <Dashboard />
+                            </PrivateRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/dashboard/jobs-sleeves-plates"
+                        element={
+                            <PrivateRoute>
+                                <JobsSleevesPlates />
+                            </PrivateRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/dashboard/jobs-sleeves-plates/:monthKey"
+                        element={
+                            <PrivateRoute>
+                                <JobsSleevesPlates />
+                            </PrivateRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/dashboard/time-between-jobs"
+                        element={
+                            <PrivateRoute>
+                                <TimeBetweenJobs />
+                            </PrivateRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/dashboard/time-between-sleeves"
+                        element={
+                            <PrivateRoute>
+                                <TimeBetweenSleeves />
                             </PrivateRoute>
                         }
                     />
@@ -61,14 +107,13 @@ function App() {
                     <Route path="/contact" element={<Contact/>}/>
                     <Route path="/signin" element={<SignIn/>}/>
                     <Route path="/signout" element={<SignOut/>}/>
-                    <Route path="/dashboard" element={<Dashboard/>}/>
-                    <Route path="/admin" element={<Admin/>}/>
                     <Route path="*" element={<NotFound/>}/> {/* fallback route */}
                 </Routes>
             </main>
 
             {/* footer applied here so it shows up on all pages throughout the website except dashboard as i want graphs to show as large as possible*/}
-            {location.pathname !== "/dashboard" && (
+
+            {!hideFooter && (
                 <footer className="footer">
                     <div className="footer-inner">
                         <span>ISO 9001 : 2015 Certification</span>

@@ -2,23 +2,22 @@ import React, {useState} from 'react';
 import { useRef, useEffect } from 'react';
 import './Admin.css';
 import Spinner from '../../components/loader/Spinner.jsx';
-import PopupMessage from "../../components/popupmessage/PopupMessage.jsx";
 import Button from "../../components/button/Button.jsx";
-import Label from "../../components/label/Label.jsx";
-import Input from '../../components/input/Input.jsx';
-import Textarea from "../../components/textarea/Textarea.jsx";
 import {h} from 'gridjs'; //a helper/handle needed for checkboxes inside custom grid and capture button click inside grid like the Editbutton
-import CustomGrid from '../../components/datagrid/CustomGrid.jsx';
-import {validateEmail} from "../../helpers/emailvalidation/emailValidation.js";
 // import { generateOTP } from '../../helpers/password/oneTimePassword.js';                 //future development
 import { getLocalIsoString } from '../../helpers/timeConverter/timeConverter.js';
 import { useInternetStatus  } from '../../hooks/useInternetStatus.js';
-import ErrorMessage from "../../components/errormessage/ErrorMessage.jsx";
 import { resizeAndCropImage } from '../../helpers/images/imageCropResize.js';               // Credits to Google and StackOverflow
 import ImageCropper from "../../components/imagecrop/ImageCropper.jsx";                     // Credits to Google and StackOverflow
 import {fetchProductsFromApi} from "../../helpers/product_fetch/product.js";                // Credits to Google and StackOverflow
-import ImageUploader from "../../components/imageuploader/ImageUploader.jsx";
 
+//4 components that are used in this form to keep the Admin.jsx code leaner and cleaner
+import AddUserSection from './components/AddUserSection.jsx';
+import EditUserSection from './components/EditUserSection.jsx';
+import AddProductSection from './components/AddProductSection.jsx';
+import EditProductSection from './components/EditProductSection.jsx';
+
+const showLogs = import.meta.env.VITE_SHOW_CONSOLE_LOGS === 'true'
 
 const Admin = () => {
     const [activeSection, setActiveSection] = useState(null);
@@ -72,28 +71,14 @@ const Admin = () => {
                 user.id === id ? { ...user, enabled: !user.enabled } : user
             );
 
-            // Check if something actually changed compared to originalUsersRef
+            //check if something actually changed compared to originalUsersRef state
             setUsersChanged(JSON.stringify(updated) !== JSON.stringify(originalUsersRef.current));
 
             return updated;
         });
     };
 
-    const handleToggleIsNew = (id) => {
-        setUsers(prev => {
-            const updated = prev.map(user =>
-                user.id === id ? { ...user, isNew: !user.isNew } : user
-            );
-
-            // Check if something actually changed compared to originalUsersRef
-            setUsersChanged(JSON.stringify(updated) !== JSON.stringify(originalUsersRef.current));
-
-            return updated;
-        });
-    };
-
-    //build array
-    //const tableData = users.map(user => [
+    //build array, const tableData = users.map(user => [
     const userData = (users || []).map(user => [
         user.userName,
         user.fullName,
@@ -110,16 +95,10 @@ const Admin = () => {
             onChange: () => handleToggleActive(user.id),
             className: 'toggle-switch'
         }),
-        h('input', {
-            type: 'checkbox',
-            checked: user.isNew,
-            onChange: () => handleToggleIsNew(user.id),
-            className: 'toggle-switch'
-        })
-        //the onChange event triggers handleToggle
+        user.isSuperuser ? '🔒 Yes' : ''
     ]);
 
-    const ResetForm = () => {
+    const resetForm = () => {
         setUserName('');
         setFirstName('');
         setLastName('');
@@ -133,7 +112,7 @@ const Admin = () => {
     };
 
 
-    const AddNewUser = async (userData, signal) => {
+    const addNewUser = async (userData, signal) => {
         const response = await fetch(`${import.meta.env.VITE_BASE_URL}/user/create`, {
             method: 'POST',
             headers: {
@@ -148,11 +127,76 @@ const Admin = () => {
     };
 
 
+    //logic to prevent the last Admin user to be deleted or demoted to a non admin user
+    //important because if there is no admin user left, users cannot be edited/added and login fails
+    const getUserKey = (u) => u.userId ?? u.email ?? u.userName;
+
+    const isAdminEnabled = (u) => Boolean(u.admin) && Boolean(u.enabled);
+
+    const didUserChange = (before, after) =>
+        Boolean(before.admin) !== Boolean(after.admin) ||
+        Boolean(before.enabled) !== Boolean(after.enabled);
+
+    const findChangedUsers = (beforeList, afterList) => {
+        const beforeMap = new Map(beforeList.map(u => [getUserKey(u), u]));
+        const changed = [];
+        for (const after of afterList) {
+            const before = beforeMap.get(getUserKey(after));
+            if (!before) continue;
+            if (didUserChange(before, after)) changed.push({ before, after });
+        }
+        return changed;
+    };
+
     const handleUpdateUsers = async () => {
         setLoading(true);
         const controller = new AbortController();
 
         try {
+            const originalUsers = originalUsersRef.current || [];
+            const changed = findChangedUsers(originalUsers, users);
+
+            //superuser cannot be demoted/disabled
+            for (const { before, after } of changed) {
+                const isSuper = Boolean(before.isSuperuser ?? after.isSuperuser);
+                if (!isSuper) continue;
+
+                const demote = Boolean(before.admin) && !after.admin;
+                const disable = Boolean(before.enabled) && !after.enabled;
+
+                if (demote || disable) {
+                    setPopupMessage('Superuser is protected and cannot be disabled or demoted.');
+
+                    const key = before.id ?? before.email ?? before.userName;
+
+                    setUsers((prev) =>
+                        prev.map((u) => {
+                            const uKey = u.id ?? u.email ?? u.userName;
+                            if (uKey !== key) return u;
+
+                            // revert only fields you want to protect
+                            return {
+                                ...u,
+                                admin: before.admin,
+                                enabled: before.enabled,
+                            };
+                        })
+                    );
+
+                    setLoading(false);
+                    return;
+                }
+            }
+
+
+            //at least one enabled admin after changes is required
+            const enabledAdminsAfter = users.filter(isAdminEnabled).length;
+            if (enabledAdminsAfter < 1) {
+                setPopupMessage('You cannot apply this update because it would remove the last enabled admin.');
+                setLoading(false);
+                return;
+            }
+
             const result = await updateUsers(users, controller.signal);
 
             if (result.success) {
@@ -164,14 +208,13 @@ const Admin = () => {
             }
         } catch (error) {
             if (error.name !== 'AbortError') {
-                console.error(error);
+                if (showLogs) console.error(error);
                 setPopupMessage('There was a problem updating the users. Please try again.');
             }
         } finally {
             setLoading(false);
         }
     };
-
 
     const updateUsers = async (updatedUsers, signal) => {
         const response = await fetch(`${import.meta.env.VITE_BASE_URL}/user/update_users`, {
@@ -184,7 +227,7 @@ const Admin = () => {
                 UserID: user.id,
                 UserIsAdmin: user.admin,
                 UserEnabled: user.enabled,
-                UserIsNew: user.isNew
+                // UserIsNew: user.isNew
             }))),
             signal
         });
@@ -214,7 +257,9 @@ const Admin = () => {
             body: formData
         });
 
-        if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error: ${response.status}`);
+        }
         return await response.json();
     };
 
@@ -242,13 +287,15 @@ const Admin = () => {
             body: formData
         });
 
-        if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error: ${response.status}`);
+        }
         return await response.json();
     };
 
 
     //validate the username with records in the database, there can never be a duplicate username
-    const CheckUserNameExists = async () => {
+    const checkUserNameExists = async () => {
         if (!username.trim()) return;
 
         if (isOnline) {
@@ -263,16 +310,17 @@ const Admin = () => {
                 const result = await response.json();
 
                 if (result.resultCode  === 1) {
-                    // Username is available
+                    //username is available
                     setUsernameValid(true);
                     setUsernameCheckMessage('');
                 } else {
-                    // Username already exists
                     setUsernameValid(false);
                     setUsernameCheckMessage('This username is already in use.');
                 }
             } catch (err) {
-                console.error("Username validation failed:", err);
+                if (showLogs) {
+                    console.error("Username validation failed:", err);
+                }
                 setUsernameValid(false);
                 setUsernameCheckMessage("Could not validate username.");
             }
@@ -283,7 +331,7 @@ const Admin = () => {
 
 
     //validate the email with records in the database, there can never be a duplicate email
-    const CheckEmailExists = async () => {
+    const checkEmailExists = async () => {
         if (!username.trim()) return;
 
         if (isOnline) {
@@ -296,11 +344,13 @@ const Admin = () => {
                 });
 
                 const result = await response.json();
-                console.log('New user', result);
+                if (showLogs) {
+                    console.log('New user', result);
+                }
 
                 switch (result.resultCode) {
                     case -1:
-                        // Email is not in database yet
+                        //email is not in database yet
                         setUserEmailValid(true);
                         setUserEmailCheckMessage('');
                         break;
@@ -308,7 +358,6 @@ const Admin = () => {
                         //ok to proceed
                         break;
                     case 1:
-                        // Email already exists
                         setUserEmailValid(false);
                         setUserEmailCheckMessage('This email is already in use.');
                         break;
@@ -317,7 +366,9 @@ const Admin = () => {
                         break;
                 }
             } catch (err) {
-                console.error("Email validation failed:", err);
+                if (showLogs) {
+                    console.error("Email validation failed:", err);
+                }
                 setUserEmailValid(false);
                 setUserEmailCheckMessage("Could not validate email.");
             }
@@ -330,16 +381,6 @@ const Admin = () => {
     const canSubmitNewUser = Boolean(username.trim() && firstName.trim() && lastName.trim() && email.trim() && customerID.trim());
     const canSubmitEditUser = Boolean(usersChanged);
     const canSubmitNewProduct = Boolean(productTitle.trim() !== '' && productDescription.trim() !== '' && productImage !== null);
-
-    //used for onetime password (OTP) in future development
-    // const [otp, setOtp] = useState('');
-    // const handleGenerate = () => {
-    //     const newOtp = generateOTP(10, { digits: true, upperCase: true, lowerCase: true });                  // generate a random OTP
-    //     setOtp(newOtp);
-    // };
-    //when logic is written for API, send OTP with the request, using: handleGenerate
-    //this OTP is stored in the database, user will get email or SMS or apps like Duo 2FA, beyond the scope of this project and for future development
-
 
     useEffect(() => {
         const hasChanged = JSON.stringify(users) !== JSON.stringify(originalUsersRef.current);
@@ -378,12 +419,15 @@ const Admin = () => {
                 admin: user.Admin ?? false,
                 enabled: user.Enabled ?? false,
                 isNew: user.IsNew ?? false,
+                isSuperuser: user.IsSuperuser === true || user.IsSuperuser === 1 || user.IsSuperuser === '1',
             }));
 
             setUsers(allUsers);
             originalUsersRef.current = allUsers;
         } catch (error) {
-            console.error('Failed to fetch users:', error);
+            if (showLogs) {
+                console.error('Failed to fetch users:', error);
+            }
         }
     };
 
@@ -453,7 +497,9 @@ const Admin = () => {
             setProductImage(file);                              // <-- File
             setProductImagePreview(URL.createObjectURL(file));  // preview uses the new File
         } catch (error) {
-            console.error("Image resizing failed:", error);
+            if (showLogs) {
+                console.error("Image resizing failed:", error);
+            }
         } finally {
             if (fileInputRef.current) fileInputRef.current.value = '';
             setShowCropper(false);
@@ -480,7 +526,9 @@ const Admin = () => {
             } catch (e) {
                 if (e.name !== 'AbortError') {
                     setError('Failed to load products.');
-                    console.error(e);
+                    if (showLogs) {
+                        console.error(e);
+                    }
                 }
             } finally {
                 setLoading(false); // hide spinner
@@ -553,496 +601,122 @@ const Admin = () => {
 
                     <main className="admin-content">
                         {activeSection === 'addUser' && (
-                            <section className="add-user-section">
-                                <h2>Add a new user:</h2>
-                                <form className="admin-form" onSubmit={async (e) => {
-                                    e.preventDefault();
+                            <AddUserSection
+                                // state
+                                username={username}
+                                setUserName={setUserName}
+                                firstName={firstName}
+                                setFirstName={setFirstName}
+                                lastName={lastName}
+                                setLastName={setLastName}
+                                email={email}
+                                setEmail={setEmail}
+                                customerID={customerID}
+                                setCustomerID={setCustomerID}
+                                isAdmin={isAdmin}
+                                setIsAdmin={setIsAdmin}
 
-                                    setLoading(true);
-                                    const localTime = getLocalIsoString();
+                                //validation and user interface
+                                emailValid={emailValid}
+                                setEmailValid={setEmailValid}
+                                customerIDValid={customerIDValid}
+                                setCustomerIDValid={setCustomerIDValid}
+                                usernameValid={usernameValid}
+                                usernameCheckMessage={usernameCheckMessage}
+                                userEmailValid={userEmailValid}
+                                userEmailCheckMessage={userEmailCheckMessage}
 
-                                    let result;
-                                    if (isOnline) {
-                                        try {
-                                            const controller = new AbortController();
+                                //some  shared flags
+                                canSubmitNewUser={canSubmitNewUser}
+                                loading={loading}
+                                isOnline={isOnline}
+                                error={error}
+                                popupMessage={popupMessage}
 
-                                            result = await AddNewUser(
-                                                {
-                                                    UserName: username,
-                                                    UserFirstName: firstName,
-                                                    UserLastName: lastName,
-                                                    UserEmailAddress: email,
-                                                    UserIsAdmin: isAdmin,
-                                                    UserCreatedDate: localTime,
-                                                },
-                                                controller.signal
-                                            );
-
-                                            if (result.success === 1) {
-                                                ResetForm();
-                                                setPopupMessage('User was added successfully.');
-                                            } else {
-                                                setPopupMessage(result.message || 'User creation failed.');
-                                            }
-                                        } catch (error) {
-                                            if (error.name !== 'AbortError') {
-                                                console.error(error);
-                                                setPopupMessage('There was a problem adding the user. Please try again.');
-                                            }
-                                        } finally {
-                                            setLoading(false);
-                                        }
-                                    } else {
-                                        setError('Internet connection not available.');
-                                    }
-
-                                    //user was added successfully, now send email invite link to customer
-                                    if (result.success === 1) {
-                                        const emailHandler = await fetch(`${import.meta.env.VITE_BASE_URL}/email/send_automated_email_user_invite`, {
-                                            method: 'POST',
-                                            headers: {
-                                                'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-                                                'Content-Type': 'application/json'
-                                            },
-                                            body: JSON.stringify({
-                                                to: email,
-                                                emailType: 1,           //type = 2: send Invitation link template via API to usee
-                                            })
-                                        });
-
-                                        if (emailHandler.ok) {
-                                            setPopupMessage('Email was sent successfully to ' + email);
-
-                                            //'trigger the button behaviour' for Edit USer
-                                            setActiveSection('editUser');
-                                            await fetchUsers(); //reload the user table
-                                        } else {
-                                            setPopupMessage('There was a problem sending the email. Please try again.');
-                                        }
-                                    }
-                                }}>
-
-                                    {/*onBlur is fired when the email text field loses focus, then the CheckUserNameExists is called*/}
-                                    <fieldset className="admin-form">
-                                        <Label label={<><span>User name:</span> <span className="required">*</span></>}>
-                                            <Input
-                                                value={username}
-                                                onChange={(e) => setUserName(e.target.value)}
-                                                onBlur={CheckUserNameExists}
-                                                required
-                                                placeholder="Enter the user name for this account"
-                                                minLength={6}
-                                                maxLength={10}
-                                                showValidation={true}
-                                            />
-                                            {!usernameValid && <p className="error-text">{usernameCheckMessage}</p>}
-                                        </Label>
-
-                                        <Label label={<><span>First name:</span> <span className="required">*</span></>}>
-                                            <Input
-                                                value={firstName}
-                                                onChange={(e) => setFirstName(e.target.value)}
-                                                required
-                                                placeholder="Enter the first name for this user"
-                                                minLength={2}
-                                                maxLength={30}
-                                                showValidation={true}
-                                            />
-                                        </Label>
-
-                                        <Label label={<><span>Last name:</span> <span className="required">*</span></>}>
-                                            <Input
-                                                value={lastName}
-                                                onChange={(e) => setLastName(e.target.value)}
-                                                required
-                                                placeholder="Enter the last name for this user"
-                                                minLength={5}
-                                                maxLength={50}
-                                                showValidation={true}
-                                            />
-                                        </Label>
-
-                                        {/*Validate email on blur, when user leaves the field*/}
-                                        {/*onBlur is fired when the email text field loses focus, then the CheckEmailExists is called*/}
-                                        <Label label={<><span>E-mail:</span> <span className="required">*</span></>}>
-                                            <Input
-                                                value={email}
-                                                onChange={(e) => {
-                                                    const value = e.target.value;
-                                                    setEmail(value);
-                                                    setEmailValid(validateEmail(value));            // continuous validation while typing
-                                                }}
-                                                onBlur={CheckEmailExists}
-                                                required
-                                                placeholder="Enter the email address for this user"
-                                            />
-                                            {!emailValid && <p className="error-text">Invalid email address</p>}
-                                            {!userEmailValid && <p className="error-text">{userEmailCheckMessage}</p>}
-                                        </Label>
-
-                                        <Label label={<><span>Customer ID:</span> <span className="required">*</span></>}>
-                                            <Input
-                                                type="text"
-                                                value={customerID}
-                                                onChange={(e) => {
-                                                    const value = e.target.value;
-                                                    setCustomerID(value);
-                                                    setCustomerIDValid(/^\d{6,}$/.test(value)); // 6 or more digits only
-                                                }}
-                                                onBlur={(e) => {
-                                                    const value = e.target.value;
-                                                    setCustomerIDValid(/^\d{6,}$/.test(value));
-                                                }}
-                                                required
-                                                placeholder="Enter the customer ID for this account (6 digits long)"
-                                                minLength={6}
-                                                maxLength={6}
-                                                showValidation={true}
-                                            />
-                                            {!customerIDValid && <p className="error-text">Customer ID must be at least 6 digits, text is not allowed</p>}
-                                        </Label>
-
-                                        <Label className="checkbox-label">
-                                            <Input
-                                                type="checkbox"
-                                                checked={isAdmin}
-                                                onChange={(e) => setIsAdmin(e.target.checked)}
-                                            />
-
-                                            This user has administrator rights
-                                        </Label>
-
-                                        {error && <ErrorMessage message={error} />}
-
-                                        {/* button only enabled when there are no errors and email is valid and customerIDis valid */}
-                                        <Button type="submit" disabled={!canSubmitNewUser || loading || !emailValid || !customerIDValid || !usernameValid || !userEmailValid || !isOnline}>
-                                            Add User
-                                        </Button>
-
-                                        <PopupMessage
-                                            message={popupMessage}
-                                            //navigate to home page after user clicks OK
-                                            onClose={() => {
-                                                setPopupMessage('');
-                                                ResetForm();
-                                            }}
-                                        />
-                                    </fieldset>
-                                </form>
-                            </section>
+                                // various actions
+                                setLoading={setLoading}
+                                setError={setError}
+                                setPopupMessage={setPopupMessage}
+                                resetForm={resetForm}
+                                setActiveSection={setActiveSection}
+                                fetchUsers={fetchUsers}
+                                addNewUser={addNewUser}
+                                checkUserNameExists={checkUserNameExists}
+                                checkEmailExists={checkEmailExists}
+                                getLocalIsoString={getLocalIsoString}
+                            />
                         )}
-
 
                         {activeSection === 'editUser' && (
-                            <section className="admin-section">
-                                <h2>Edit users:</h2>
-                                <>
-                                    <CustomGrid
-                                        data={userData}
-                                        columns={[
-                                            { id: 'userName', name: 'User name', width: '100px' },
-                                            { id: 'fullName', name: 'Full name', width: '120px' },
-                                            { id: 'email', name: 'Email', width: '160px' },
-                                            { id: 'admin', name: 'Admin?', width: '70px' },
-                                            { id: 'active', name: 'Active?', width: '70px' },
-                                            { id: 'isNew', name: 'New?', width: '70px' },
-                                        ]}
-                                        search={true}
-                                        pagination={true}
-                                        pageLimit={6}
-                                        sort={false}
-                                    />
-
-                                    {userData.length === 0 && (
-                                        <p>No users found.</p>
-                                    )}
-                                </>
-
-                                {error && <ErrorMessage message={error} />}
-                                {/*button disabled when there are no changes*/}
-
-                                <Button onClick={handleUpdateUsers} disabled={!canSubmitEditUser || !isOnline}>
-                                    Update User
-                                </Button>
-
-                                <PopupMessage
-                                    message={popupMessage}
-                                    //navigate to home page after user clicks OK
-                                    onClose={() => {
-                                        setPopupMessage('');
-                                        ResetForm();
-                                    }}
-                                />
-                             </section>
+                            <EditUserSection
+                                userData={userData}
+                                error={error}
+                                popupMessage={popupMessage}
+                                canSubmitEditUser={canSubmitEditUser}
+                                isOnline={isOnline}
+                                handleUpdateUsers={handleUpdateUsers}
+                                resetForm={resetForm}
+                                setPopupMessage={setPopupMessage}
+                            />
                         )}
 
-
                         {activeSection === 'addProduct' && (
-                            <section className="admin-section">
-                                <div className="add-product-section">
-                                    <h2>Add Product:</h2>
-
-                                    <form className="admin-form" onSubmit={async (e) => {
-                                        e.preventDefault();
-                                        setLoading(true);
-
-                                        try {
-                                            const result = await uploadNewProduct({
-                                                title: productTitle,
-                                                description: productDescription,
-                                                image: productImage
-                                            });
-
-                                            if (result.success) {
-                                                setPopupMessage('Product was added successfully.');
-                                                ResetForm();
-                                            }
-                                        } catch (error) {
-                                            console.error(error);
-                                            setPopupMessage('There was a problem adding the product. Please try again.');
-                                        } finally {
-                                            setLoading(false);
-                                        }
-                                    }}>
-
-                                        <fieldset className="admin-form">
-                                            <Label label={<><span>Title:</span> <span className="required">*</span></>}>
-                                                <Input
-                                                    value={productTitle}
-                                                    onChange={(e) => setProductTitle(e.target.value)}
-                                                    required
-                                                    placeholder="Enter the product title"
-                                                    minLength={10}
-                                                    maxLength={30}
-                                                    showCounter={true}
-                                                    showValidation={true}
-                                                />
-                                            </Label>
-
-                                            <Label label={<><span>Description:</span> <span className="required">*</span></>}>
-                                                <Textarea
-                                                    value={productDescription}
-                                                    onChange={(e) => setProductDescription(e.target.value)}
-                                                    rows={4}
-                                                    required
-                                                    placeholder="Enter the description for this product"
-                                                    minLength={25}
-                                                    maxLength={650}
-                                                    showValidation={true}
-                                                />
-                                            </Label>
-
-                                            <ImageUploader
-                                                fileInputRef={fileInputRef}
-                                                productImage={productImage}
-                                                productImagePreview={productImagePreview}
-                                                setProductImage={setProductImage}
-                                                setProductImagePreview={setProductImagePreview}
-                                                handleImageChange={handleImageChange}
-                                            />
-
-                                            {error && <ErrorMessage message={error} />}
-                                            <Button type="submit" disabled={!canSubmitNewProduct || loading || !isOnline}>
-                                                Create Product
-                                            </Button>
-
-                                            <PopupMessage
-                                                message={popupMessage}
-                                                //navigate to home page after user clicks OK
-                                                onClose={() => {
-                                                    setPopupMessage('');
-                                                    ResetForm();
-                                                }}
-                                            />
-
-                                        </fieldset>
-                                    </form>
-                                </div>
-                            </section>
+                            <AddProductSection
+                                productTitle={productTitle}
+                                setProductTitle={setProductTitle}
+                                productDescription={productDescription}
+                                setProductDescription={setProductDescription}
+                                productImage={productImage}
+                                productImagePreview={productImagePreview}
+                                setProductImage={setProductImage}
+                                setProductImagePreview={setProductImagePreview}
+                                fileInputRef={fileInputRef}
+                                handleImageChange={handleImageChange}
+                                uploadNewProduct={uploadNewProduct}
+                                canSubmitNewProduct={canSubmitNewProduct}
+                                loading={loading}
+                                isOnline={isOnline}
+                                error={error}
+                                popupMessage={popupMessage}
+                                setLoading={setLoading}
+                                setPopupMessage={setPopupMessage}
+                                resetForm={resetForm}
+                            />
                         )}
 
                         {activeSection === 'editProduct' && (
-                            <section className="admin-section">
-                                <h2>Edit products:</h2>
-                                <>
-                                    <CustomGrid
-                                        data={allProductData}
-                                        columns={[
-                                            { id: 'header', name: 'Title', width: '140px' },
-                                            { id: 'detail', name: 'Description', width: '300px' },
-                                            { id: 'discontinued', name: "Hide?", width: '90px' },
-                                            { id: 'image', name: 'Image', width: '130px' },
-                                            { id: 'actions', name: 'Actions', width: '120px' },
-                                        ]}
-                                        search={true}
-                                        pagination={true}
-                                        pageLimit={5}
-                                        sort={false}
-                                    />
+                            <EditProductSection
+                                allProductData={allProductData}
+                                productData={productData}
+                                error={error}
+                                popupMessage={popupMessage}
+                                resetForm={resetForm}
+                                setPopupMessage={setPopupMessage}
 
-                                    {productData.length === 0 && (
-                                        <p>No products found.</p>
-                                    )}
-                                </>
+                                // modal
+                                showEditModal={showEditModal}
+                                setShowEditModal={setShowEditModal}
+                                productToEdit={productToEdit}
+                                setProductToEdit={setProductToEdit}
 
-                                {error && <ErrorMessage message={error} />}
-                                {/*button disabled when there are no changes*/}
+                                //edit actions
+                                uploadEditedProduct={uploadEditedProduct}
+                                setLoading={setLoading}
+                                loading={loading}
+                                isOnline={isOnline}
+                                setError={setError}
 
-                                <PopupMessage
-                                    message={popupMessage}
-                                    //navigate to home page after user clicks OK
-                                    onClose={() => {
-                                        setPopupMessage('');
-                                        ResetForm();
-                                    }}
-                                />
+                                //image relatd
+                                fileInputRef={fileInputRef}
+                                productImage={productImage}
+                                productImagePreview={productImagePreview}
+                                setProductImage={setProductImage}
+                                setProductImagePreview={setProductImagePreview}
+                                handleImageChange={handleImageChange}
 
-                                {/*modal form when user clicks on Edit inside the datagrid*/}
-                                {showEditModal && productToEdit && (
-                                    <div className="modal-overlay">
-                                        <div className="add-user-section">
-                                            <h3>Edit Product</h3>
-
-                                            <form
-                                                className="admin-form modal-form"
-                                                onSubmit={async (e) => {
-                                                    e.preventDefault();
-                                                    setLoading(true);
-                                                    if (isOnline) {
-                                                    try {
-                                                        const result = await uploadEditedProduct({
-                                                            id: productToEdit.id,
-                                                            title: productToEdit.title,
-                                                            description: productToEdit.description,
-                                                            discontinued: productToEdit.discontinued,
-                                                            newFile: productImage || null, // use the cropped File if present
-                                                        });
-
-                                                        if (result?.success) {
-                                                            const refreshed = await fetchProductsFromApi(true);
-
-                                                            setShowEditModal(false);
-                                                            setPopupMessage("Product updated successfully.");
-
-                                                            //refresh datagrid
-                                                            setProductData(refreshed);
-                                                        } else {
-                                                            setPopupMessage(result?.message || "Update failed.");
-                                                        }
-                                                    } catch (err) {
-                                                        console.error(err);
-                                                        setPopupMessage("Something went wrong.");
-                                                    } finally {
-                                                        setLoading(false);
-                                                    }
-                                                    } else {
-                                                        setError('Internet connection not available.');
-                                                    }
-                                                }}
-                                            >
-                                                <div className="modal-body">
-                                                    <fieldset className="admin-form">
-                                                        <Label>
-                                                            Header:
-                                                            <Input
-                                                                type="text"
-                                                                value={productToEdit.title}
-                                                                onChange={(e) =>
-                                                                    setProductToEdit({
-                                                                        ...productToEdit,
-                                                                        title: e.target.value,
-                                                                    })
-                                                                }
-                                                                minLength={10}
-                                                                maxLength={30}
-                                                                showValidation={true}
-                                                                required
-                                                            />
-                                                        </Label>
-
-                                                        <Label
-                                                            label={
-                                                                <>
-                                                                    <span>Description:</span>{" "}
-                                                                    <span className="required">*</span>
-                                                                </>
-                                                            }
-                                                        >
-                                                            <Textarea
-                                                                value={productToEdit.description}
-                                                                onChange={(e) =>
-                                                                    setProductToEdit({
-                                                                        ...productToEdit,
-                                                                        description: e.target.value,
-                                                                    })
-                                                                }
-                                                                rows={5}
-                                                                required
-                                                                placeholder="Enter the description for this product"
-                                                                minLength={25}
-                                                                maxLength={650}
-                                                                showValidation={true}
-                                                            />
-                                                        </Label>
-
-                                                        <div className="checkbox-group">
-                                                            <label className="checkbox-label">
-                                                                <input
-                                                                    type="checkbox"
-                                                                    checked={productToEdit.discontinued}
-                                                                    onChange={(e) =>
-                                                                        setProductToEdit({
-                                                                            ...productToEdit,
-                                                                            discontinued: e.target.checked,
-                                                                        })
-                                                                    }
-                                                                />
-                                                                Hide on Home page?
-                                                            </label>
-                                                        </div>
-
-                                                        <ImageUploader
-                                                            fileInputRef={fileInputRef}
-                                                            productImage={productImage}
-                                                            productImagePreview={
-                                                                productImagePreview || productToEdit.imageBase64 || null
-                                                            }
-                                                            setProductImage={setProductImage}
-                                                            setProductImagePreview={setProductImagePreview}
-                                                            handleImageChange={handleImageChange}
-                                                        />
-
-                                                        <PopupMessage
-                                                            message={popupMessage}
-                                                            onClose={() => {
-                                                                setPopupMessage("");
-                                                            }}
-                                                        />
-                                                    </fieldset>
-                                                </div>
-
-                                                {error && <ErrorMessage message={error} />}
-                                                {/*button disabled when there are no changes*/}
-
-                                                <div className="modal-footer">
-                                                    <Button
-                                                        type="button"
-                                                        onClick={() => setShowEditModal(false)}
-                                                    >
-                                                        Cancel
-                                                    </Button>
-                                                    <Button
-                                                        type="submit"
-                                                        disabled={loading || !isOnline}
-                                                    >
-                                                        Save
-                                                    </Button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                )}
-                            </section>
+                                // refresh
+                                setProductData={setProductData}
+                            />
                         )}
 
                         {/* this cropper is used for Adding and Editing products */}
@@ -1063,3 +737,5 @@ const Admin = () => {
 }
 
 export default Admin;
+
+

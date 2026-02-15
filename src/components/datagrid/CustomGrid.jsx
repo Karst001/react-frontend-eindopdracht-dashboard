@@ -1,13 +1,13 @@
 import React from 'react';
-import {Grid} from "gridjs-react";
+import { Grid } from "gridjs-react";
 import 'gridjs/dist/theme/mermaid.css';
 import './CustomGrid.css';
 
-//using a 3rd party datagrid from React gridJs
-const CustomGrid = ({ data, columns, search, pagination, pageLimit, sort }) => {
+const CustomGrid = ({ data, columns, search, pagination, pageLimit, sort, gridKey, onCellClick, }) => {
     return (
         <div className="my-grid-wrapper">
             <Grid
+                key={gridKey}
                 data={data}
                 columns={columns}
                 search={search}
@@ -18,6 +18,13 @@ const CustomGrid = ({ data, columns, search, pagination, pageLimit, sort }) => {
                     thead: 'custom-header',
                     td: 'custom-cell',
                 }}
+                {...(onCellClick
+                    ? {
+                        eventEmitter: (emitter) => {
+                            emitter.on('cellClick', (...args) => onCellClick(...args));
+                        },
+                    }
+                    : {})}
             />
         </div>
     );

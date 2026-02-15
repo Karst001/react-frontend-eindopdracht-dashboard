@@ -4,6 +4,7 @@ import { jwtDecode } from "jwt-decode";
 //get/set the token
 const getToken = () => localStorage.getItem("access_token");
 const setToken = (t) => localStorage.setItem("access_token", t);
+const showLogs = import.meta.env.VITE_SHOW_CONSOLE_LOGS === 'true'
 
 // Starts an auto-refresh routine for short-lived JWT access tokens
 
@@ -58,7 +59,9 @@ export function startTokenAutoRefresh({
                                           runImmediately = true,
                                       } = {}) {
 
-    console.log('[autoRefresh.js] - startTokenAutoRefresh called')
+    if (showLogs) {
+        console.log('[autoRefresh.js] - startTokenAutoRefresh called')
+    }
     let stopped = false;                                                // flag for tracking cleanup
     let timerId = null;                                                    // holds the scheduled timeout
     let inflight = null;                                                   // holds a promise if a refresh is already running and prevents overlaps
@@ -67,7 +70,9 @@ export function startTokenAutoRefresh({
     //Clears any active timer so we don’t end up with multiple pending timeouts firing at unexpected times
     const clearTimer = () => {
         if (timerId) {
-            console.log('[autoRefresh.js] - clearTimer');
+            if (showLogs) {
+                console.log('[autoRefresh.js] - clearTimer');
+            }
             clearTimeout(timerId);
             timerId = null;
         }
@@ -80,8 +85,9 @@ export function startTokenAutoRefresh({
     // - Schedules a timeout for "expiry - threshold - safety"
     // - If token cannot be decoded, we refresh immediately as a fallback to prevent token expiration issues
     const scheduleNext = () => {
-        console.log('[autoRefresh.js] - scheduleNext');
-
+        if (showLogs) {
+            console.log('[autoRefresh.js] - scheduleNext');
+        }
         clearTimer();
         if (stopped) {
             return;
@@ -111,11 +117,16 @@ export function startTokenAutoRefresh({
         //determine when to fire a refresh next
         const fireInSec = Math.max(0, expSec - nowSec - thresholdSeconds - safetySeconds);
         const fireInMs = fireInSec * 1000;
-        console.log('[autoRefresh.js] - fireInSec', fireInSec);
+
+        if (showLogs) {
+            console.log('[autoRefresh.js] - fireInSec', fireInSec);
+        }
 
         // Use setTimeout for a single fire, this is not a interval
         timerId = setTimeout(checkAndMaybeRefresh, fireInMs);
-        console.log('[autoRefresh.js] - timerId', timerId);
+        if (showLogs) {
+            console.log('[autoRefresh.js] - timerId', timerId);
+        }
     };
 
 
@@ -125,7 +136,9 @@ export function startTokenAutoRefresh({
     // - Reschedules the next refresh based on the new expiry from new token value
     const refreshNow = async () => {
         if (stopped || inflight) {
-            console.log('[autoRefresh.js] - stopped/inflight', inflight);
+            if (showLogs) {
+                console.log('[autoRefresh.js] - stopped/inflight', inflight);
+            }
             return inflight;
         }
 
@@ -141,7 +154,9 @@ export function startTokenAutoRefresh({
                 inflight = null;
 
                 // schedule based on the NEW token
-                console.log('[autoRefresh.js] - scheduleNext');
+                if (showLogs) {
+                    console.log('[autoRefresh.js] - scheduleNext');
+                }
                 scheduleNext();                         // reschedule using the new token’s exp
             }
         })().catch((err) => { onError?.(err); });
@@ -156,7 +171,10 @@ export function startTokenAutoRefresh({
     // - The tab regains focus (visibilitychange)
     // - The browser comes back online
     const checkAndMaybeRefresh = () => {
-        console.log('[autoRefresh.js] - checkAndMaybeRefresh');
+        if (showLogs) {
+            console.log('[autoRefresh.js] - checkAndMaybeRefresh');
+        }
+
         if (stopped) {
             return;
         }
@@ -174,7 +192,9 @@ export function startTokenAutoRefresh({
             const secondsLeft = (Number(exp) || 0) - nowSec;
 
             if (secondsLeft <= thresholdSeconds + safetySeconds) {
-                console.log('[autoRefresh.js] - refreshNow: ', true)
+                if (showLogs) {
+                    console.log('[autoRefresh.js] - refreshNow: ', true)
+                }
 
                 //refresh now before it is expired
                 refreshNow();
@@ -252,7 +272,9 @@ async function fetchNewToken(baseUrl) {
             throw new Error("no token in response");
         }
 
-        console.log('[autoRefresh.js] - fetchNewToken: ', data.token)
+        if (showLogs) {
+            console.log('[autoRefresh.js] - fetchNewToken: ', data.token)
+        }
         return data.token;
     } finally {
         clearTimeout(id);

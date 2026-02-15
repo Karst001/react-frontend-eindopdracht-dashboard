@@ -29,6 +29,8 @@ const ContactUs = () => {
     const [error, setError] = useState('');
     const [showDropdownWarning, setShowDropdownWarning] = useState(false);
 
+    const showLogs = import.meta.env.VITE_SHOW_CONSOLE_LOGS === 'true'
+
     //load the list of countries on page mount
     useEffect(() => {
         // Fetch countries from a public API
@@ -41,7 +43,9 @@ const ContactUs = () => {
                 setCountries(countryNames);
             })
             .catch((err) => {
-                console.error('Error fetching countries:', err);
+                if (showLogs) {
+                    console.error('Error fetching countries:', err);
+                }
             });
     }, []);
 
@@ -118,7 +122,10 @@ const ContactUs = () => {
                     setPopupMessage('There was a problem sending the email. Please try again.');
                 }
 
-                console.log('ContactUs: ', bodyContent);
+                if (showLogs) {
+                    console.log('ContactUs: ', bodyContent);
+                }
+
                 // Reset form
                 setArea('');
                 setCountry('');
@@ -131,7 +138,10 @@ const ContactUs = () => {
             }
         } catch (error) {
             if (error.name !== 'AbortError') {
-                console.error('Error submitting contact form:', error);
+                if (showLogs) {
+                    console.error('Error submitting contact form:', error);
+                }
+
                 setPopupMessage('There was a problem submitting your request. Please try again later.');
             }
         } finally {

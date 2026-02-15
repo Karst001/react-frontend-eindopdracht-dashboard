@@ -13,6 +13,8 @@ import { useInternetStatus  } from '../../hooks/useInternetStatus.js';
 import { getLocalIsoString } from '../../helpers/timeConverter/timeConverter.js';
 import {hashPasswordToHex} from "../../helpers/password/passwordEncryption.js";                      //helper to encrypt the password
 
+const showLogs = import.meta.env.VITE_SHOW_CONSOLE_LOGS === 'true'
+
 function Profile() {
     const { user, updateSubscription } = useContext(AuthContext);
     const [currentPassword, setCurrentPassword] = useState('');
@@ -71,12 +73,14 @@ function Profile() {
 
     //make the call to the backend for updating the Profile details
     const updateProfile = async ({ email, subscribed, currentDate }, signal) => {
-        console.log('Sending request to API:', {
-            email,
-            subscribed,
-            currentDate,
-            url: `${import.meta.env.VITE_BASE_URL}/newsletter/newsletter_update`
-        });
+        if (showLogs) {
+            console.log('Sending request to API:', {
+                email,
+                subscribed,
+                currentDate,
+                url: `${import.meta.env.VITE_BASE_URL}/newsletter/newsletter_update`
+            });
+        }
 
         try {
             const response = await fetch(
@@ -97,7 +101,10 @@ function Profile() {
             }
 
             const json = await response.json();
-            console.log('Parsed JSON response:', json);
+
+            if (showLogs) {
+                console.log('Parsed JSON response:', json);
+            }
             return json;
         } catch (fetchErr) {
             console.error('Fetch failed:', fetchErr);

@@ -1,0 +1,22 @@
+Wanneer er producten worden toegevoegd kan deze tekst gebruikt worden:
+
+Behorende bij FAMM3.0.png
+- Title: FAMM 3.0 2nd Generation
+- Description: The FAMM 3.0 is the most advanced automatic mounting solution that provides incomparable speed, repeatability, and accuracy. This plate mounting machine represents the 3rd generation of fully automatic mounters and it’s the ideal solution for short and frequent job runs. The FAMM 3.0 features a 30-second mounting speed per plate with an accuracy of 2 microns, while a sleeve change takes only 10 seconds.
+
+
+Behorende bij SAMM2.0.png
+- Title: SAMM 2.0 2nd Generation
+- Description:  The Automatic SAMM 2.0 is the world’s fastest and most accurate flexo plate mounter with unmatched repeatability and speed. The next generation SAMM is the solution to common trends in the flexo printing industry such as higher quality demands, shorter and more frequent job runs. These challenges are easily tackled with 3rd generation Automatic Mounting.
+
+
+Behorende bij SAMM3.0.png
+- Title: SAMM 3.0 1st Generation
+- Description: The new Automatic SAMM 3.0 is the world’s fastest and most accurate flexo plate mounter with unmatched repeatability and speed. SAMM 3.0 comes with a completely new mechanical, visual, and user interaction design. With SAMM 3.0 you can achieve high-quality plate mounting with minimal operator interaction, ensuring an accuracy of 5 microns and a rapid mounting speed of under 30 seconds per plate.
+
+
+
+Behorende bij MOM 1300.png
+- Title: MOM 1300 + PRO
+- Description: MOM DD+ Pro is our semi-automatic flexo plate mounter with cost-saving features and options for maximizing accuracy. With the MOM DD+ Pro, the mounting is easy, fast, and efficient.
+
