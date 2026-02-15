@@ -1,4 +1,6 @@
 //called by Home.jsx and Admin.jsx
+const showLogs = import.meta.env.VITE_SHOW_CONSOLE_LOGS === 'true'
+
 export const fetchProductsFromApi = async (showDiscontinued = false, signal) => {
     try {
         const Url = showDiscontinued
@@ -30,14 +32,18 @@ export const fetchProductsFromApi = async (showDiscontinued = false, signal) => 
                 alt: product.ProductAlt
             }));
         } else {
-            console.error("Unexpected response:", result);
+            if (showLogs) {
+                console.error("Unexpected response:", result);
+            }
             return [];
         }
     } catch (err) {
         if (err.name === 'AbortError') {              // request was cancelled
             return [];
         }
-        console.error("Failed to load products:", err);
+        if (showLogs) {
+            console.error("Failed to load products:", err);
+        }
         return [];
     }
 };

@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+const showLogs = import.meta.env.VITE_SHOW_CONSOLE_LOGS === 'true'
+
 //this is a hook that is called from AuthContextProvider
 //if there is no user activity for a set amount of time, the app will logout
 const useAutoLogout = (logoutFn, timeout = timeout) => {
@@ -14,7 +16,9 @@ const useAutoLogout = (logoutFn, timeout = timeout) => {
 
         timer.current = setTimeout(() => {
             logoutFn();             // logout function (clears auth, stops JWT refresh process)
-            console.log('[useAutoLogout.js] - setTimeout called to action');
+            if (showLogs) {
+                console.log('[useAutoLogout.js] - setTimeout called to action');
+            }
         }, timeout);
     };
 
